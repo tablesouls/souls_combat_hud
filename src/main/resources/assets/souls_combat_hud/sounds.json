@@ -1,0 +1,38 @@
+{
+  "cycle_weapon": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "minecraft:item.armor.equip_leather",
+        "type": "event"
+      }
+    ]
+  },
+  "cycle_offhand": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "minecraft:item.armor.equip_leather",
+        "type": "event"
+      }
+    ]
+  },
+  "cycle_consumable": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "minecraft:item.armor.equip_leather",
+        "type": "event"
+      }
+    ]
+  },
+  "cycle_spell": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "minecraft:item.armor.equip_leather",
+        "type": "event"
+      }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+package net.tablesouls.souls_combat_hud;
+
+import com.mojang.logging.LogUtils;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.IExtensionPoint;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
+import net.tablesouls.souls_combat_hud.sounds.ModSounds;
+import org.slf4j.Logger;
+
+@Mod(SoulsCombatHUD.MODID)
+public class SoulsCombatHUD
+{
+    public static final String MODID = "souls_combat_hud";
+    private static final Logger LOGGER = LogUtils.getLogger();
+
+    public SoulsCombatHUD(FMLJavaModLoadingContext context)
+    {
+        IEventBus modEventBus = context.getModEventBus();
+        context.registerConfig(ModConfig.Type.CLIENT, SoulsCombatHUDConfig.CLIENT_SPEC);
+        ModSounds.SOUND_EVENTS.register(modEventBus);
+
+        context.registerExtensionPoint(
+                IExtensionPoint.DisplayTest.class,
+                () -> new IExtensionPoint.DisplayTest(() -> "ANY", (remoteVersion, isServer) -> true)
+        );
+    }
+}
