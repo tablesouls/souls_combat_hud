@@ -19,7 +19,7 @@ public class EpicFightCompat {
     public static boolean isWeapon(ItemStack stack) {
         if (!LOADED) return false;
         if (!stack.isEmpty()) {
-            if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.include_combat_preferred.get()
+            if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.includeCombatPreferred.get()
                 && ClientConfig.combatPreferredItems.contains(stack.getItem())) {
                 return true;
             }

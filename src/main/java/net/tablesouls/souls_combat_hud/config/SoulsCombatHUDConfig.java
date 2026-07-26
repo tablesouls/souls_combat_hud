@@ -76,7 +76,6 @@ public final class SoulsCombatHUDConfig {
     public static class EquipmentHud {
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.BooleanValue cycleSound;
-        public final ForgeConfigSpec.BooleanValue cycleConsumableSwitch;
 
         public final Slots slots;
 
@@ -95,10 +94,6 @@ public final class SoulsCombatHUDConfig {
             cycleSound = builder
                     .comment("Should cycling items play a sound.")
                     .define("cycle_sound", true);
-
-            cycleConsumableSwitch = builder
-                    .comment("Should cycling your consumables jump to the item.")
-                    .define("cycle_consumable_switch", false);
 
             slots = new Slots(builder);
 
@@ -140,23 +135,23 @@ public final class SoulsCombatHUDConfig {
 
             public static class WeaponSlot {
                 public final ForgeConfigSpec.BooleanValue enabled;
-                public final ForgeConfigSpec.BooleanValue include_combat_preferred;
-                public final ForgeConfigSpec.ConfigValue<List<? extends String>> include_weapons_list;
-                public final ForgeConfigSpec.ConfigValue<List<? extends String>> exclude_weapons_list;
+                public final ForgeConfigSpec.BooleanValue includeCombatPreferred;
+                public final ForgeConfigSpec.ConfigValue<List<? extends String>> includeWeaponsList;
+                public final ForgeConfigSpec.ConfigValue<List<? extends String>> excludeWeaponsList;
 
                 WeaponSlot(ForgeConfigSpec.Builder builder) {
                     builder.push("weapon_slot");
 
                     enabled = builder.define("enabled", true);
-                    include_combat_preferred = builder
+                    includeCombatPreferred = builder
                             .comment("Include Combat Preferred Items (Epic Fight)")
                             .define("include_combat_prefered", true);
-                    include_weapons_list = builder
+                    includeWeaponsList = builder
                             .comment("Include items as a weapon")
-                            .defineList("include_weapon_list", List.of(), o -> o instanceof String);
-                    exclude_weapons_list = builder
+                            .defineList("include_weapons_list", List.of(), o -> o instanceof String);
+                    excludeWeaponsList = builder
                             .comment("Exclude items as a weapon")
-                            .defineList("exclude_weapon_list", List.of(), o -> o instanceof String);
+                            .defineList("exclude_weapons_list", List.of(), o -> o instanceof String);
                     builder.pop();
                 }
             }
@@ -177,6 +172,8 @@ public final class SoulsCombatHUDConfig {
                 public final ForgeConfigSpec.BooleanValue enabled;
                 public final Toggle name;
                 public final ForgeConfigSpec.IntValue maxPreviewSlots;
+                public final ForgeConfigSpec.BooleanValue cycleConsumableSwitch;
+                public final ForgeConfigSpec.BooleanValue useConsumableOnSelected;
 
                 ConsumableSlot(ForgeConfigSpec.Builder builder) {
                     builder.push("consumable_slot");
@@ -184,7 +181,12 @@ public final class SoulsCombatHUDConfig {
                     enabled = builder.define("enabled", true);
                     name = new Toggle(builder, "name", true);
                     maxPreviewSlots = builder.defineInRange("max_preview_slots", 3, 0, 12);
-
+                    cycleConsumableSwitch = builder
+                            .comment("Should cycling your consumables jump to the item.")
+                            .define("cycle_consumable_switch", false);
+                    useConsumableOnSelected = builder
+                            .comment("Should the use consumable key work directly if selected hotbar item is a consumable.")
+                            .define("use_consumable_on_selected", false);
                     builder.pop();
                 }
             }

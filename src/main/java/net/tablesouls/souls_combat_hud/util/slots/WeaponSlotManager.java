@@ -11,9 +11,11 @@ import java.util.List;
 
 public class WeaponSlotManager {
     private static final RegexItemList INCLUDE_WEAPONS =
-            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.include_weapons_list);
+            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.includeWeaponsList);
     private static final RegexItemList EXCLUDE_WEAPONS =
-            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.exclude_weapons_list);
+            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.excludeWeaponsList);
+
+    private static int lastWeaponSlot = -1;
 
     public static boolean isWeapon(ItemStack stack) {
         if (stack.isEmpty()) return false;
@@ -31,16 +33,21 @@ public class WeaponSlotManager {
         return HotbarHelper.getMatchingHotbarSlots(player, WeaponSlotManager::isWeapon);
     }
 
+    public static void setLastWeaponSlot(int slot) {
+        lastWeaponSlot = slot;
+    }
+
     public static int getNextSlot(Player player) {
         List<Integer> slots = getWeaponHotbarSlots(player);
-        if (slots.isEmpty()) {
-            return -1;
-        }
+        if (slots.isEmpty()) return -1;
 
         int currentSlot = player.getInventory().selected;
         ItemStack currentStack = player.getInventory().items.get(currentSlot);
 
         if (!isWeapon(currentStack)) {
+            if (slots.contains(lastWeaponSlot)) {
+                return lastWeaponSlot;
+            }
             return slots.get(0);
         }
 
@@ -51,6 +58,11 @@ public class WeaponSlotManager {
 
     public static int getJumpTargetSlot(Player player) {
         List<Integer> slots = getWeaponHotbarSlots(player);
-        return slots.isEmpty() ? -1 : slots.get(0);
+        if (slots.isEmpty()) return -1;
+        if (slots.contains(lastWeaponSlot)) {
+            return lastWeaponSlot;
+        }
+
+        return slots.get(0);
     }
 }

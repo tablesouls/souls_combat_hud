@@ -93,6 +93,7 @@ public class EquipmentHudOverlay implements IGuiOverlay {
             if (isWeapon) {
                 weaponSlotStack = mainHand;
                 isPreviewOnly = false;
+                WeaponSlotManager.setLastWeaponSlot(player.getInventory().selected);
             } else {
                 int jumpSlot = WeaponSlotManager.getJumpTargetSlot(player);
                 weaponSlotStack = jumpSlot >= 0 ? player.getInventory().items.get(jumpSlot) : ItemStack.EMPTY;
@@ -110,10 +111,11 @@ public class EquipmentHudOverlay implements IGuiOverlay {
             this.renderItemSlot(guiGraphics, mc, anchorX, bottomY, consumable, MAIN_U_CONSUMABLE);
 
             if (!consumable.isEmpty()) {
-                if (!SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.name.enabled.get()) return;
-                String name = consumable.getHoverName().getString();
-                int nameY = bottomY + SLOT_HALF_H + TEXT_PADDING;
-                this.drawName(guiGraphics, mc, anchorX, name, nameY, anchor.isRight());
+                if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.name.enabled.get()) {
+                    String name = consumable.getHoverName().getString();
+                    int nameY = bottomY + SLOT_HALF_H + TEXT_PADDING;
+                    this.drawName(guiGraphics, mc, anchorX, name, nameY, anchor.isRight());
+                };
             }
 
             int bottomPreviewY = bottomY + SLOT_HALF_H - PREVIEW_HALF;
@@ -137,7 +139,7 @@ public class EquipmentHudOverlay implements IGuiOverlay {
                     int textHeight = 9;
                     int nameY = topY - SLOT_HALF_H - TEXT_PADDING - textHeight;
                     this.drawName(guiGraphics, mc, anchorX, spellName, nameY, anchor.isRight());
-                };
+                }
             }
 
             int topPreviewY = topY - SLOT_HALF_H + PREVIEW_HALF;

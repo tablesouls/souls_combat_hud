@@ -37,6 +37,17 @@ public class ConsumableSlotManager {
         return stack.getItem() instanceof PotionItem;
     }
 
+    public static void setSelectedToHeldItem(Player player) {
+        int heldSlot = player.getInventory().selected;
+        List<Integer> slots = getConsumableHotbarSlots(player);
+        int idx = slots.indexOf(heldSlot);
+        if (idx >= 0){
+            selectedIndex = idx;
+            lastSelectedSlot = heldSlot;
+            lastSelectedItem = player.getMainHandItem().getItem();
+        }
+    }
+
     private static List<Integer> getConsumableHotbarSlots(Player player) {
         return HotbarHelper.getMatchingHotbarSlots(player, stack -> isConsumable(stack, player));
     }

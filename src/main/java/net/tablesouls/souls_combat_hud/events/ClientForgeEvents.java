@@ -107,7 +107,7 @@ public class ClientForgeEvents {
 
         while (ModKeyBindings.CYCLE_CONSUMABLE.consumeClick()) {
             ConsumableSlotManager.cycle(player);
-            if (SoulsCombatHUDConfig.EQUIPMENT_HUD.cycleConsumableSwitch.get()) {
+            if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.cycleConsumableSwitch.get()) {
                 jumpToCycledConsumable(player);
             }
         }
@@ -150,8 +150,16 @@ public class ClientForgeEvents {
             return;
         }
 
-        int slot = ConsumableSlotManager.getSelectedHotbarSlot(player);
+        ItemStack mainHand = player.getMainHandItem();
+        if (ConsumableSlotManager.isConsumable(mainHand, player)) {
+            if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.useConsumableOnSelected.get()) {
+                ConsumableSlotManager.setSelectedToHeldItem(player);
+                beginAutoConsume(player);
+                return;
+            }
+        }
 
+        int slot = ConsumableSlotManager.getSelectedHotbarSlot(player);
         if (slot < 0) {
             return;
         }
