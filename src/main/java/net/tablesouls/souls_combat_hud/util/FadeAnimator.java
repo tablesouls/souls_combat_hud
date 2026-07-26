@@ -1,7 +1,7 @@
 package net.tablesouls.souls_combat_hud.util;
 
 public class FadeAnimator {
-    private static final long MAX_DELTA_MS = 50L; // caps how much a single tick can move, even after a lag spike
+    private static final long MAX_DELTA_MS = 50L;
 
     private final float fadeInPerMs;
     private final float fadeOutPerMs;

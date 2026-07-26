@@ -1,6 +1,5 @@
 package net.tablesouls.souls_combat_hud.compat.epicfight;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -10,7 +9,6 @@ import net.tablesouls.souls_combat_hud.client.SkillOverlayRenderer;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.util.ElementAnchor;
 import yesman.epicfight.client.ClientEngine;
-import yesman.epicfight.client.gui.BattleModeGui;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.skill.SkillSlot;
