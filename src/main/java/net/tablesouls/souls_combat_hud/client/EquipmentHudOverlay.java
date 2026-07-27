@@ -128,21 +128,17 @@ public class EquipmentHudOverlay implements IGuiOverlay {
         if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.enabled.get()) {
             this.renderItemSlot(guiGraphics, mc, offhandX, offhandY, player.getOffhandItem(), MAIN_U_OFFHAND);
 
-            if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.enabled.get()) {
-                this.renderItemSlot(guiGraphics, mc, offhandX, offhandY, player.getOffhandItem(), MAIN_U_OFFHAND);
+            if (MoreOffhandSlotsCompat.hasMultipleOffhandItems(player)) {
+                ElementAnchor previewAnchor = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.previewSlots.anchor.get();
+                int previewX = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.previewSlots.x.get();
+                int previewY = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.previewSlots.y.get();
+                int maxOffhandPreviewSlots = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.previewSlots.maxSlots.get();
 
-                if (MoreOffhandSlotsCompat.hasMultipleOffhandItems(player)) {
-                    ElementAnchor previewAnchor = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.previewSlots.anchor.get();
-                    int previewX = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.previewSlots.x.get();
-                    int previewY = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.previewSlots.y.get();
-                    int maxOffhandPreviewSlots = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.previewSlots.maxSlots.get();
-
-                    List<ItemStack> offhandPreviews = MoreOffhandSlotsCompat.getOffhandPreviews(player, maxOffhandPreviewSlots);
-                    PreviewRowLayout.render(guiGraphics, offhandX + previewX, offhandY + previewY, SLOT_HALF_W, SLOT_HALF_H,
-                            offhandPreviews, maxOffhandPreviewSlots, PREVIEW_SIZE, PREVIEW_GAP, previewAnchor,
-                            SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.previewSlots.orientation.get(),
-                            (gg, stack, cx, cy) -> this.renderPreviewItemSlot(gg, mc, cx, cy, stack));
-                }
+                List<ItemStack> offhandPreviews = MoreOffhandSlotsCompat.getOffhandPreviews(player, maxOffhandPreviewSlots);
+                PreviewRowLayout.render(guiGraphics, offhandX + previewX, offhandY + previewY, SLOT_HALF_W, SLOT_HALF_H,
+                        offhandPreviews, maxOffhandPreviewSlots, PREVIEW_SIZE, PREVIEW_GAP, previewAnchor,
+                        SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.previewSlots.orientation.get(),
+                        (gg, stack, cx, cy) -> this.renderPreviewItemSlot(gg, mc, cx, cy, stack));
             }
         }
 
@@ -277,6 +273,13 @@ public class EquipmentHudOverlay implements IGuiOverlay {
         guiGraphics.renderItem(stack, 0, 0);
         guiGraphics.renderItemDecorations(mc.font, stack, 0, 0);
         guiGraphics.flush();
+
+        int half = iconSize/2;
+        guiGraphics.enableScissor(centerX - half, centerY - half, centerX + half, centerY + half);
+        RenderSystem.clearDepth(1.0D);
+        RenderSystem.clear(org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT, false);
+        guiGraphics.disableScissor();
+
         guiGraphics.pose().popPose();
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
