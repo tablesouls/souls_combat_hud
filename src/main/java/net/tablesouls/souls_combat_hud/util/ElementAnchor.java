@@ -11,36 +11,77 @@ public enum ElementAnchor {
     BOTTOM_CENTER(Horizontal.CENTER, Vertical.BOTTOM),
     BOTTOM_RIGHT(Horizontal.RIGHT, Vertical.BOTTOM);
 
-    public enum Horizontal { LEFT, CENTER, RIGHT }
-    public enum Vertical { TOP, CENTER, BOTTOM }
-
     private final Horizontal horizontal;
     private final Vertical vertical;
+
+    public enum Horizontal {
+        LEFT,
+        CENTER,
+        RIGHT
+    }
+
+    public enum Vertical {
+        TOP,
+        CENTER,
+        BOTTOM
+    }
 
     ElementAnchor(Horizontal horizontal, Vertical vertical) {
         this.horizontal = horizontal;
         this.vertical = vertical;
     }
 
-    public Horizontal horizontal() { return this.horizontal; }
-    public Vertical vertical() { return this.vertical; }
+    public Horizontal horizontal() {
+        return horizontal;
+    }
 
-    public boolean isRight() { return this.horizontal == Horizontal.RIGHT; }
-    public boolean isBottom() { return this.vertical == Vertical.BOTTOM; }
+    public Vertical vertical() {
+        return vertical;
+    }
+
+    public boolean isRight() {
+        return this.horizontal == Horizontal.RIGHT;
+    }
+
+    public boolean isBottom() {
+        return this.vertical == Vertical.BOTTOM;
+    }
+
+    public int dx() {
+        return switch (horizontal) {
+            case LEFT -> -1;
+            case RIGHT -> 1;
+            case CENTER -> 0;
+        };
+    }
+
+    public int dy() {
+        return switch (vertical) {
+            case TOP -> -1;
+            case BOTTOM -> 1;
+            case CENTER -> 0;
+        };
+    }
 
     public int resolveX(int screenWidth, int offsetX, int width) {
         switch (this.horizontal) {
-            case RIGHT:  return screenWidth - offsetX - width;
-            case CENTER: return (screenWidth - width) / 2 - offsetX;
-            default:     return offsetX;
+            case RIGHT:
+                return screenWidth - offsetX - width;
+            case CENTER:
+                return (screenWidth - width) / 2 - offsetX;
+            default:
+                return offsetX;
         }
     }
 
     public int resolveY(int screenHeight, int offsetY, int height) {
         switch (this.vertical) {
-            case BOTTOM: return screenHeight - offsetY - height;
-            case CENTER: return (screenHeight - height) / 2 - offsetY;
-            default:     return offsetY;
+            case BOTTOM:
+                return screenHeight - offsetY - height;
+            case CENTER:
+                return (screenHeight - height) / 2 - offsetY;
+            default:
+                return offsetY;
         }
     }
 }

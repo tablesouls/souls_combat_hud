@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.client;
+package net.tablesouls.souls_combat_hud.util;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;

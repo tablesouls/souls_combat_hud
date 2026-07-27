@@ -2,6 +2,7 @@ package net.tablesouls.souls_combat_hud.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.tablesouls.souls_combat_hud.util.ElementAnchor;
+import net.tablesouls.souls_combat_hud.util.ElementOrientation;
 
 import java.util.List;
 
@@ -133,16 +134,54 @@ public final class SoulsCombatHUDConfig {
                 builder.pop();
             }
 
+            public static class PreviewSlots {
+                public final ForgeConfigSpec.IntValue maxSlots;
+                public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
+                public final ForgeConfigSpec.EnumValue<ElementOrientation> orientation;
+                public final ForgeConfigSpec.ConfigValue<Integer> x;
+                public final ForgeConfigSpec.ConfigValue<Integer> y;
+
+                PreviewSlots(ForgeConfigSpec.Builder builder,
+                             int defaultMaxSlots,
+                             ElementAnchor defaultAnchor,
+                             ElementOrientation defaultOrientation,
+                             int defaultX,
+                             int defaultY
+                ) {
+                    builder
+                            .comment("Preview Slots")
+                            .push("preview_slots");
+                    maxSlots = builder.defineInRange("max_slots", defaultMaxSlots, 0, 12);
+                    anchor = builder.defineEnum("anchor", defaultAnchor);
+                    orientation = builder.defineEnum("orientation", defaultOrientation);
+                    x = builder.define("x", defaultX);
+                    y = builder.define("y", defaultY);
+
+                    builder.pop();
+                }
+            }
+
             public static class WeaponSlot {
                 public final ForgeConfigSpec.BooleanValue enabled;
+                public final PreviewSlots previewSlots;
                 public final ForgeConfigSpec.BooleanValue includeCombatPreferred;
                 public final ForgeConfigSpec.ConfigValue<List<? extends String>> includeWeaponsList;
                 public final ForgeConfigSpec.ConfigValue<List<? extends String>> excludeWeaponsList;
+                public final ForgeConfigSpec.ConfigValue<Integer> x;
+                public final ForgeConfigSpec.ConfigValue<Integer> y;
 
                 WeaponSlot(ForgeConfigSpec.Builder builder) {
                     builder.push("weapon_slot");
 
                     enabled = builder.define("enabled", true);
+                    previewSlots = new PreviewSlots(
+                            builder,
+                            0,
+                            ElementAnchor.CENTER_RIGHT,
+                            ElementOrientation.VERTICAL,
+                            0,
+                            0
+                    );
                     includeCombatPreferred = builder
                             .comment("Include Combat Preferred Items (Epic Fight)")
                             .define("include_combat_prefered", true);
@@ -152,18 +191,32 @@ public final class SoulsCombatHUDConfig {
                     excludeWeaponsList = builder
                             .comment("Exclude items as a weapon")
                             .defineList("exclude_weapons_list", List.of(), o -> o instanceof String);
+                    x = builder.define("x", 28);
+                    y = builder.define("y", 0);
                     builder.pop();
                 }
             }
 
             public static class OffhandSlot {
                 public final ForgeConfigSpec.BooleanValue enabled;
+                public final PreviewSlots previewSlots;
+                public final ForgeConfigSpec.ConfigValue<Integer> x;
+                public final ForgeConfigSpec.ConfigValue<Integer> y;
 
                 OffhandSlot(ForgeConfigSpec.Builder builder) {
                     builder.push("offhand_slot");
 
                     enabled = builder.define("enabled", true);
-
+                    previewSlots = new PreviewSlots(
+                            builder,
+                            0,
+                            ElementAnchor.CENTER_LEFT,
+                            ElementOrientation.VERTICAL,
+                            0,
+                            0
+                    );
+                    x = builder.define("x", -28);
+                    y = builder.define("y", 0);
                     builder.pop();
                 }
             }
@@ -171,22 +224,32 @@ public final class SoulsCombatHUDConfig {
             public static class ConsumableSlot {
                 public final ForgeConfigSpec.BooleanValue enabled;
                 public final Toggle name;
-                public final ForgeConfigSpec.IntValue maxPreviewSlots;
+                public final PreviewSlots previewSlots;
                 public final ForgeConfigSpec.BooleanValue cycleConsumableSwitch;
                 public final ForgeConfigSpec.BooleanValue useConsumableOnSelected;
+                public final ForgeConfigSpec.ConfigValue<Integer> x;
+                public final ForgeConfigSpec.ConfigValue<Integer> y;
 
                 ConsumableSlot(ForgeConfigSpec.Builder builder) {
                     builder.push("consumable_slot");
 
                     enabled = builder.define("enabled", true);
                     name = new Toggle(builder, "name", true);
-                    maxPreviewSlots = builder.defineInRange("max_preview_slots", 3, 0, 12);
                     cycleConsumableSwitch = builder
                             .comment("Should cycling your consumables jump to the item.")
                             .define("cycle_consumable_switch", false);
                     useConsumableOnSelected = builder
                             .comment("Should the use consumable key work directly if selected hotbar item is a consumable.")
                             .define("use_consumable_on_selected", false);
+                    previewSlots = new PreviewSlots(
+                            builder,
+                            3,
+                            ElementAnchor.BOTTOM_RIGHT,
+                            ElementOrientation.HORIZONTAL,
+                            0,
+                            -16);
+                    x = builder.define("x", 0);
+                    y = builder.define("y", 18);
                     builder.pop();
                 }
             }
@@ -194,15 +257,24 @@ public final class SoulsCombatHUDConfig {
             public static class SpellSlot {
                 public final ForgeConfigSpec.BooleanValue enabled;
                 public final Toggle name;
-                public final ForgeConfigSpec.IntValue maxPreviewSlots;
+                public final PreviewSlots previewSlots;
+                public final ForgeConfigSpec.ConfigValue<Integer> x;
+                public final ForgeConfigSpec.ConfigValue<Integer> y;
 
                 SpellSlot(ForgeConfigSpec.Builder builder) {
                     builder.push("spell_slot");
 
                     enabled = builder.define("enabled", true);
                     name = new Toggle(builder, "name", true);
-                    maxPreviewSlots = builder.defineInRange("max_preview_slots", 3, 0, 12);
-
+                    previewSlots = new PreviewSlots(
+                            builder,
+                            3,
+                            ElementAnchor.TOP_RIGHT,
+                            ElementOrientation.HORIZONTAL,
+                            0,
+                            16);
+                    x = builder.define("x", 0);
+                    y = builder.define("y", -18);
                     builder.pop();
                 }
             }

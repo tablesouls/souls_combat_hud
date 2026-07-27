@@ -21,8 +21,8 @@ public class ClientModEvents {
 
     @SubscribeEvent
     public static void onRegisterGuiOverlays(RegisterGuiOverlaysEvent event) {
-        event.registerBelow(VanillaGuiOverlay.CHAT_PANEL.id(), "equipment_hud", new EquipmentHudOverlay());
-        event.registerBelow(VanillaGuiOverlay.CHAT_PANEL.id(), "skill_overlay", new SkillOverlay());
-        event.registerBelow(VanillaGuiOverlay.CHAT_PANEL.id(), "souls_bossbar", new BossBarOverlay());
+        event.registerBelow(VanillaGuiOverlay.HOTBAR.id(), "equipment_hud", new EquipmentHudOverlay());
+        event.registerBelow(VanillaGuiOverlay.HOTBAR.id(), "skill_overlay", new SkillOverlay());
+        event.registerBelow(VanillaGuiOverlay.HOTBAR.id(), "souls_bossbar", new BossBarOverlay());
     }
 }

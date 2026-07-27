@@ -11,10 +11,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellbooksCompat;
+import net.tablesouls.souls_combat_hud.compat.moreoffhandslots.MoreOffhandSlotsCompat;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellbooksSpellProvider;
 import net.tablesouls.souls_combat_hud.util.ElementAnchor;
-import net.tablesouls.souls_combat_hud.util.PreviewRowLayout;
+import net.tablesouls.souls_combat_hud.util.ElementOrientation;
+import net.tablesouls.souls_combat_hud.util.slots.PreviewRowLayout;
 import net.tablesouls.souls_combat_hud.util.slots.ConsumableSlotManager;
 import net.tablesouls.souls_combat_hud.util.slots.WeaponSlotManager;
 
@@ -24,15 +26,10 @@ public class EquipmentHudOverlay implements IGuiOverlay {
     private static final int ATLAS_W = 128;
     private static final int ATLAS_H = 32;
 
-    private static final int WEAPON_SLOT_OFFSET = 28;
-    private static final int OFFHAND_SLOT_OFFSET = 28;
-    private static final int SPELL_SLOT_OFFSET = 18;
-
     private static final int SLOT_HALF_W = 12;
     private static final int SLOT_HALF_H = 16;
 
     private static final int PREVIEW_SIZE = 12;
-    private static final int PREVIEW_HALF = 6;
     private static final int PREVIEW_GAP = 4;
 
     private static final int MAIN_SLOT_W = 24;
@@ -71,19 +68,32 @@ public class EquipmentHudOverlay implements IGuiOverlay {
         int anchorX = anchor.resolveX(screenWidth, offsetX, 0);
         int anchorY = anchor.resolveY(screenHeight, offsetY, 0);
 
-        int rightX = anchorX + WEAPON_SLOT_OFFSET;
-        int leftX = anchorX - OFFHAND_SLOT_OFFSET;
-        int bottomY = anchorY + SPELL_SLOT_OFFSET;
-        int topY = anchorY - SPELL_SLOT_OFFSET;
+        int weaponOffsetX = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.x.get();
+        int weaponOffsetY = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.y.get();
 
-        boolean anchoredRight = anchor.isRight();
-        boolean growRight = !anchoredRight;
-        int previewCenterX = anchoredRight
-                ? leftX + SLOT_HALF_W - PREVIEW_HALF
-                : rightX - SLOT_HALF_W + PREVIEW_HALF;
+        int offhandOffsetX = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.x.get();
+        int offhandOffsetY = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.y.get();
 
-        int maxConsumablePreviewSlots = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.maxPreviewSlots.get();
-        int maxSpellPreviewSlots = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.spell.maxPreviewSlots.get();
+        int consumableOffsetX = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.x.get();
+        int consumableOffsetY = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.y.get();
+
+        int spellOffsetX = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.spell.x.get();
+        int spellOffsetY = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.spell.y.get();
+
+        int weaponX = anchorX + weaponOffsetX;
+        int weaponY = anchorY + weaponOffsetY;
+
+        int offhandX = anchorX + offhandOffsetX;
+        int offhandY = anchorY + offhandOffsetY;
+
+        int consumableX = anchorX + consumableOffsetX;
+        int consumableY = anchorY + consumableOffsetY;
+
+        int spellX = anchorX + spellOffsetX;
+        int spellY = anchorY + spellOffsetY;
+
+        int maxConsumablePreviewSlots = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.previewSlots.maxSlots.get();
+        int maxSpellPreviewSlots = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.spell.previewSlots.maxSlots.get();
 
         if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.enabled.get()) {
             ItemStack weaponSlotStack;
@@ -99,30 +109,74 @@ public class EquipmentHudOverlay implements IGuiOverlay {
                 weaponSlotStack = jumpSlot >= 0 ? player.getInventory().items.get(jumpSlot) : ItemStack.EMPTY;
                 isPreviewOnly = true;
             }
-            this.renderWeaponSlot(guiGraphics, mc, rightX, anchorY, weaponSlotStack, isPreviewOnly);
+            this.renderWeaponSlot(guiGraphics, mc, weaponX, weaponY, weaponSlotStack, isPreviewOnly);
+
+            if (WeaponSlotManager.hasMultipleWeapons(player)) {
+                ElementAnchor previewAnchor = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.previewSlots.anchor.get();
+                int previewX = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.previewSlots.x.get();
+                int previewY = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.previewSlots.y.get();
+                int maxWeaponPreviewSlots = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.previewSlots.maxSlots.get();
+
+                List<ItemStack> weaponPreviews = WeaponSlotManager.getPreviews(player, maxWeaponPreviewSlots);
+                PreviewRowLayout.render(guiGraphics, weaponX + previewX, weaponY + previewY, SLOT_HALF_W, SLOT_HALF_H,
+                        weaponPreviews, maxWeaponPreviewSlots, PREVIEW_SIZE, PREVIEW_GAP, previewAnchor,
+                        SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.previewSlots.orientation.get(),
+                        (gg, stack, cx, cy) -> this.renderPreviewItemSlot(gg, mc, cx, cy, stack));
+            }
         }
 
         if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.enabled.get()) {
-            this.renderItemSlot(guiGraphics, mc, leftX, anchorY, player.getOffhandItem(), MAIN_U_OFFHAND);
+            this.renderItemSlot(guiGraphics, mc, offhandX, offhandY, player.getOffhandItem(), MAIN_U_OFFHAND);
+
+            if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.enabled.get()) {
+                this.renderItemSlot(guiGraphics, mc, offhandX, offhandY, player.getOffhandItem(), MAIN_U_OFFHAND);
+
+                if (MoreOffhandSlotsCompat.hasMultipleOffhandItems(player)) {
+                    ElementAnchor previewAnchor = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.previewSlots.anchor.get();
+                    int previewX = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.previewSlots.x.get();
+                    int previewY = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.previewSlots.y.get();
+                    int maxOffhandPreviewSlots = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.previewSlots.maxSlots.get();
+
+                    List<ItemStack> offhandPreviews = MoreOffhandSlotsCompat.getOffhandPreviews(player, maxOffhandPreviewSlots);
+                    PreviewRowLayout.render(guiGraphics, offhandX + previewX, offhandY + previewY, SLOT_HALF_W, SLOT_HALF_H,
+                            offhandPreviews, maxOffhandPreviewSlots, PREVIEW_SIZE, PREVIEW_GAP, previewAnchor,
+                            SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.offhand.previewSlots.orientation.get(),
+                            (gg, stack, cx, cy) -> this.renderPreviewItemSlot(gg, mc, cx, cy, stack));
+                }
+            }
         }
 
         if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.enabled.get()) {
             ItemStack consumable = ConsumableSlotManager.getSelected(player);
-            this.renderItemSlot(guiGraphics, mc, anchorX, bottomY, consumable, MAIN_U_CONSUMABLE);
+            this.renderItemSlot(guiGraphics, mc, consumableX, consumableY, consumable, MAIN_U_CONSUMABLE);
 
             if (!consumable.isEmpty()) {
                 if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.name.enabled.get()) {
                     String name = consumable.getHoverName().getString();
-                    int nameY = bottomY + SLOT_HALF_H + TEXT_PADDING;
-                    this.drawName(guiGraphics, mc, anchorX, name, nameY, anchor.isRight());
+                    int nameY = consumableY + SLOT_HALF_H + TEXT_PADDING;
+                    this.drawName(guiGraphics, mc, consumableX, name, nameY, anchor.isRight());
                 };
             }
 
-            int bottomPreviewY = bottomY + SLOT_HALF_H - PREVIEW_HALF;
             if (ConsumableSlotManager.hasMultipleConsumables(player)) {
+                ElementAnchor previewAnchor = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.previewSlots.anchor.get();
+                ElementOrientation previewOrientation = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.previewSlots.orientation.get();
+                int previewX = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.previewSlots.x.get();
+                int previewY = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.previewSlots.y.get();
+
                 List<ItemStack> consumablePreviews = ConsumableSlotManager.getPreviews(player, maxConsumablePreviewSlots);
-                PreviewRowLayout.render(guiGraphics, previewCenterX, bottomPreviewY, consumablePreviews,
-                        maxConsumablePreviewSlots, PREVIEW_SIZE, PREVIEW_GAP, growRight,
+                PreviewRowLayout.render(
+                        guiGraphics,
+                        consumableX + previewX,
+                        consumableY + previewY,
+                        SLOT_HALF_W,
+                        SLOT_HALF_H,
+                        consumablePreviews,
+                        maxConsumablePreviewSlots,
+                        PREVIEW_SIZE,
+                        PREVIEW_GAP,
+                        previewAnchor,
+                        previewOrientation,
                         (gg, stack, cx, cy) -> this.renderPreviewItemSlot(gg, mc, cx, cy, stack));
             }
         }
@@ -131,23 +185,36 @@ public class EquipmentHudOverlay implements IGuiOverlay {
         if (showSpellSlot) {
             ResourceLocation spellIcon = IronsSpellbooksSpellProvider.getSelectedSpellIcon();
             float spellCooldown = IronsSpellbooksSpellProvider.getSelectedSpellCooldownPercent();
-            this.renderIconSlot(guiGraphics, anchorX, topY, spellIcon, spellCooldown);
+            this.renderIconSlot(guiGraphics, spellX, spellY, spellIcon, spellCooldown);
 
             String spellName = IronsSpellbooksSpellProvider.getSelectedSpellName();
             if (spellName != null) {
                 if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.spell.name.enabled.get()) {
                     int textHeight = 9;
-                    int nameY = topY - SLOT_HALF_H - TEXT_PADDING - textHeight;
-                    this.drawName(guiGraphics, mc, anchorX, spellName, nameY, anchor.isRight());
+                    int nameY = spellY - SLOT_HALF_H - TEXT_PADDING - textHeight;
+                    this.drawName(guiGraphics, mc, spellX, spellName, nameY, anchor.isRight());
                 }
             }
 
-            int topPreviewY = topY - SLOT_HALF_H + PREVIEW_HALF;
             if (IronsSpellbooksSpellProvider.hasMultipleSpells()) {
+                ElementAnchor previewAnchor = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.spell.previewSlots.anchor.get();
+                ElementOrientation previewOrientation = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.previewSlots.orientation.get();
+                int previewX = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.spell.previewSlots.x.get();
+                int previewY = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.spell.previewSlots.y.get();
                 List<IronsSpellbooksSpellProvider.SpellPreviewEntry> spellPreviews =
                         IronsSpellbooksSpellProvider.getPreviewSpellEntries(maxSpellPreviewSlots);
-                PreviewRowLayout.render(guiGraphics, previewCenterX, topPreviewY, spellPreviews,
-                        maxSpellPreviewSlots, PREVIEW_SIZE, PREVIEW_GAP, growRight,
+                PreviewRowLayout.render(
+                        guiGraphics,
+                        spellX + previewX,
+                        spellY + previewY,
+                        SLOT_HALF_W,
+                        SLOT_HALF_H,
+                        spellPreviews,
+                        maxSpellPreviewSlots,
+                        PREVIEW_SIZE,
+                        PREVIEW_GAP,
+                        previewAnchor,
+                        previewOrientation,
                         (gg, entry, cx, cy) -> this.renderPreviewIconSlot(gg, cx, cy, entry.icon(), entry.cooldownPercent()));
             }
         }

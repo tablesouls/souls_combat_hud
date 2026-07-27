@@ -12,6 +12,7 @@ import net.minecraft.util.Mth;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
+import net.tablesouls.souls_combat_hud.util.BossBarState;
 import net.tablesouls.souls_combat_hud.util.DamageRevealAnimator;
 import net.tablesouls.souls_combat_hud.util.ElementAnchor;
 import net.tablesouls.souls_combat_hud.util.FadeAnimator;
@@ -28,10 +29,15 @@ public class BossBarOverlay implements IGuiOverlay {
     private static final int GLOW_ALPHA = 153;
 
     private static final int BAR_COLOR = 0xFF8A1A1A;
-    private static final int BAR_BG_COLOR = 0xFF14100D;
+    private static final int BAR_BG_COLOR = 0xC8101010;
 
     private static final int DAMAGE_REVEAL_COLOR = 0xFFC9A054;
     private static final int BAR_GAP = 18;
+
+    private static int withAlpha(int argb, float alpha) {
+        int a = Mth.clamp(Math.round(((argb >>> 24) & 0xFF) * alpha), 0, 255);
+        return (a << 24) | (argb & 0xFFFFFF);
+    }
 
     private final Map<UUID, FadeAnimator> fades = new HashMap<>();
     private final Map<UUID, DamageRevealAnimator> damageReveals = new HashMap<>();
@@ -84,33 +90,30 @@ public class BossBarOverlay implements IGuiOverlay {
 
             int y = baseY + row * rowStep;
 
-            RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
-
-            graphics.fill(x, y, x + barW, y + barH, BAR_BG_COLOR);
+            graphics.fill(x, y, x + barW, y + barH, withAlpha(BAR_BG_COLOR, alpha));
 
             int filled = Mth.floor(entry.progress * barW);
             int displayedFilled = Mth.floor(displayedProgress * barW);
             if (displayedFilled > filled) {
-                graphics.fill(x + filled, y, x + displayedFilled, y + barH, DAMAGE_REVEAL_COLOR);
+                graphics.fill(x + filled, y, x + displayedFilled, y + barH, withAlpha(DAMAGE_REVEAL_COLOR, alpha));
             }
 
             if (filled > 0) {
-                graphics.fill(x, y, x + filled, y + barH, BAR_COLOR);
+                graphics.fill(x, y, x + filled, y + barH, withAlpha(BAR_COLOR, alpha));
 
                 int edgeX = x + filled;
-                drawGlowLeft(graphics, edgeX, y, barH, GLOW_WIDTH, GLOW_COLOR, GLOW_ALPHA, x);
+                int glowAlpha = Math.round(GLOW_ALPHA * alpha);
+                drawGlowLeft(graphics, edgeX, y, barH, GLOW_WIDTH, GLOW_COLOR, glowAlpha, x);
 
                 int capL = edgeX;
                 int capR = edgeX + CAP_WIDTH;
-                graphics.fill(capL, y - 1, capR, y + barH + 1, CAP_COLOR);
+                graphics.fill(capL, y - 1, capR, y + barH + 1, withAlpha(CAP_COLOR, alpha));
             }
 
             if (entry.name != null) {
                 int nameY = y - 10;
-                graphics.drawString(Minecraft.getInstance().font, entry.name, x, nameY, TEXT_COLOR, true);
+                graphics.drawString(Minecraft.getInstance().font, entry.name, x, nameY, withAlpha(TEXT_COLOR, alpha), true);
             }
-
-            RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 
             row++;
         }

@@ -7,6 +7,7 @@ import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.util.HotbarHelper;
 import net.tablesouls.souls_combat_hud.util.RegexItemList;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class WeaponSlotManager {
@@ -64,5 +65,31 @@ public class WeaponSlotManager {
         }
 
         return slots.get(0);
+    }
+
+    public static boolean hasMultipleWeapons(Player player) {
+        return getWeaponHotbarSlots(player).size() > 1;
+    }
+
+    public static List<ItemStack> getPreviews(Player player, int count) {
+        List<Integer> slots = getWeaponHotbarSlots(player);
+        if (slots.isEmpty() || count <= 0) {
+            return List.of();
+        }
+        int currentSlot = player.getInventory().selected;
+        ItemStack currentStack = player.getInventory().items.get(currentSlot);
+        int anchorIndex = isWeapon(currentStack) ? slots.indexOf(currentSlot) : slots.indexOf(lastWeaponSlot);
+        if (anchorIndex < 0) {
+            anchorIndex = 0;
+        }
+
+        int size = slots.size();
+        int max = Math.min(count, size - 1);
+        List<ItemStack> result = new ArrayList<>(max);
+        for (int offset = 1; offset <= max; offset++) {
+            int idx = (anchorIndex + offset) % size;
+            result.add(player.getInventory().items.get(slots.get(idx)));
+        }
+        return result;
     }
 }

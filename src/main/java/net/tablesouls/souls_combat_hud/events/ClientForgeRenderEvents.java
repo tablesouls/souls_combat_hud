@@ -8,7 +8,7 @@ import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.tablesouls.souls_combat_hud.client.BossBarState;
+import net.tablesouls.souls_combat_hud.util.BossBarState;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 
 @Mod.EventBusSubscriber(modid = "souls_combat_hud", bus = Mod.EventBusSubscriber.Bus.FORGE, value = {Dist.CLIENT})
