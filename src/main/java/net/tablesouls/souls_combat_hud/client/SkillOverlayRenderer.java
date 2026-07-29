@@ -17,11 +17,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class SkillOverlayRenderer {
-    private static final ResourceLocation ROW_BG_TEX =
+    private static final ResourceLocation BG_TEX =
             ResourceLocation.fromNamespaceAndPath("souls_combat_hud", "textures/gui/skill_row_background.png");
 
-    private static final int ATLAS_W = 128;
-    private static final int ATLAS_H = 32;
+    private static final int BG_TEX_W = 128;
+    private static final int BG_TEX_H = 32;
     private static final int ROW_U = 0;
     private static final int ROW_V = 0;
     private static final int ROW_WIDTH = 112;
@@ -34,8 +34,8 @@ public final class SkillOverlayRenderer {
     private static final int TEXT_PADDING_RIGHT = 8;
     private static final int TEXT_ZONE_WIDTH = ROW_WIDTH - ICON_ZONE - TEXT_PADDING_LEFT - TEXT_PADDING_RIGHT;
 
-    private static final int COLOR_TEXT_READY = 0xFFFFFF;
-    private static final int COLOR_TEXT_DIM = 0x808080;
+    private static final int TEXT_COLOR_READY = 0xFFFFFF;
+    private static final int TEXT_COLOR_DIM = 0x808080;
 
     public static boolean shouldDraw(SkillContainer container) {
         return !container.isEmpty() && container.getSkill().shouldDraw(container);
@@ -54,13 +54,13 @@ public final class SkillOverlayRenderer {
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        guiGraphics.blit(ROW_BG_TEX, topLeftX, topLeftY, ROW_U, ROW_V, ROW_WIDTH, ROW_HEIGHT, ATLAS_W, ATLAS_H);
+        guiGraphics.blit(BG_TEX, topLeftX, topLeftY, ROW_U, ROW_V, ROW_WIDTH, ROW_HEIGHT, BG_TEX_W, BG_TEX_H);
 
         int iconX = mirrored
                 ? topLeftX + ROW_WIDTH - ICON_ZONE + (ICON_ZONE - TARGET_ICON_SIZE) /2 - 4
                 : topLeftX + (ICON_ZONE - TARGET_ICON_SIZE) /2 + 4;
 
-        int iconY = topLeftY + (ROW_HEIGHT - TARGET_ICON_SIZE) / 2 + 1;
+        int iconY = topLeftY + (ROW_HEIGHT - TARGET_ICON_SIZE) / 2;
         drawSkillIcon(guiGraphics, container, iconX, iconY, partialTick);
 
         String name = resolveSkillName(skill);
@@ -70,7 +70,7 @@ public final class SkillOverlayRenderer {
             textWidth = font.width(name);
         }
 
-        int color = canUse ? COLOR_TEXT_READY : COLOR_TEXT_DIM;
+        int color = canUse ? TEXT_COLOR_READY : TEXT_COLOR_DIM;
         int textX = mirrored
                 ? topLeftX + ROW_WIDTH - ICON_ZONE - TEXT_PADDING_RIGHT - textWidth
                 : topLeftX + ICON_ZONE + TEXT_PADDING_LEFT;

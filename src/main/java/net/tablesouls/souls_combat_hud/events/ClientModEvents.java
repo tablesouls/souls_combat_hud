@@ -9,6 +9,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.client.BossBarOverlay;
 import net.tablesouls.souls_combat_hud.client.EquipmentHudOverlay;
+import net.tablesouls.souls_combat_hud.client.ExperienceOverlay;
 import net.tablesouls.souls_combat_hud.client.SkillOverlay;
 import net.tablesouls.souls_combat_hud.registry.ModKeyBindings;
 
@@ -24,5 +25,6 @@ public class ClientModEvents {
         event.registerBelow(VanillaGuiOverlay.HOTBAR.id(), "equipment_hud", new EquipmentHudOverlay());
         event.registerBelow(VanillaGuiOverlay.HOTBAR.id(), "skill_overlay", new SkillOverlay());
         event.registerBelow(VanillaGuiOverlay.HOTBAR.id(), "souls_bossbar", new BossBarOverlay());
+        event.registerBelow(VanillaGuiOverlay.HOTBAR.id(), "experience_overlay", new ExperienceOverlay());
     }
 }

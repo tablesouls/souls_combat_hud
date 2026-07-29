@@ -43,7 +43,13 @@ public class BossBarOverlay implements IGuiOverlay {
     private final Map<UUID, DamageRevealAnimator> damageReveals = new HashMap<>();
 
     @Override
-    public void render(ForgeGui gui, GuiGraphics graphics, float partialTick, int screenWidth, int screenHeight) {
+    public void render(
+            ForgeGui gui,
+            GuiGraphics graphics,
+            float partialTick,
+            int screenWidth,
+            int screenHeight
+    ) {
         if (!SoulsCombatHUDConfig.CUSTOM_BOSSBAR.enabled.get()) {
             return;
         }

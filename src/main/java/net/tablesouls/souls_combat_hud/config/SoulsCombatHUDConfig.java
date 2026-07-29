@@ -12,6 +12,7 @@ public final class SoulsCombatHUDConfig {
     public static final SkillOverlay SKILL_OVERLAY;
     public static final EquipmentHud EQUIPMENT_HUD;
     public static final CustomBossbar CUSTOM_BOSSBAR;
+    public static final ExperienceOverlay EXPERIENCE_OVERLAY;
     public static final Visibility VISIBILITY;
 
     static {
@@ -22,6 +23,7 @@ public final class SoulsCombatHUDConfig {
         SKILL_OVERLAY = new SkillOverlay(builder);
         EQUIPMENT_HUD = new EquipmentHud(builder);
         CUSTOM_BOSSBAR = new CustomBossbar(builder);
+        EXPERIENCE_OVERLAY = new ExperienceOverlay(builder);
         VISIBILITY = new Visibility(builder);
 
         builder.pop();
@@ -53,20 +55,20 @@ public final class SoulsCombatHUDConfig {
 
             enabled = builder
                     .comment("Toggle whether to use custom skill overlay for Epic Fight.")
-                    .define("skill_overlay", true);
+                    .define("enabled", true);
 
             anchor = builder.defineEnum(
-                    "skill_overlay_anchor",
+                    "anchor",
                     ElementAnchor.BOTTOM_LEFT
             );
 
             x = builder.define(
-                    "skill_overlay_x",
+                    "x",
                     12
             );
 
             y = builder.define(
-                    "skill_overlay_y",
+                    "y",
                     120
             );
 
@@ -90,7 +92,7 @@ public final class SoulsCombatHUDConfig {
 
             enabled = builder
                     .comment("Toggle whether to use the custom equipment HUD.")
-                    .define("equipment_hud", true);
+                    .define("enabled", true);
 
             cycleSound = builder
                     .comment("Should cycling items play a sound.")
@@ -99,17 +101,17 @@ public final class SoulsCombatHUDConfig {
             slots = new Slots(builder);
 
             anchor = builder.defineEnum(
-                    "equipment_hud_anchor",
+                    "anchor",
                     ElementAnchor.BOTTOM_LEFT
             );
 
             x = builder.define(
-                    "equipment_hud_x",
+                    "x",
                     60
             );
 
             y = builder.define(
-                    "equipment_hud_y",
+                    "y",
                     60
             );
 
@@ -281,6 +283,128 @@ public final class SoulsCombatHUDConfig {
         }
     }
 
+    public static class ExperienceOverlay {
+        public final ForgeConfigSpec.BooleanValue enabled;
+        public final XpIconSetting xpIcon;
+        public final XpBarSetting xpBar;
+        public final XpTotalTextSetting xpTotalText;
+        public final XpLevelTextSetting xpLevelText;
+        public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
+        public final ForgeConfigSpec.ConfigValue<Integer> x;
+        public final ForgeConfigSpec.ConfigValue<Integer> y;
+
+        ExperienceOverlay(ForgeConfigSpec.Builder builder) {
+            builder.comment("Experience Overlay").push("experience_overlay");
+
+            enabled = builder
+                    .comment("Toggle experience overlay")
+                    .define("enabled", true);
+
+            xpIcon = new XpIconSetting(builder);
+            xpBar = new XpBarSetting(builder);
+            xpTotalText = new XpTotalTextSetting(builder);
+            xpLevelText = new XpLevelTextSetting(builder);
+
+            anchor = builder
+                    .defineEnum(
+                            "anchor",
+                            ElementAnchor.BOTTOM_RIGHT
+                    );
+
+            x = builder.define(
+                    "x",
+                    12
+            );
+
+            y = builder.define(
+                    "y",
+                    12
+            );
+
+            builder.pop();
+        }
+
+        public static class XpIconSetting {
+            public final ForgeConfigSpec.BooleanValue enabled;
+            public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
+            public final ForgeConfigSpec.ConfigValue<Integer> x;
+            public final ForgeConfigSpec.ConfigValue<Integer> y;
+
+            XpIconSetting(ForgeConfigSpec.Builder builder) {
+                builder.comment("Experience Icon Settings").push("xp_icon");
+
+                enabled = builder
+                        .comment("Toggle experience icon")
+                        .define("enabled", true);
+                anchor = builder.defineEnum(
+                        "anchor",
+                        ElementAnchor.CENTER_LEFT);
+                x = builder.define("x", 2);
+                y = builder.define("y", 0);
+
+                builder.pop();
+            }
+        }
+
+        public static class XpBarSetting {
+            public final ForgeConfigSpec.BooleanValue enabled;
+
+            XpBarSetting(ForgeConfigSpec.Builder builder) {
+                builder.comment("Experience Bar Settings").push("xp_bar");
+
+                enabled = builder
+                        .comment("Toggle experience bar")
+                        .define("enabled", true);
+                builder.pop();
+            }
+        }
+
+        public static class XpTotalTextSetting {
+            public final ForgeConfigSpec.BooleanValue enabled;
+            public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
+            public final ForgeConfigSpec.ConfigValue<Integer> x;
+            public final ForgeConfigSpec.ConfigValue<Integer> y;
+
+            XpTotalTextSetting(ForgeConfigSpec.Builder builder) {
+                builder.comment("Experience Total Text Settings").push("xp_total_text");
+
+                enabled = builder
+                        .comment("Toggle experience total text")
+                        .define("enabled", true);
+                anchor = builder.defineEnum(
+                        "anchor",
+                        ElementAnchor.CENTER_RIGHT);
+                x = builder.define("x", 4);
+                y = builder.define("y", -1);
+
+                builder.pop();
+            }
+        }
+
+        public static class XpLevelTextSetting {
+            public final ForgeConfigSpec.BooleanValue enabled;
+            public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
+            public final ForgeConfigSpec.ConfigValue<Integer> x;
+            public final ForgeConfigSpec.ConfigValue<Integer> y;
+
+            XpLevelTextSetting(ForgeConfigSpec.Builder builder) {
+                builder.comment("Experience Level Text Settings").push("xp_level_text");
+
+                enabled = builder
+                        .comment("Toggle experience level text")
+                        .define("enabled", true);
+                anchor = builder.defineEnum(
+                        "anchor",
+                        ElementAnchor.CENTER_LEFT
+                );
+                x = builder.define("x", 12);
+                y = builder.define("y", -1);
+
+                builder.pop();
+            }
+        }
+    }
+
     public static class CustomBossbar {
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
@@ -295,30 +419,30 @@ public final class SoulsCombatHUDConfig {
 
             enabled = builder
                     .comment("Toggle whether to use Souls-like bossbars.")
-                    .define("custom_bossbar", true);
+                    .define("enabled", true);
 
             anchor = builder.defineEnum(
-                    "custom_bossbar_anchor",
+                    "anchor",
                     ElementAnchor.BOTTOM_CENTER
             );
 
             maxVisible = builder.define(
-                    "custom_bossbar_max_visible",
+                    "max_visible",
                     4
             );
 
             width = builder.define(
-                    "custom_bossbar_width",
+                    "width",
                     320
             );
 
             x = builder.define(
-                    "custom_bossbar_x",
+                    "x",
                     0
             );
 
             y = builder.define(
-                    "custom_bossbar_y",
+                    "y",
                     60
             );
 
