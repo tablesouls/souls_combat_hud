@@ -1,0 +1,8 @@
+{
+  "bar": {
+    "color": "#2C6FA8",
+    "background_color": "#67000000",
+    "reduction_color": "#B0E0F0"
+  },
+  "ornament_texture": "oxygen_bar_ornament"
+}

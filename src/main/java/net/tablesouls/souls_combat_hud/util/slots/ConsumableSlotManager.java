@@ -6,9 +6,8 @@ import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.PotionItem;
-import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellbooksCompat;
+import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsCompat;
 import net.tablesouls.souls_combat_hud.sounds.ModSounds;
-import net.tablesouls.souls_combat_hud.util.HotbarHelper;
 import net.tablesouls.souls_combat_hud.util.SoundHelper;
 
 import java.util.ArrayList;
@@ -20,9 +19,6 @@ public class ConsumableSlotManager {
     private static Item lastSelectedItem = null;
     private static int lastSelectedSlot = -1;
 
-    private ConsumableSlotManager() {
-    }
-
     public static boolean isConsumable(ItemStack stack, Player player) {
         if (stack.isEmpty()) {
             return false;
@@ -31,7 +27,7 @@ public class ConsumableSlotManager {
         if (food != null) {
             return true;
         }
-        if (IronsSpellbooksCompat.isScroll(stack)) {
+        if (IronsSpellsCompat.isScroll(stack)) {
             return true;
         }
         return stack.getItem() instanceof PotionItem;
@@ -68,7 +64,7 @@ public class ConsumableSlotManager {
             }
             return;
         }
-        SoundHelper.playUiSound(ModSounds.CYCLE_CONSUMABLE.get());
+        SoundHelper.playUiSound(ModSounds.CYCLE_CONSUMABLE);
         selectedIndex = (selectedIndex + 1) % slots.size();
         int slot = slots.get(selectedIndex);
         lastSelectedItem = player.getInventory().items.get(slot).getItem();

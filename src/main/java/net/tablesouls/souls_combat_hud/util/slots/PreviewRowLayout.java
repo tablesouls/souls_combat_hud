@@ -2,8 +2,8 @@ package net.tablesouls.souls_combat_hud.util.slots;
 
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphics;
-import net.tablesouls.souls_combat_hud.util.ElementAnchor;
-import net.tablesouls.souls_combat_hud.util.ElementOrientation;
+import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
+import net.tablesouls.souls_combat_hud.client.util.ElementOrientation;
 
 public final class PreviewRowLayout {
     public static int rowLength(int count, int slotSize, int gap) {
