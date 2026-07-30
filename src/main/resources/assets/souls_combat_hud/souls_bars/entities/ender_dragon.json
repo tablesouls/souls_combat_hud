@@ -1,0 +1,15 @@
+{
+  "target_names": [
+    "entity.minecraft.ender_dragon"
+  ],
+  "bar": {
+    "color": "#8f00bf",
+    "background_color": "#67000000",
+    "reduction_color": "#E8C34A"
+  },
+  "text": {
+    "color": "#FFFFFF",
+    "drop_shadow": true
+  },
+  "ornament_texture": "bossbar_ornament"
+}

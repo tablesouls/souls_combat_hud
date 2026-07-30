@@ -1,0 +1,94 @@
+{
+  "player_name": {
+    "enabled": true,
+    "offset": {
+      "x": 32,
+      "y": 4
+    }
+  },
+  "crest": {
+    "enabled": true,
+    "size": 24,
+    "offset": {
+      "x": 0,
+      "y": 2
+    },
+    "hunger": {
+      "enabled": false,
+      "offset": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "armor": {
+      "enabled": false,
+      "offset": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  },
+  "gauges": {
+    "enabled": true,
+    "offset": {
+      "x": 32,
+      "y": 14
+    },
+    "row_gap": 3,
+    "elements": [
+      {
+        "type": "health",
+        "enabled": true,
+		"override_position": false,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "bar": {
+          "color": "#742626",
+          "background_color": "#67000000",
+          "reduction_color": "#E8C34A"
+        },
+        "ornament_texture": "status_bar_ornament"
+      },
+      {
+        "type": "mana",
+        "enabled": true,
+		"override_position": false,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "bar": {
+          "color": "#26486F",
+          "background_color": "#67000000",
+          "reduction_color": "#E8C34A"
+        },
+        "ornament_texture": "status_bar_ornament"
+      },
+      {
+        "type": "stamina",
+        "enabled": true,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "bar": {
+          "color": "#266F32",
+          "background_color": "#67000000",
+          "reduction_color": "#E8C34A"
+        },
+        "ornament_texture": "status_bar_ornament"
+      },
+      {
+        "type": "status_effects",
+        "enabled": true,
+		"override_position": false,
+        "offset": {
+          "x": 0,
+          "y": 4
+        }
+      }
+    ]
+  }
+}

@@ -17,8 +17,8 @@ public class GuiOffhandMixin {
                     target = "Lnet/minecraft/world/entity/player/Player;getOffhandItem()Lnet/minecraft/world/item/ItemStack;"
             )
     )
-    private ItemStack souls_combat_hud$hideVanillaOffhand(Player player) {
-        if (SoulsCombatHUDConfig.VISIBILITY.hideOffhandSlot.get()) {
+    private ItemStack souls_combat_hud$hideVanillaOffhandSlot(Player player) {
+        if (SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.hideOffhandSlot.get()) {
             return ItemStack.EMPTY;
         }
         return player.getOffhandItem();

@@ -127,17 +127,40 @@ repositories {
     maven {
         url = "https://code.redspace.io/releases"
     }
+    maven {
+        url = "https://maven.ftb.dev/releases"
+    }
+    maven {
+        url = "https://maven.architectury.dev/"
+    }
 }
+
+def localProps = new Properties()
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) {
+    localProps.load(new FileInputStream(localPropsFile))
+}
+def compatModsRuntime = localProps.getProperty('enableCompatModsRuntime', 'false').toBoolean()
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    runtimeOnly fg.deobf("curse.maven:configured-457570:5180900")
-
     compileOnly fg.deobf("maven.modrinth:epic-fight:${epicfight_version}")
     compileOnly fg.deobf("io.redspace:irons_spellbooks:${irons_spells_version}")
-    compileOnly fg.deobf("maven.modrinth:dTlxEGHS:wquDUF7z")
+
+    implementation fg.deobf("dev.architectury:architectury-forge:${architectury_version}")
+    implementation fg.deobf("dev.ftb.mods:ftb-library-forge:${ftb_library_version}")
+    implementation fg.deobf("dev.ftb.mods:ftb-teams-forge:${ftb_teams_version}")
+    implementation fg.deobf("maven.modrinth:dTlxEGHS:wquDUF7z")
+
+    if (compatModsRuntime) {
+        runtimeOnly fg.deobf("curse.maven:configured-457570:5180900")
+        runtimeOnly fg.deobf("maven.modrinth:ghrZDhGW:YWasQFNI")
+        runtimeOnly fg.deobf("maven.modrinth:XqqOkvZz:XMYeNIOx")
+        runtimeOnly fg.deobf("maven.modrinth:epic-fight:${epicfight_version}")
+        runtimeOnly fg.deobf("curse.maven:epicfight-extra-1434276:7961244")
+    }
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

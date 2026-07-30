@@ -5,10 +5,17 @@
   "refmap": "souls_combat_hud.refmap.json",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "ScoreboardTeamMixin"
   ],
   "client": [
     "ReleaseUsingItemMixin",
-    "GuiOffhandMixin"
+    "GuiOffhandMixin",
+    "MobEffectInstanceMixin",
+    "EntityPosePreviewMixin",
+    "LivingEntityPosePreviewMixin",
+    "HumanoidModelPreviewMixin",
+    "PlayerRendererOffsetMixin",
+    "PatchedLivingEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

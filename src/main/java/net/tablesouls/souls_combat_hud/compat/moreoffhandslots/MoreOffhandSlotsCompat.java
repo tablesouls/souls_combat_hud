@@ -26,7 +26,7 @@ public class MoreOffhandSlotsCompat {
 
         if (OffhandInventory.getOffhandItemsFromApi(player).isEmpty()) return;
         int emptySlotBehavior = ClientConfig.EMPTY_SLOT_BEHAVIOR.get().ordinal();
-        SoundHelper.playUiSound(ModSounds.CYCLE_OFFHAND.get());
+        SoundHelper.playUiSound(ModSounds.CYCLE_OFFHAND);
         PacketHandler.INSTANCE.sendToServer(new CycleOffhandMessage(next, emptySlotBehavior));
     }
 

@@ -20,7 +20,7 @@ public class EpicFightCompat {
         if (!LOADED) return false;
         if (!stack.isEmpty()) {
             if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.includeCombatPreferred.get()
-                && ClientConfig.combatPreferredItems.contains(stack.getItem())) {
+                    && ClientConfig.combatPreferredItems.contains(stack.getItem())) {
                 return true;
             }
         }
@@ -35,5 +35,9 @@ public class EpicFightCompat {
             return true;
         }
         return playerpatch.getEntityState().canSwitchHoldingItem();
+    }
+
+    public static boolean isComputeShaderActive() {
+        return LOADED && ClientConfig.activateComputeShader;
     }
 }

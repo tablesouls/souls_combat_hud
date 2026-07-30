@@ -5,6 +5,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.GuiGraphics;
 
 public class TextHelper {
+    private static final String[] ROMAN_NUMERALS = {
+            "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"
+    };
+
+    public static String toRomanNumeral(int number) {
+        if (number >= 1 && number <= ROMAN_NUMERALS.length) {
+            return ROMAN_NUMERALS[number - 1];
+        }
+        return String.valueOf(number);
+    }
+
     public static void drawOutlinedString(
             GuiGraphics guiGraphics,
             Font font,

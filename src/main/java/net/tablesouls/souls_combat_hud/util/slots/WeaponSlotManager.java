@@ -4,7 +4,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightCompat;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
-import net.tablesouls.souls_combat_hud.util.HotbarHelper;
 import net.tablesouls.souls_combat_hud.util.RegexItemList;
 
 import java.util.ArrayList;

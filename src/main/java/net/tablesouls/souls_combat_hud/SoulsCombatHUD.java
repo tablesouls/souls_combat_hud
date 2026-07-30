@@ -6,7 +6,12 @@ import net.minecraftforge.fml.IExtensionPoint;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.tablesouls.souls_combat_hud.compat.ftbteams.FTBTeamsCompat;
+import net.tablesouls.souls_combat_hud.compat.ftbteams.FTBTeamsPartyListener;
+import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsCompat;
+import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsSpellCastListener;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
+import net.tablesouls.souls_combat_hud.party.PartyNetwork;
 import net.tablesouls.souls_combat_hud.sounds.ModSounds;
 import org.slf4j.Logger;
 
@@ -14,13 +19,22 @@ import org.slf4j.Logger;
 public class SoulsCombatHUD
 {
     public static final String MODID = "souls_combat_hud";
-    private static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LogUtils.getLogger();
 
     public SoulsCombatHUD(FMLJavaModLoadingContext context)
     {
         IEventBus modEventBus = context.getModEventBus();
         context.registerConfig(ModConfig.Type.CLIENT, SoulsCombatHUDConfig.CLIENT_SPEC);
-        ModSounds.SOUND_EVENTS.register(modEventBus);
+        context.registerConfig(ModConfig.Type.SERVER, SoulsCombatHUDConfig.SERVER_SPEC);
+        PartyNetwork.register();
+
+        if (FTBTeamsCompat.LOADED) {
+            FTBTeamsPartyListener.register();
+        }
+
+        if (IronsSpellsCompat.LOADED) {
+            IronsSpellsSpellCastListener.register();
+        }
 
         context.registerExtensionPoint(
                 IExtensionPoint.DisplayTest.class,
