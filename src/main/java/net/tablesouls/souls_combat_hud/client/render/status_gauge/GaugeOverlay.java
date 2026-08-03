@@ -703,7 +703,7 @@ public class GaugeOverlay implements IGuiOverlay {
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         int categoryIconX = offsetX - (EFFECT_CATEGORY_SIZE/2);
-        int categoryIconY = (offsetY - size) - (EFFECT_CATEGORY_SIZE/2);
+        int categoryIconY = offsetY - (EFFECT_CATEGORY_SIZE/2);
 
         graphics.blit(
                 STATUS_GAUGE_TEX,

@@ -61,7 +61,6 @@ public final class PartyMemberProfileCache {
         return entry != null ? Component.literal(entry.displayName()) : null;
     }
 
-    /** Vanilla scoreboard teams track membership by username, not UUID - this resolves offline members. */
     public static UUID getUuidForUsername(String username) {
         load();
         return NAME_INDEX.get(username.toLowerCase(Locale.ROOT));

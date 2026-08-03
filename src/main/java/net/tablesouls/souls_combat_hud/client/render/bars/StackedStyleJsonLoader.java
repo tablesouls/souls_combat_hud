@@ -14,11 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-/**
- * Reads every resource pack's copy of a single-file style JSON (mod default + any resource
- * pack overrides) and deep-merges them via {@link JsonMerge}, so overriding packs only need to
- * ship the fields they want to change (see {@link JsonMerge} for the "override" flag rules).
- */
 public final class StackedStyleJsonLoader {
     private StackedStyleJsonLoader() {
     }
