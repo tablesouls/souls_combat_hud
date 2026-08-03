@@ -24,3 +24,4 @@ local.properties
 
 # Files from Forge MDK
 forge*changelog.txt
+/src.zip

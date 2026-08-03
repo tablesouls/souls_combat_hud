@@ -3,6 +3,7 @@ package net.tablesouls.souls_combat_hud.party;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -13,7 +14,9 @@ import java.util.*;
 public final class PartyJoinOrderTracker {
     private static final Gson GSON = new Gson();
     private static final Path FILE = FMLPaths.CONFIGDIR.get()
-            .resolve("soulscombathud").resolve("party_join_order.json");
+            .resolve(SoulsCombatHUD.MODID)
+            .resolve("party_join_order.json");
+
     private static final Type MAP_TYPE = new TypeToken<HashMap<String, Long>>() {}.getType();
 
     private static final Map<UUID, Long> JOIN_TIME = new HashMap<>();

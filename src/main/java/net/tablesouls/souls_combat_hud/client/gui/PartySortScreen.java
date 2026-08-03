@@ -29,7 +29,9 @@ import java.util.*;
 public class PartySortScreen extends Screen {
 
     private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(SoulsCombatHUD.MODID, "textures/gui/party_sort.png");
+            ResourceLocation.fromNamespaceAndPath(
+                    SoulsCombatHUD.MODID,
+                    "textures/gui/party_sort.png");
 
     private static final int TEX_WIDTH = 256;
     private static final int TEX_HEIGHT = 256;

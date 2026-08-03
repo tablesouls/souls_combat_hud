@@ -3,6 +3,7 @@ package net.tablesouls.souls_combat_hud.party;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -10,21 +11,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-/**
- * Stores per-client display preferences for party gauges: pinned members,
- * hidden members, and a manual reorder index. Purely cosmetic/local - never
- * synced to other players. Persisted to disk the same way as
- * {@link PartyJoinOrderTracker} so it survives a game restart.
- */
 public final class PartyDisplayPreferences {
     private static final Gson GSON = new Gson();
     private static final Path FILE = FMLPaths.CONFIGDIR.get()
-            .resolve("soulscombathud").resolve("party_display_prefs.json");
+            .resolve(SoulsCombatHUD.MODID)
+            .resolve("party_display_prefs.json");
     private static final Type MAP_TYPE = new TypeToken<HashMap<String, Entry>>() {}.getType();
 
-    // Mirrors PartyJoinOrderTracker's on-disk shape: UUID string -> Entry.
-    // customOrder is null until the player manually reorders that member;
-    // members without an explicit order fall back to join-order in the caller.
     private static final class Entry {
         boolean pinned;
         boolean hidden;
@@ -34,10 +27,6 @@ public final class PartyDisplayPreferences {
     private static final Map<UUID, Entry> PREFS = new HashMap<>();
     private static boolean loaded = false;
 
-    // Bumped on every mutation. Callers that recompute a derived, sorted
-    // view of the roster (e.g. TeamProviderRegistry.resolveDisplayedTeammateIds,
-    // which used to run its full filter+sort every render frame) can cache
-    // their result against this and skip recomputing when it hasn't moved.
     private static volatile long version = 0;
 
     private PartyDisplayPreferences() {}
@@ -58,7 +47,6 @@ public final class PartyDisplayPreferences {
         return e != null && e.hidden;
     }
 
-    /** Null if the member has never been manually reordered. */
     public static synchronized Integer getCustomOrder(UUID id) {
         loadIfNeeded();
         Entry e = PREFS.get(id);
@@ -86,12 +74,6 @@ public final class PartyDisplayPreferences {
         save();
     }
 
-    /**
-     * Moves `id` one step earlier/later among the given roster and persists
-     * new sequential customOrder values (0..n-1) for the whole roster, so
-     * everyone has an explicit position after this call. Call this from the
-     * screen's up/down buttons with the currently-displayed ordered list.
-     */
     public static synchronized void move(List<UUID> currentOrder, UUID id, int delta) {
         loadIfNeeded();
         List<UUID> working = new ArrayList<>(currentOrder);
@@ -139,7 +121,7 @@ public final class PartyDisplayPreferences {
                 });
             }
         } catch (IOException e) {
-            // missing/corrupt file - just start fresh
+
         }
     }
 
@@ -150,8 +132,7 @@ public final class PartyDisplayPreferences {
             PREFS.forEach((k, v) -> raw.put(k.toString(), v));
             Files.writeString(FILE, GSON.toJson(raw));
         } catch (IOException e) {
-            // best-effort persistence; a failed write just means prefs
-            // reset next launch, not a crash
+
         }
     }
 }
