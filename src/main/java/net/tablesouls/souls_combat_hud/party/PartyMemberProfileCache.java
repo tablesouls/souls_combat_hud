@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -22,34 +23,54 @@ public final class PartyMemberProfileCache {
 
     private static final int MAX_ENTRIES = 200;
 
-    private static final Map<UUID, String> CACHE = new LinkedHashMap<>(16, 0.75f, true) {
+    private record Entry(String username, String displayName) {}
+
+    // UUID -> {username, displayName}, LRU-capped, access-ordered
+    private static final Map<UUID, Entry> CACHE = new LinkedHashMap<>(16, 0.75f, true) {
         @Override
-        protected boolean removeEldestEntry(Map.Entry<UUID, String> eldest) {
-            return size() > MAX_ENTRIES;
+        protected boolean removeEldestEntry(Map.Entry<UUID, Entry> eldest) {
+            boolean evict = size() > MAX_ENTRIES;
+            if (evict) NAME_INDEX.remove(eldest.getValue().username().toLowerCase(Locale.ROOT));
+            return evict;
         }
     };
+
+    // lowercase username -> UUID, rebuilt from CACHE, never persisted separately
+    private static final Map<String, UUID> NAME_INDEX = new HashMap<>();
+
     private static boolean loaded = false;
     private static boolean dirty = false;
 
     private PartyMemberProfileCache() {}
 
-    public static void remember(UUID playerId, Component displayName) {
+    public static void remember(UUID playerId, String username, Component displayName) {
         load();
         String name = displayName.getString();
-        if (name.equals(CACHE.get(playerId))) return;
-        CACHE.put(playerId, name);
+        Entry existing = CACHE.get(playerId);
+        if (existing != null && existing.username().equals(username) && existing.displayName().equals(name)) {
+            return;
+        }
+        CACHE.put(playerId, new Entry(username, name));
+        NAME_INDEX.put(username.toLowerCase(Locale.ROOT), playerId);
         dirty = true;
     }
 
     public static Component getDisplayName(UUID playerId) {
         load();
-        String name = CACHE.get(playerId);
-        return name != null ? Component.literal(name) : null;
+        Entry entry = CACHE.get(playerId);
+        return entry != null ? Component.literal(entry.displayName()) : null;
+    }
+
+    public static UUID getUuidForUsername(String username) {
+        load();
+        return NAME_INDEX.get(username.toLowerCase(Locale.ROOT));
     }
 
     public static void clear(UUID playerId) {
         load();
-        if (CACHE.remove(playerId) != null) {
+        Entry removed = CACHE.remove(playerId);
+        if (removed != null) {
+            NAME_INDEX.remove(removed.username().toLowerCase(Locale.ROOT));
             dirty = true;
         }
     }
@@ -65,9 +86,17 @@ public final class PartyMemberProfileCache {
         loaded = true;
         if (!Files.exists(FILE)) return;
         try (var reader = Files.newBufferedReader(FILE)) {
-            Map<String, String> raw = GSON.fromJson(reader, new TypeToken<Map<String, String>>(){}.getType());
+            Map<String, Entry> raw = GSON.fromJson(reader, new TypeToken<Map<String, Entry>>(){}.getType());
             if (raw != null) {
-                raw.forEach((id, name) -> CACHE.put(UUID.fromString(id), name));
+                raw.forEach((id, entry) -> {
+                    try {
+                        UUID uuid = UUID.fromString(id);
+                        CACHE.put(uuid, entry);
+                        NAME_INDEX.put(entry.username().toLowerCase(Locale.ROOT), uuid);
+                    } catch (IllegalArgumentException | NullPointerException ignored) {
+                        // corrupt/foreign entry, skip it
+                    }
+                });
             }
         } catch (IOException | RuntimeException e) {
             SoulsCombatHUD.LOGGER.warn("Failed to load party name cache", e);
@@ -77,8 +106,8 @@ public final class PartyMemberProfileCache {
     private static void save() {
         try {
             Files.createDirectories(FILE.getParent());
-            Map<String, String> raw = new HashMap<>();
-            CACHE.forEach((id, name) -> raw.put(id.toString(), name));
+            Map<String, Entry> raw = new HashMap<>();
+            CACHE.forEach((id, entry) -> raw.put(id.toString(), entry));
             Files.writeString(FILE, GSON.toJson(raw));
         } catch (IOException e) {
             SoulsCombatHUD.LOGGER.warn("Failed to save party name cache", e);

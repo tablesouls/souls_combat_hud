@@ -4,5 +4,20 @@
   "key.souls_combat_hud.cycle_offhand": "Cycle Offhand",
   "key.souls_combat_hud.cycle_consumable": "Cycle Consumable",
   "key.souls_combat_hud.cycle_spell": "Cycle Spell",
-  "key.souls_combat_hud.use_consumable": "Use Consumable"
+  "key.souls_combat_hud.use_consumable": "Use Consumable",
+  "key.souls_combat_hud.open_party_menu": "Open Party Sort Menu",
+  "gui.souls_combat_hud.party_sort.title": "Party Members",
+  "gui.souls_combat_hud.party_sort.pin": "Pin",
+  "gui.souls_combat_hud.party_sort.unpin": "Unpin",
+  "gui.souls_combat_hud.party_sort.hide": "Hide",
+  "gui.souls_combat_hud.party_sort.unhide": "Unhide",
+  "gui.souls_combat_hud.party_sort.empty": "No party members to display.",
+  "gui.souls_combat_hud.party_sort.done": "Done",
+  "gui.souls_combat_hud.party_sort.move_up": "Up",
+  "gui.souls_combat_hud.party_sort.move_down": "Down",
+  "gui.souls_combat_hud.party_sort.hide_offline": "Hide Offline",
+  "gui.souls_combat_hud.party_sort.show_offline": "Show Offline",
+  "gui.souls_combat_hud.party_sort.title_with_team": "Sort Party - %s",
+  "gui.souls_combat_hud.party_sort.offline_name": "%s (Offline)",
+  "party.souls_combat_hud.unavailable": "Party features is only available if mod is installed on the server."
 }
