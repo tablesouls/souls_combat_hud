@@ -43,6 +43,8 @@ public class PartyServerEvents {
 
     private static final Map<UUID, Integer> LAST_EFFECT_PUSH_TICK = new HashMap<>();
     private static final Map<UUID, Integer> LAST_HEALTH_PUSH_TICK = new HashMap<>();
+    private static final Map<UUID, Integer> LAST_STATUS_EFFECT_PUSH_TICK = new HashMap<>();
+
     private static final Map<UUID, Map<ResourceLocation, Integer>> EFFECT_MAX_DURATION = new HashMap<>();
 
     @SubscribeEvent
@@ -192,6 +194,8 @@ public class PartyServerEvents {
     @SubscribeEvent
     public static void onEffectExpired(MobEffectEvent.Expired event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        MobEffectInstance instance = event.getEffectInstance();
+        if (instance == null) return;
 
         ResourceLocation effectId = ForgeRegistries.MOB_EFFECTS.getKey(event.getEffectInstance().getEffect());
         Map<ResourceLocation, Integer> tracked = EFFECT_MAX_DURATION.get(player.getUUID());
@@ -205,6 +209,8 @@ public class PartyServerEvents {
     @SubscribeEvent
     public static void onEffectRemoved(MobEffectEvent.Remove event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        MobEffectInstance instance = event.getEffectInstance();
+        if (instance == null) return;
 
         ResourceLocation effectId = ForgeRegistries.MOB_EFFECTS.getKey(event.getEffectInstance().getEffect());
         Map<ResourceLocation, Integer> tracked = EFFECT_MAX_DURATION.get(player.getUUID());
@@ -260,6 +266,12 @@ public class PartyServerEvents {
         if (SoulsCombatHUDConfig.SERVER_RESTRICTIONS.disableStatusEffectTracking.get()) return;
 
         UUID id = player.getUUID();
+        int now = player.tickCount;
+        Integer last = LAST_STATUS_EFFECT_PUSH_TICK.get(id);
+        int minTicks = SoulsCombatHUDConfig.SERVER_PERFORMANCE.minInstantUpdateTicks.get();
+        if (last != null && now - last < minTicks) return;
+        LAST_STATUS_EFFECT_PUSH_TICK.put(id, now);
+
         Map<ResourceLocation, Integer> maxDurations = EFFECT_MAX_DURATION.getOrDefault(id, Map.of());
 
         List<PartyEffectSnapshot> snapshots = player.getActiveEffects().stream()
