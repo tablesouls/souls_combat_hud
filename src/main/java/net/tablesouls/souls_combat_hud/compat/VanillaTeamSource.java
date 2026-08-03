@@ -4,11 +4,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.scores.Team;
 import net.tablesouls.souls_combat_hud.config.TeamSourceMode;
+import net.tablesouls.souls_combat_hud.party.PartyMemberProfileCache;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.UUID;
 
@@ -39,6 +42,12 @@ public class VanillaTeamSource implements TeamSource {
             PlayerInfo info = connection.getPlayerInfo(name);
             if (info != null) {
                 teammates.add(info.getProfile().getId());
+                continue;
+            }
+
+            UUID cachedId = PartyMemberProfileCache.getUuidForUsername(name);
+            if (cachedId != null) {
+                teammates.add(cachedId);
             }
         }
         return teammates;
@@ -53,5 +62,14 @@ public class VanillaTeamSource implements TeamSource {
 
         Integer color = team.getColor().getColor();
         return color != null ? OptionalInt.of(color) : OptionalInt.empty();
+    }
+
+    @Override
+    public Optional<Component> resolveTeamName(AbstractClientPlayer localPlayer) {
+        Team team = localPlayer.getTeam();
+        if (team == null) {
+            return Optional.empty();
+        }
+        return Optional.of(Component.literal(team.getName()).withStyle(team.getColor()));
     }
 }

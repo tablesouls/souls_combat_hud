@@ -41,7 +41,7 @@ public class PartyMemberGaugeSubject implements GaugeSubject {
         if (info != null) {
             Component tabName = info.getTabListDisplayName();
             Component name = tabName != null ? tabName : Component.literal(info.getProfile().getName());
-            PartyMemberProfileCache.remember(playerId, name);
+            PartyMemberProfileCache.remember(playerId, info.getProfile().getName(), name);
             return name;
         }
 

@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
@@ -19,6 +20,7 @@ import net.tablesouls.souls_combat_hud.client.render.bars.BarElement;
 import net.tablesouls.souls_combat_hud.client.render.bars.BarScaling;
 import net.tablesouls.souls_combat_hud.client.render.bars.BarStyle;
 import net.tablesouls.souls_combat_hud.client.render.status_gauge.player.PlayerGaugeSubject;
+import net.tablesouls.souls_combat_hud.client.util.PlayerFacePreviewRenderer;
 import net.tablesouls.souls_combat_hud.client.util.StatusBarValues;
 import net.tablesouls.souls_combat_hud.config.CrestDisplayMode;
 import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
@@ -98,6 +100,14 @@ public class GaugeOverlay implements IGuiOverlay {
 
     private static final int STATUS_SLOT_U = 48;
     private static final int STATUS_SLOT_V = 0;
+
+    private static final int EFFECT_CATEGORY_SIZE = 8;
+    private static final int EFFECT_BENEFICIAL_ICON_U = 48;
+    private static final int EFFECT_BENEFICIAL_ICON_V = 16;
+    private static final int EFFECT_HARMFUL_ICON_U = 56;
+    private static final int EFFECT_HARMFUL_ICON_V = 16;
+    private static final int EFFECT_NEUTRAL_ICON_U = 48;
+    private static final int EFFECT_NEUTRAL_ICON_V = 24;
 
     private static final int EFFECT_SLOT_SIZE = 12;
     private static final int EFFECT_SLOT_GAP = 4;
@@ -449,40 +459,17 @@ public class GaugeOverlay implements IGuiOverlay {
     ) {
         ResourceLocation skinTexture = subject.getSkinTexture();
         if (skinTexture == null) return;
-
-        PoseStack pose = graphics.pose();
-        pose.pushPose();
-
         int faceSize = 16;
         int faceX = x + (size - faceSize)/2;
         int faceY = y + (size - faceSize)/2;
 
-        graphics.blit(skinTexture,
-                faceX,
-                faceY,
-                faceSize, faceSize,
-                FACE_U, FACE_V,
-                FACE_TEX_SIZE, FACE_TEX_SIZE,
-                SKIN_TEX_SIZE, SKIN_TEX_SIZE
-        );
-
-        float hatLayerScale = 1.06f;
-
-        pose.translate(faceX + faceSize / 2f, faceY + faceSize / 2f, 0);
-        pose.scale(hatLayerScale, hatLayerScale, 1.0f);
-        pose.translate(-(faceX + faceSize / 2f), -(faceY + faceSize /2f), 0);
-
-        graphics.blit(
+        PlayerFacePreviewRenderer.render(
+                graphics,
                 skinTexture,
                 faceX,
                 faceY,
-                faceSize, faceSize,
-                FACE_LAYER_U, FACE_LAYER_V,
-                FACE_TEX_SIZE, FACE_TEX_SIZE,
-                SKIN_TEX_SIZE, SKIN_TEX_SIZE
+                faceSize
         );
-
-        pose.popPose();
     }
 
     public void renderPlayerName(
@@ -647,6 +634,27 @@ public class GaugeOverlay implements IGuiOverlay {
         }
     }
 
+    private record EffectCategoryStyle(int color, int u, int v) {}
+
+    private static EffectCategoryStyle getEffectCategoryStyle(MobEffectCategory category) {
+        return switch (category) {
+            case BENEFICIAL ->   new EffectCategoryStyle(
+                    0xFF3AAA4D,
+                    EFFECT_BENEFICIAL_ICON_U,
+                    EFFECT_BENEFICIAL_ICON_V);
+            case HARMFUL ->   new EffectCategoryStyle(
+                    0xFFAA3A3A,
+                    EFFECT_HARMFUL_ICON_U,
+                    EFFECT_HARMFUL_ICON_V
+            );
+            case NEUTRAL ->   new EffectCategoryStyle(
+                    0xFFFFFFFF,
+                    EFFECT_NEUTRAL_ICON_U,
+                    EFFECT_NEUTRAL_ICON_V
+            );
+        };
+    }
+
     private void renderStatusEffectSlot(
             GuiGraphics graphics,
             Font font,
@@ -665,6 +673,11 @@ public class GaugeOverlay implements IGuiOverlay {
             alpha = fade + wobble;
         }
 
+        EffectCategoryStyle effectStyle = getEffectCategoryStyle(effectInstance.getEffect().getCategory());
+        int statusColor = effectStyle.color();
+        int categoryIconU = effectStyle.u();
+        int categoryIconV = effectStyle.v();
+
         RenderSystem.enableBlend();
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -681,8 +694,6 @@ public class GaugeOverlay implements IGuiOverlay {
         TextureAtlasSprite sprite = mc.getMobEffectTextures().get(effectInstance.getEffect());
         RenderSystem.setShaderTexture(0, sprite.atlasLocation());
 
-        int statusColor = effectInstance.getEffect().isBeneficial() ? 0xFF3AAA4D : 0xFFAA3A3A;
-
         int iconSize = Math.max(2, size - EFFECT_ICON_PADDING * 2);
         int offsetX = x + (size - iconSize) / 2;
         int offsetY = y + (size - iconSize) / 2;
@@ -690,6 +701,17 @@ public class GaugeOverlay implements IGuiOverlay {
         graphics.blit(offsetX, offsetY, 0, iconSize, iconSize, sprite);
 
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+        int categoryIconX = offsetX - (EFFECT_CATEGORY_SIZE/2);
+        int categoryIconY = (offsetY - size) - (EFFECT_CATEGORY_SIZE/2);
+
+        graphics.blit(
+                STATUS_GAUGE_TEX,
+                categoryIconX, categoryIconY,
+                categoryIconU, categoryIconV,
+                EFFECT_CATEGORY_SIZE, EFFECT_CATEGORY_SIZE,
+                STATUS_GAUGE_TEX_SIZE, STATUS_GAUGE_TEX_SIZE
+        );
 
         if (effectInstance.getAmplifier() > 0) {
             Component amplifierLabel = Component.literal(TextHelper.toRomanNumeral(effectInstance.getAmplifier() + 1));
@@ -709,12 +731,6 @@ public class GaugeOverlay implements IGuiOverlay {
         renderEffectTimer(graphics, effectInstance, statusColor, x, y, size);
     }
 
-    /**
-     * Fraction of an effect's duration that has already elapsed (0 = just applied,
-     * approaching 1 = about to expire). Used to rank "newest"/"oldest" rather than
-     * remaining duration directly, so a fresh 10s effect isn't mistaken for "older"
-     * than a 5-minute effect that's about to run out.
-     */
     private static float elapsedFraction(MobEffectInstance instance) {
         int maxDuration = ((IEffectDurationAccessor) instance).souls_combat_hud$getMaxDuration();
         if (maxDuration <= 0) return 0f;
