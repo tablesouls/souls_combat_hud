@@ -15,6 +15,7 @@ public class ModKeyBindings {
     public static KeyMapping USE_CONSUMABLE;
     public static KeyMapping CYCLE_WEAPON;
     public static KeyMapping CYCLE_OFFHAND;
+    public static KeyMapping OPEN_PARTY_MENU;
 
     public static void register(RegisterKeyMappingsEvent event) {
         CYCLE_CONSUMABLE = new KeyMapping(
@@ -61,5 +62,14 @@ public class ModKeyBindings {
                 CATEGORY
         );
         event.register(CYCLE_OFFHAND);
+
+        OPEN_PARTY_MENU = new KeyMapping(
+                "key.souls_combat_hud.open_party_menu",
+                KeyConflictContext.IN_GAME,
+                InputConstants.Type.KEYSYM,
+                GLFW.GLFW_KEY_O,
+                CATEGORY
+        );
+        event.register(OPEN_PARTY_MENU);
     }
 }

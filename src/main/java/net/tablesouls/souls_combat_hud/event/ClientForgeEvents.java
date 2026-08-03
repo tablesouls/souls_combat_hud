@@ -3,6 +3,7 @@ package net.tablesouls.souls_combat_hud.event;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -14,6 +15,7 @@ import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
+import net.tablesouls.souls_combat_hud.client.gui.PartySortScreen;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightCompat;
 import net.tablesouls.souls_combat_hud.compat.TeamProviderRegistry;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsCompat;
@@ -122,6 +124,17 @@ public class ClientForgeEvents {
 
         if (ModKeyBindings.USE_CONSUMABLE.consumeClick()) {
             jumpToSelectedConsumable(player);
+        }
+
+        if (ModKeyBindings.OPEN_PARTY_MENU.consumeClick() && Minecraft.getInstance().screen == null) {
+            if (PartyNetwork.serverSupportsParty()) {
+                Minecraft.getInstance().setScreen(new PartySortScreen());
+            } else {
+                player.displayClientMessage(
+                        Component.translatable("party.souls_combat_hud.unavailable"),
+                        true
+                );
+            }
         }
 
         if (pendingAutoConsumeStack != null) {

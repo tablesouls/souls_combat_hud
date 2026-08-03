@@ -516,6 +516,7 @@ public final class SoulsCombatHUDConfig {
         public final ForgeConfigSpec.BooleanValue crestTeamOutline;
         public final ForgeConfigSpec.IntValue maxDisplayedPartyMembers;
         public final ForgeConfigSpec.BooleanValue showOfflineMembers;
+        public final ForgeConfigSpec.BooleanValue sortOnlineFirst;
         public final ForgeConfigSpec.IntValue memberRowGap;
         public final ForgeConfigSpec.BooleanValue statusEffectsAffectRowLayout;
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
@@ -543,6 +544,10 @@ public final class SoulsCombatHUDConfig {
             showOfflineMembers = builder
                     .comment("Should offline party members be displayed (FTB Teams)")
                     .define("show_offline_members", true);
+
+            sortOnlineFirst = builder
+                    .comment("Sort online players first")
+                    .define("sort_online_first", true);
 
             memberRowGap = builder
                     .comment("Gap offset between party member rows")

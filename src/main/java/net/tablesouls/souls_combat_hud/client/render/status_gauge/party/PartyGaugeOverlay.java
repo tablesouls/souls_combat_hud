@@ -41,7 +41,7 @@ public class PartyGaugeOverlay implements IGuiOverlay {
         AbstractClientPlayer localPlayer = mc.player;
         if (localPlayer == null) return;
 
-        List<UUID> teammates = TeamProviderRegistry.resolveTeammateIds(localPlayer);
+        List<UUID> teammates = TeamProviderRegistry.resolveDisplayedTeammateIds(localPlayer);
         if (teammates.isEmpty()) {
             slotsByPlayer.clear();
             subjectsByPlayer.clear();
