@@ -153,6 +153,7 @@ dependencies {
     implementation fg.deobf("dev.ftb.mods:ftb-library-forge:${ftb_library_version}")
     implementation fg.deobf("dev.ftb.mods:ftb-teams-forge:${ftb_teams_version}")
     implementation fg.deobf("maven.modrinth:dTlxEGHS:wquDUF7z")
+    implementation fg.deobf("curse.maven:parcool-482378:${parcool_version}")
 
     if (compatModsRuntime) {
         runtimeOnly fg.deobf("curse.maven:configured-457570:5180900")

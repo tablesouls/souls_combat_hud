@@ -7,8 +7,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.tablesouls.souls_combat_hud.compat.ResourceSource;
+import net.tablesouls.souls_combat_hud.config.ManaSourceMode;
 
-public class IronsSpellsManaSource implements ResourceSource {
+public class IronsSpellsManaSource implements ResourceSource<ManaSourceMode> {
+
+    @Override
+    public ManaSourceMode mode() {
+        return ManaSourceMode.IRONS_SPELLBOOKS;
+    }
 
     @Override
     public boolean isAvailable(Player player) {

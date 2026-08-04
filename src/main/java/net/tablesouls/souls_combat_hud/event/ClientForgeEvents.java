@@ -16,18 +16,21 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.client.gui.PartySortScreen;
+import net.tablesouls.souls_combat_hud.client.util.LocalResourceFallback;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightCompat;
+import net.tablesouls.souls_combat_hud.compat.ManaSourceRegistry;
+import net.tablesouls.souls_combat_hud.compat.StaminaSourceRegistry;
 import net.tablesouls.souls_combat_hud.compat.TeamProviderRegistry;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsCompat;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
-import net.tablesouls.souls_combat_hud.party.PartyMemberProfileCache;
-import net.tablesouls.souls_combat_hud.party.PartyNetwork;
+import net.tablesouls.souls_combat_hud.party.client.PartyMemberProfileCache;
+import net.tablesouls.souls_combat_hud.party.network.PartyNetwork;
 import net.tablesouls.souls_combat_hud.sounds.ModSounds;
 import net.tablesouls.souls_combat_hud.util.AutoConsumeHelper;
-import net.tablesouls.souls_combat_hud.util.slots.ConsumableSlotManager;
+import net.tablesouls.souls_combat_hud.client.util.slots.ConsumableSlotManager;
 import net.tablesouls.souls_combat_hud.registry.ModKeyBindings;
-import net.tablesouls.souls_combat_hud.util.SoundHelper;
-import net.tablesouls.souls_combat_hud.util.slots.WeaponSlotManager;
+import net.tablesouls.souls_combat_hud.client.util.SoundHelper;
+import net.tablesouls.souls_combat_hud.client.util.slots.WeaponSlotManager;
 import net.tablesouls.souls_combat_hud.compat.moreoffhandslots.MoreOffhandSlotsCompat;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsProvider;
 
@@ -102,6 +105,8 @@ public class ClientForgeEvents {
         if (player == null) {
             return;
         }
+
+        LocalResourceFallback.tick();
 
         if (ModKeyBindings.CYCLE_WEAPON.consumeClick()) {
             jumpOrCycleWeapon(player);
@@ -271,12 +276,17 @@ public class ClientForgeEvents {
     public static void onLoggingIn(ClientPlayerNetworkEvent.LoggingIn event) {
         PartyNetwork.resetServerSupportsParty();
         TeamProviderRegistry.reset();
+        ManaSourceRegistry.INSTANCE.resetActiveMode();
+        StaminaSourceRegistry.INSTANCE.resetActiveMode();
+        LocalResourceFallback.reset();
     }
 
     @SubscribeEvent
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
         PartyNetwork.resetServerSupportsParty();
         TeamProviderRegistry.reset();
+        ManaSourceRegistry.INSTANCE.resetActiveMode();
+        StaminaSourceRegistry.INSTANCE.resetActiveMode();
         PartyMemberProfileCache.flush();
     }
 

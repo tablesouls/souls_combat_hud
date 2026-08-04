@@ -13,7 +13,7 @@ import net.tablesouls.souls_combat_hud.client.render.status_gauge.GaugeSubject;
 import net.tablesouls.souls_combat_hud.client.render.status_gauge.GaugeOverlay;
 import net.tablesouls.souls_combat_hud.compat.TeamProviderRegistry;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
-import net.tablesouls.souls_combat_hud.party.PartyNetwork;
+import net.tablesouls.souls_combat_hud.party.network.PartyNetwork;
 import net.tablesouls.souls_combat_hud.config.CrestDisplayMode;
 import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
 

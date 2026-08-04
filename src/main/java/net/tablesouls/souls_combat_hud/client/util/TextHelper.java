@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.util;
+package net.tablesouls.souls_combat_hud.client.util;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;

@@ -1,7 +1,6 @@
 package net.tablesouls.souls_combat_hud.client.render.status_gauge;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -27,7 +26,7 @@ import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
 import net.tablesouls.souls_combat_hud.client.util.PlayerModelPreviewRenderer;
 import net.tablesouls.souls_combat_hud.compat.TeamProviderRegistry;
 import net.tablesouls.souls_combat_hud.util.ColorHelper;
-import net.tablesouls.souls_combat_hud.util.TextHelper;
+import net.tablesouls.souls_combat_hud.client.util.TextHelper;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.config.StatusEffectSortOrder;
 import net.tablesouls.souls_combat_hud.accessor.IEffectDurationAccessor;

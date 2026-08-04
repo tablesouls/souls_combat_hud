@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.party;
+package net.tablesouls.souls_combat_hud.party.network;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;

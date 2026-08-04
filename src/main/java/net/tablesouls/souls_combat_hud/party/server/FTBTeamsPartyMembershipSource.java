@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.party;
+package net.tablesouls.souls_combat_hud.party.server;
 
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;

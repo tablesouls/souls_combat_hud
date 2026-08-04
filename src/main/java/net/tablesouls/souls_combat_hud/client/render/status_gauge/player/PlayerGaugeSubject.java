@@ -5,9 +5,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.tablesouls.souls_combat_hud.client.render.status_gauge.GaugeSubject;
-import net.tablesouls.souls_combat_hud.compat.ManaProviderRegistry;
+import net.tablesouls.souls_combat_hud.compat.ManaSourceRegistry;
 import net.tablesouls.souls_combat_hud.compat.ResourceSource;
-import net.tablesouls.souls_combat_hud.compat.StaminaProviderRegistry;
+import net.tablesouls.souls_combat_hud.compat.StaminaSourceRegistry;
+import net.tablesouls.souls_combat_hud.config.ManaSourceMode;
+import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
+import net.tablesouls.souls_combat_hud.config.StaminaSourceMode;
 
 import java.util.List;
 import java.util.Optional;
@@ -47,36 +50,52 @@ public class PlayerGaugeSubject implements GaugeSubject {
 
     @Override
     public boolean hasStamina() {
-        return StaminaProviderRegistry.resolve(player) != null;
+        return resolveStaminaSource() != null;
     }
 
     @Override
     public float getStamina() {
-        ResourceSource source = StaminaProviderRegistry.resolve(player);
+        ResourceSource<StaminaSourceMode> source = resolveStaminaSource();
         return source != null ? source.getCurrent(player) : 0.0f;
     }
 
     @Override
     public float getMaxStamina() {
-        ResourceSource source = StaminaProviderRegistry.resolve(player);
+        ResourceSource<StaminaSourceMode> source = resolveStaminaSource();
         return source != null ? source.getMax(player) : 0.0f;
     }
 
     @Override
     public boolean hasMana() {
-        return ManaProviderRegistry.resolve(player) != null;
+        return resolveManaSource() != null;
     }
 
     @Override
     public float getMana() {
-        ResourceSource source = ManaProviderRegistry.resolve(player);
+        ResourceSource<ManaSourceMode> source = resolveManaSource();
         return source != null ? source.getCurrent(player) : 0.0f;
     }
 
     @Override
     public float getMaxMana() {
-        ResourceSource source = ManaProviderRegistry.resolve(player);
+        ResourceSource<ManaSourceMode> source = resolveManaSource();
         return source != null ? source.getMax(player) : 0.0f;
+    }
+
+    private ResourceSource<StaminaSourceMode> resolveStaminaSource() {
+        if (SoulsCombatHUDConfig.STATUS_GAUGE.clientSourcePreference.ignoreServerStaminaSource.get()) {
+            StaminaSourceMode localPreference = SoulsCombatHUDConfig.STATUS_GAUGE.clientSourcePreference.clientStaminaSource.get();
+            return StaminaSourceRegistry.INSTANCE.resolveServerSide(player, localPreference).source();
+        }
+        return StaminaSourceRegistry.INSTANCE.resolve();
+    }
+
+    private ResourceSource<ManaSourceMode> resolveManaSource() {
+        if (SoulsCombatHUDConfig.STATUS_GAUGE.clientSourcePreference.ignoreServerManaSource.get()) {
+            ManaSourceMode localPreference = SoulsCombatHUDConfig.STATUS_GAUGE.clientSourcePreference.clientManaSource.get();
+            return ManaSourceRegistry.INSTANCE.resolveServerSide(player, localPreference).source();
+        }
+        return ManaSourceRegistry.INSTANCE.resolve();
     }
 
     @Override

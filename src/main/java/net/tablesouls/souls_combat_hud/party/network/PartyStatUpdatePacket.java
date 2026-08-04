@@ -1,8 +1,11 @@
-package net.tablesouls.souls_combat_hud.party;
+package net.tablesouls.souls_combat_hud.party.network;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkEvent;
+import net.tablesouls.souls_combat_hud.party.PartyEffectSnapshot;
+import net.tablesouls.souls_combat_hud.party.PartyStatType;
+import net.tablesouls.souls_combat_hud.party.client.PartyMemberClientCache;
 
 import java.util.ArrayList;
 import java.util.List;

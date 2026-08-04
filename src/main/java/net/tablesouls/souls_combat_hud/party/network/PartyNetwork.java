@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.party;
+package net.tablesouls.souls_combat_hud.party.network;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -6,12 +6,15 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
+import net.tablesouls.souls_combat_hud.config.ManaSourceMode;
+import net.tablesouls.souls_combat_hud.config.StaminaSourceMode;
 import net.tablesouls.souls_combat_hud.config.TeamSourceMode;
+import net.tablesouls.souls_combat_hud.party.PartyStatType;
 
 import java.util.UUID;
 
 public final class PartyNetwork {
-    private static final String PROTOCOL_VERSION = "2";
+    private static final String PROTOCOL_VERSION = "3";
 
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(SoulsCombatHUD.MODID, "party"),
@@ -39,6 +42,14 @@ public final class PartyNetwork {
                 PartyTeamSourcePacket::encode,
                 PartyTeamSourcePacket::decode,
                 PartyTeamSourcePacket::handle);
+        CHANNEL.registerMessage(nextId++, ManaSourcePacket.class,
+                ManaSourcePacket::encode,
+                ManaSourcePacket::decode,
+                ManaSourcePacket::handle);
+        CHANNEL.registerMessage(nextId++, StaminaSourcePacket.class,
+                StaminaSourcePacket::encode,
+                StaminaSourcePacket::decode,
+                StaminaSourcePacket::handle);
     }
 
     public static void sendStatUpdate(ServerPlayer to, UUID subject, PartyStatType type, Object value) {
@@ -51,6 +62,14 @@ public final class PartyNetwork {
 
     public static void sendTeamSource(ServerPlayer to, TeamSourceMode mode) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> to), new PartyTeamSourcePacket(mode));
+    }
+
+    public static void sendManaSource(ServerPlayer to, ManaSourceMode mode) {
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> to), new ManaSourcePacket(mode));
+    }
+
+    public static void sendStaminaSource(ServerPlayer to, StaminaSourceMode mode) {
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> to), new StaminaSourcePacket(mode));
     }
 
     public static void markServerSupportsParty() {

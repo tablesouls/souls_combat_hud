@@ -21,8 +21,8 @@ import net.tablesouls.souls_combat_hud.client.gui.widget.TexturedToggleButton;
 import net.tablesouls.souls_combat_hud.client.util.PlayerFacePreviewRenderer;
 import net.tablesouls.souls_combat_hud.compat.TeamProviderRegistry;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
-import net.tablesouls.souls_combat_hud.party.PartyDisplayPreferences;
-import net.tablesouls.souls_combat_hud.party.PartyMemberProfileCache;
+import net.tablesouls.souls_combat_hud.party.client.PartyDisplayPreferences;
+import net.tablesouls.souls_combat_hud.party.client.PartyMemberProfileCache;
 
 import java.util.*;
 

@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.party;
+package net.tablesouls.souls_combat_hud.party.network;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
@@ -15,15 +15,11 @@ public class PartyTeamSourcePacket {
     }
 
     public static void encode(PartyTeamSourcePacket packet, FriendlyByteBuf buf) {
-        buf.writeBoolean(packet.mode != null);
-        if (packet.mode != null) {
-            buf.writeEnum(packet.mode);
-        }
+        ResourceModeCodec.encode(packet.mode, buf);
     }
 
     public static PartyTeamSourcePacket decode(FriendlyByteBuf buf) {
-        TeamSourceMode mode = buf.readBoolean() ? buf.readEnum(TeamSourceMode.class) : null;
-        return new PartyTeamSourcePacket(mode);
+        return new PartyTeamSourcePacket(ResourceModeCodec.decode(buf, TeamSourceMode.class));
     }
 
     public static void handle(PartyTeamSourcePacket packet, Supplier<NetworkEvent.Context> ctxSupplier) {

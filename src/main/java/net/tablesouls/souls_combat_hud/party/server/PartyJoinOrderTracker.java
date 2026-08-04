@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.party;
+package net.tablesouls.souls_combat_hud.party.server;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

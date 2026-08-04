@@ -7,7 +7,7 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.scores.Team;
 import net.tablesouls.souls_combat_hud.config.TeamSourceMode;
-import net.tablesouls.souls_combat_hud.party.PartyMemberProfileCache;
+import net.tablesouls.souls_combat_hud.party.client.PartyMemberProfileCache;
 
 import java.util.ArrayList;
 import java.util.List;

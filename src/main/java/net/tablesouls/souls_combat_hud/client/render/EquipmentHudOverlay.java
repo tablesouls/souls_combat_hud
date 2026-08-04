@@ -16,9 +16,9 @@ import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsProvider;
 import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
 import net.tablesouls.souls_combat_hud.client.util.ElementOrientation;
-import net.tablesouls.souls_combat_hud.util.slots.PreviewRowLayout;
-import net.tablesouls.souls_combat_hud.util.slots.ConsumableSlotManager;
-import net.tablesouls.souls_combat_hud.util.slots.WeaponSlotManager;
+import net.tablesouls.souls_combat_hud.client.util.slots.PreviewRowLayout;
+import net.tablesouls.souls_combat_hud.client.util.slots.ConsumableSlotManager;
+import net.tablesouls.souls_combat_hud.client.util.slots.WeaponSlotManager;
 
 public class EquipmentHudOverlay implements IGuiOverlay {
 

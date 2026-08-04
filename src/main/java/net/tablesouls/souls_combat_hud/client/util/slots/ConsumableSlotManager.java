@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.util.slots;
+package net.tablesouls.souls_combat_hud.client.util.slots;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Player;
@@ -8,7 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.PotionItem;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsCompat;
 import net.tablesouls.souls_combat_hud.sounds.ModSounds;
-import net.tablesouls.souls_combat_hud.util.SoundHelper;
+import net.tablesouls.souls_combat_hud.client.util.SoundHelper;
 
 import java.util.ArrayList;
 import java.util.List;

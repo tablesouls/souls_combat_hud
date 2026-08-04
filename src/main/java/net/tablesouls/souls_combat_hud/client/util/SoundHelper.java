@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.util;
+package net.tablesouls.souls_combat_hud.client.util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;

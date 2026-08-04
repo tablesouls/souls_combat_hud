@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.party;
+package net.tablesouls.souls_combat_hud.party.server;
 
 import java.util.HashMap;
 import java.util.Map;

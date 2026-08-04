@@ -120,7 +120,9 @@ public final class SoulsCombatHUDConfig {
 
     public static class ServerRestrictions {
         public final ForgeConfigSpec.IntValue maxTrackedPartyMembers;
-        public final ForgeConfigSpec.EnumValue<TeamSourcePreference> forceTeamSource;
+        public final ForgeConfigSpec.EnumValue<TeamSourceMode> forceTeamSource;
+        public final ForgeConfigSpec.EnumValue<ManaSourceMode> forceManaSource;
+        public final ForgeConfigSpec.EnumValue<StaminaSourceMode> forceStaminaSource;
         public final ForgeConfigSpec.BooleanValue disablePartyTracking;
         public final ForgeConfigSpec.BooleanValue disableHealthTracking;
         public final ForgeConfigSpec.BooleanValue disableStaminaTracking;
@@ -139,7 +141,13 @@ public final class SoulsCombatHUDConfig {
                             "AUTO = prefer FTB Teams otherwise fall back to vanilla scoreboard teams.",
                             "VANILLA / FTB_TEAMS = always use only that source."
                     )
-                    .defineEnum("force_team_source", TeamSourcePreference.AUTO);
+                    .defineEnum("force_team_source", TeamSourceMode.AUTO);
+
+            forceManaSource = builder
+                    .defineEnum("force_mana_source", ManaSourceMode.AUTO);
+
+            forceStaminaSource = builder
+                    .defineEnum("force_stamina_source", StaminaSourceMode.AUTO);
 
             disablePartyTracking = builder
                     .comment("If true, the server will never track party stats.")
@@ -403,6 +411,53 @@ public final class SoulsCombatHUDConfig {
         }
     }
 
+    public static class StatusGauge {
+        public final ClientSourcePreference clientSourcePreference;
+        public final PlayerGaugeOverlay playerGauge;
+        public final PartyGaugeOverlay partyGauge;
+        public final StatusBars statusBars;
+        public final StatusEffects statusEffects;
+
+        StatusGauge(ForgeConfigSpec.Builder builder) {
+            builder.comment("Status Gauge").push("status_gauge");
+
+            clientSourcePreference = new ClientSourcePreference(builder);
+            playerGauge = new PlayerGaugeOverlay(builder);
+            partyGauge = new PartyGaugeOverlay(builder);
+            statusBars = new StatusBars(builder);
+            statusEffects = new StatusEffects(builder);
+
+            builder.pop();
+        }
+    }
+
+    public static class ClientSourcePreference {
+        public final ForgeConfigSpec.EnumValue<StaminaSourceMode> clientStaminaSource;
+        public final ForgeConfigSpec.EnumValue<ManaSourceMode> clientManaSource;
+        public final ForgeConfigSpec.BooleanValue ignoreServerStaminaSource;
+        public final ForgeConfigSpec.BooleanValue ignoreServerManaSource;
+
+        ClientSourcePreference(ForgeConfigSpec.Builder builder) {
+            builder
+                    .comment("This mostly applies for the player gauge, party gauges will always use the server's preferred source type.")
+                    .push("client_source_preferences");
+
+            clientStaminaSource = builder
+                    .comment("Ensure ignore stamina source is disabled")
+                    .defineEnum("client_stamina_source", StaminaSourceMode.AUTO);
+            clientManaSource = builder
+                    .comment("Ensure ignore mana source is disabled")
+                    .defineEnum("client_mana_source", ManaSourceMode.AUTO);
+
+            ignoreServerStaminaSource = builder
+                    .define("ignore_server_stamina_source", false);
+            ignoreServerManaSource = builder
+                    .define("ignore_server_mana_source", false);
+
+            builder.pop();
+        }
+    }
+
     public static class StatusBars {
         public final ForgeConfigSpec.BooleanValue trustServerValues;
         public final ForgeConfigSpec.BooleanValue showValueText;
@@ -419,7 +474,7 @@ public final class SoulsCombatHUDConfig {
 
             trustServerValues = builder
                     .comment("Let servers override local baseline and projected max values")
-                    .define("trust_server_values", true);
+                    .define("force_server_values", true);
 
             showValueText = builder
                     .comment("Shows current and max value of status bars")
@@ -432,24 +487,6 @@ public final class SoulsCombatHUDConfig {
             health = new StatThreshold(builder, "health", 20, 50);
             stamina = new StatThreshold(builder, "stamina", 15, 35);
             mana = new StatThreshold(builder, "mana", 100, 800);
-
-            builder.pop();
-        }
-    }
-
-    public static class StatusGauge {
-        public final PlayerGaugeOverlay playerGauge;
-        public final PartyGaugeOverlay partyGauge;
-        public final StatusBars statusBars;
-        public final StatusEffects statusEffects;
-
-        StatusGauge(ForgeConfigSpec.Builder builder) {
-            builder.comment("Status Gauge").push("status_gauge");
-
-            playerGauge = new PlayerGaugeOverlay(builder);
-            partyGauge = new PartyGaugeOverlay(builder);
-            statusBars = new StatusBars(builder);
-            statusEffects = new StatusEffects(builder);
 
             builder.pop();
         }

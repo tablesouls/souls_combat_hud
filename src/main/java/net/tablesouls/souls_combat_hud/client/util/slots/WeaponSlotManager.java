@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.util.slots;
+package net.tablesouls.souls_combat_hud.client.util.slots;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;

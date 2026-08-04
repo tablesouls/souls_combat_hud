@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.party;
+package net.tablesouls.souls_combat_hud.party.network;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -17,13 +17,21 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.ServerLifecycleHooks;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
-import net.tablesouls.souls_combat_hud.compat.ManaProviderRegistry;
+import net.tablesouls.souls_combat_hud.compat.AbstractResourceSourceRegistry;
+import net.tablesouls.souls_combat_hud.compat.ManaSourceRegistry;
 import net.tablesouls.souls_combat_hud.compat.ResourceSource;
-import net.tablesouls.souls_combat_hud.compat.StaminaProviderRegistry;
+import net.tablesouls.souls_combat_hud.compat.StaminaSourceRegistry;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightCompat;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightDodgeListener;
+import net.tablesouls.souls_combat_hud.config.ManaSourceMode;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
+import net.tablesouls.souls_combat_hud.config.StaminaSourceMode;
 import net.tablesouls.souls_combat_hud.config.TeamSourceMode;
+import net.tablesouls.souls_combat_hud.party.PartyEffectSnapshot;
+import net.tablesouls.souls_combat_hud.party.PartyMemberData;
+import net.tablesouls.souls_combat_hud.party.PartyStatType;
+import net.tablesouls.souls_combat_hud.party.server.PartyMembershipRegistry;
+import net.tablesouls.souls_combat_hud.party.server.PartyTrackerRegistry;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -40,6 +48,8 @@ import java.util.stream.Collectors;
 public class PartyServerEvents {
     private static final Map<UUID, Set<UUID>> LAST_TEAMMATES = new HashMap<>();
     private static final Map<UUID, TeamSourceMode> LAST_TEAM_MODE = new HashMap<>();
+    private static final Map<UUID, ManaSourceMode> LAST_MANA_MODE = new HashMap<>();
+    private static final Map<UUID, StaminaSourceMode> LAST_STAMINA_MODE = new HashMap<>();
 
     private static final Map<UUID, Integer> LAST_EFFECT_PUSH_TICK = new HashMap<>();
     private static final Map<UUID, Integer> LAST_HEALTH_PUSH_TICK = new HashMap<>();
@@ -52,6 +62,7 @@ public class PartyServerEvents {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         PartyMemberData.get(player.getUUID()).setServerPlayer(player);
         recomputeTrackersFor(player);
+        resolveAndSyncResourceSources(player);
 
         if (EpicFightCompat.LOADED) {
             EpicFightDodgeListener.register(player);
@@ -152,6 +163,8 @@ public class PartyServerEvents {
         PartyTrackerRegistry.clearAllTrackersFor(id);
         LAST_TEAMMATES.remove(id);
         LAST_TEAM_MODE.remove(id);
+        LAST_MANA_MODE.remove(id);
+        LAST_STAMINA_MODE.remove(id);
         EFFECT_MAX_DURATION.remove(id);
     }
 
@@ -229,6 +242,39 @@ public class PartyServerEvents {
         pushResourceMax(player);
     }
 
+    private record ResolvedResources(
+            AbstractResourceSourceRegistry.Resolution<ManaSourceMode> mana,
+            AbstractResourceSourceRegistry.Resolution<StaminaSourceMode> stamina) {
+    }
+
+    /**
+     * Resolves the active mana/stamina source for this player fresh (server-authoritative,
+     * honoring force_mana_source / force_stamina_source), and pushes a sync packet to the
+     * client only when the resolved mode actually changed since last time.
+     */
+    private static ResolvedResources resolveAndSyncResourceSources(ServerPlayer player) {
+        UUID id = player.getUUID();
+
+        ManaSourceMode forcedMana = SoulsCombatHUDConfig.SERVER_RESTRICTIONS.forceManaSource.get();
+        StaminaSourceMode forcedStamina = SoulsCombatHUDConfig.SERVER_RESTRICTIONS.forceStaminaSource.get();
+
+        AbstractResourceSourceRegistry.Resolution<ManaSourceMode> manaResolution =
+                ManaSourceRegistry.INSTANCE.resolveServerSide(player, forcedMana);
+        AbstractResourceSourceRegistry.Resolution<StaminaSourceMode> staminaResolution =
+                StaminaSourceRegistry.INSTANCE.resolveServerSide(player, forcedStamina);
+
+        if (LAST_MANA_MODE.get(id) != manaResolution.mode()) {
+            PartyNetwork.sendManaSource(player, manaResolution.mode());
+            LAST_MANA_MODE.put(id, manaResolution.mode());
+        }
+        if (LAST_STAMINA_MODE.get(id) != staminaResolution.mode()) {
+            PartyNetwork.sendStaminaSource(player, staminaResolution.mode());
+            LAST_STAMINA_MODE.put(id, staminaResolution.mode());
+        }
+
+        return new ResolvedResources(manaResolution, staminaResolution);
+    }
+
     public static void pushResourceMax(ServerPlayer player) {
         UUID id = player.getUUID();
         int now = player.tickCount;
@@ -239,8 +285,9 @@ public class PartyServerEvents {
 
         PartyMemberData data = PartyMemberData.get(id);
 
-        ResourceSource stamina = StaminaProviderRegistry.resolve(player);
-        ResourceSource mana = ManaProviderRegistry.resolve(player);
+        ResolvedResources resources = resolveAndSyncResourceSources(player);
+        ResourceSource<StaminaSourceMode> stamina = resources.stamina().source();
+        ResourceSource<ManaSourceMode> mana = resources.mana().source();
 
         if (!SoulsCombatHUDConfig.SERVER_RESTRICTIONS.disableHealthTracking.get()) {
             data.setStat(PartyStatType.HEALTH, player.getHealth(), v -> broadcast(player, PartyStatType.HEALTH, v));
@@ -309,8 +356,10 @@ public class PartyServerEvents {
             data.setStat(PartyStatType.MAX_HEALTH, player.getMaxHealth(), v -> broadcast(player, PartyStatType.MAX_HEALTH, v));
         }
 
+        ResolvedResources resources = resolveAndSyncResourceSources(player);
+
         if (!SoulsCombatHUDConfig.SERVER_RESTRICTIONS.disableStaminaTracking.get()) {
-            ResourceSource stamina = StaminaProviderRegistry.resolve(player);
+            ResourceSource<StaminaSourceMode> stamina = resources.stamina().source();
             if (stamina != null) {
                 data.setStat(PartyStatType.STAMINA, stamina.getCurrent(player), v -> broadcast(player, PartyStatType.STAMINA, v));
                 data.setStat(PartyStatType.MAX_STAMINA, stamina.getMax(player), v -> broadcast(player, PartyStatType.MAX_STAMINA, v));
@@ -318,7 +367,7 @@ public class PartyServerEvents {
         }
 
         if (!SoulsCombatHUDConfig.SERVER_RESTRICTIONS.disableManaTracking.get()) {
-            ResourceSource mana = ManaProviderRegistry.resolve(player);
+            ResourceSource<ManaSourceMode> mana = resources.mana().source();
             if (mana != null) {
                 data.setStat(PartyStatType.MANA, mana.getCurrent(player), v -> broadcast(player, PartyStatType.MANA, v));
                 data.setStat(PartyStatType.MAX_MANA, mana.getMax(player), v -> broadcast(player, PartyStatType.MAX_MANA, v));

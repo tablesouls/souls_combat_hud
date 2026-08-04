@@ -1,4 +1,6 @@
-package net.tablesouls.souls_combat_hud.party;
+package net.tablesouls.souls_combat_hud.party.client;
+
+import net.tablesouls.souls_combat_hud.party.PartyStatType;
 
 import java.util.EnumMap;
 import java.util.HashMap;

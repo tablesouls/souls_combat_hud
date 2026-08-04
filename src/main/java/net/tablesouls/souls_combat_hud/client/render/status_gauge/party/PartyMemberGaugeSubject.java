@@ -13,8 +13,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.tablesouls.souls_combat_hud.accessor.IEffectDurationAccessor;
 import net.tablesouls.souls_combat_hud.client.render.status_gauge.GaugeSubject;
 import net.tablesouls.souls_combat_hud.party.PartyEffectSnapshot;
-import net.tablesouls.souls_combat_hud.party.PartyMemberClientCache;
-import net.tablesouls.souls_combat_hud.party.PartyMemberProfileCache;
+import net.tablesouls.souls_combat_hud.party.client.PartyMemberClientCache;
+import net.tablesouls.souls_combat_hud.party.client.PartyMemberProfileCache;
 import net.tablesouls.souls_combat_hud.party.PartyStatType;
 
 import java.util.ArrayList;

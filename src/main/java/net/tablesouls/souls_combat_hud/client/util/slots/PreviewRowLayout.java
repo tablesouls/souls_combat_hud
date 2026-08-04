@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.util.slots;
+package net.tablesouls.souls_combat_hud.client.util.slots;
 
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphics;

@@ -1,10 +1,9 @@
-package net.tablesouls.souls_combat_hud.party;
+package net.tablesouls.souls_combat_hud.party.server;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.tablesouls.souls_combat_hud.compat.ftbteams.FTBTeamsCompat;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.config.TeamSourceMode;
-import net.tablesouls.souls_combat_hud.config.TeamSourcePreference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,10 +28,11 @@ public final class PartyMembershipRegistry {
     }
 
     public static Resolution resolve(ServerPlayer player) {
-        TeamSourcePreference preference = SoulsCombatHUDConfig.SERVER_RESTRICTIONS.forceTeamSource.get();
+        TeamSourceMode forced = SoulsCombatHUDConfig.SERVER_RESTRICTIONS.forceTeamSource.get();
+        boolean pinned = !forced.isAuto();
 
         for (PartyMembershipSource source : SOURCES) {
-            if (preference != TeamSourcePreference.AUTO && !matches(source.mode(), preference)) {
+            if (pinned && source.mode() != forced) {
                 continue; // pinned to a single source -- skip anything else even if available
             }
             if (source.isAvailable(player)) {
@@ -40,10 +40,6 @@ public final class PartyMembershipRegistry {
             }
         }
         return Resolution.NONE;
-    }
-
-    private static boolean matches(TeamSourceMode mode, TeamSourcePreference preference) {
-        return mode.name().equals(preference.name());
     }
 
     public static List<UUID> resolveTeammateIds(ServerPlayer player) {

@@ -11,7 +11,7 @@ import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
-import net.tablesouls.souls_combat_hud.util.TextHelper;
+import net.tablesouls.souls_combat_hud.client.util.TextHelper;
 
 public class ExperienceOverlay implements IGuiOverlay {
     private static final ResourceLocation BG_TEX =
