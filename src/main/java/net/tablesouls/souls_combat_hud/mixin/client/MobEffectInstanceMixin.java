@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.mixin;
+package net.tablesouls.souls_combat_hud.mixin.client;
 
 import net.minecraft.world.effect.MobEffectInstance;
 import net.tablesouls.souls_combat_hud.accessor.IEffectDurationAccessor;

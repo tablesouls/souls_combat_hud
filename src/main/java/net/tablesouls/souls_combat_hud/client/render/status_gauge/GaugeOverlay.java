@@ -19,12 +19,15 @@ import net.tablesouls.souls_combat_hud.client.render.bars.BarElement;
 import net.tablesouls.souls_combat_hud.client.render.bars.BarScaling;
 import net.tablesouls.souls_combat_hud.client.render.bars.BarStyle;
 import net.tablesouls.souls_combat_hud.client.render.status_gauge.player.PlayerGaugeSubject;
+import net.tablesouls.souls_combat_hud.client.render.status_gauge.thirst.ThirstIcon;
+import net.tablesouls.souls_combat_hud.client.render.status_gauge.thirst.ThirstIconRegistry;
 import net.tablesouls.souls_combat_hud.client.util.PlayerFacePreviewRenderer;
 import net.tablesouls.souls_combat_hud.client.util.StatusBarValues;
 import net.tablesouls.souls_combat_hud.config.CrestDisplayMode;
 import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
 import net.tablesouls.souls_combat_hud.client.util.PlayerModelPreviewRenderer;
 import net.tablesouls.souls_combat_hud.compat.TeamProviderRegistry;
+import net.tablesouls.souls_combat_hud.config.ThirstSourceMode;
 import net.tablesouls.souls_combat_hud.util.ColorHelper;
 import net.tablesouls.souls_combat_hud.client.util.TextHelper;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
@@ -96,6 +99,11 @@ public class GaugeOverlay implements IGuiOverlay {
     private static final int HUNGER_ICON_SIZE = 9;
     private static final int HUNGER_ICON_U = 52;
     private static final int HUNGER_ICON_V = 27;
+
+    private static final int PRIVATE_ICON_WIDTH = 12;
+    private static final int PRIVATE_ICON_HEIGHT = 8;
+    private static final int PRIVATE_ICON_U = 48;
+    private static final int PRIVATE_ICON_V = 56;
 
     private static final int STATUS_SLOT_U = 48;
     private static final int STATUS_SLOT_V = 0;
@@ -401,7 +409,6 @@ public class GaugeOverlay implements IGuiOverlay {
         boolean useModel = displayMode == CrestDisplayMode.MODEL
                 && !subject.isDeadOrDying()
                 && renderableEntity.isPresent()
-                && PlayerModelPreviewRenderer.canRender()
                 && PlayerModelPreviewRenderer.isSafeToRender(renderableEntity.get());
 
         boolean rendered = useModel
@@ -412,7 +419,13 @@ public class GaugeOverlay implements IGuiOverlay {
         }
 
         GaugeLayout hungerLayout = this.gaugeStyles.getLayout("hunger", GaugeLayout.DEFAULT);
+        TextLayout hungerTextLayout = this.gaugeStyles.getTextLayout("hunger", TextLayout.DEFAULT);
+
         GaugeLayout armorLayout = this.gaugeStyles.getLayout("armor", GaugeLayout.DEFAULT);
+        TextLayout armorTextLayout = this.gaugeStyles.getTextLayout("armor", TextLayout.DEFAULT);
+
+        GaugeLayout thirstLayout = this.gaugeStyles.getLayout("thirst", GaugeLayout.DEFAULT);
+        TextLayout thirstTextLayout = this.gaugeStyles.getTextLayout("thirst", TextLayout.DEFAULT);
 
         OptionalInt foodLevel = subject.getFoodLevel();
         if (hungerLayout.enabled() && foodLevel.isPresent()) {
@@ -423,7 +436,8 @@ public class GaugeOverlay implements IGuiOverlay {
                     font,
                     x, y,
                     size,
-                    hungerLayout.x(), hungerLayout.y()
+                    hungerLayout.x(), hungerLayout.y(),
+                    hungerTextLayout
             );
         }
 
@@ -434,8 +448,28 @@ public class GaugeOverlay implements IGuiOverlay {
                     font,
                     x, y,
                     size,
-                    armorLayout.x(), armorLayout.y()
+                    armorLayout.x(), armorLayout.y(),
+                    armorTextLayout
             );
+        }
+
+        if (thirstLayout.enabled() && subject.hasThirst().orElse(false)) {
+            this.renderThirst(
+                    graphics,
+                    subject.getThirst().orElse(0.0),
+                    subject.getMaxThirst().orElse(0.0),
+                    subject.getThirstSourceMode(),
+                    font,
+                    x, y,
+                    size,
+                    thirstLayout.x(), thirstLayout.y(),
+                    thirstTextLayout
+            );
+        }
+
+        GaugeLayout privacyLayout = this.gaugeStyles.getLayout("private", GaugeLayout.DEFAULT);
+        if (privacyLayout.enabled() && subject.isPrivate()) {
+            this.renderPrivateIndicator(graphics, x, y, privacyLayout.x(), privacyLayout.y());
         }
     }
 
@@ -506,7 +540,8 @@ public class GaugeOverlay implements IGuiOverlay {
             int y,
             int size,
             int offsetX,
-            int offsetY
+            int offsetY,
+            TextLayout textLayout
     ){
         Optional<AbstractClientPlayer> renderableEntity = subject.asRenderableEntity();
         if (renderableEntity.isEmpty()) return;
@@ -515,7 +550,7 @@ public class GaugeOverlay implements IGuiOverlay {
         float foodPercent = foodLevel / 20.0f;
 
         int cornerX = x + offsetX;
-        int cornerY = y + size + offsetY;
+        int cornerY = y + offsetY;
 
         int iconX = cornerX - HUNGER_ICON_BG_SIZE / 2;
         int iconY = cornerY - HUNGER_ICON_BG_SIZE / 2;
@@ -555,8 +590,8 @@ public class GaugeOverlay implements IGuiOverlay {
         );
 
         String foodLevelLabel = String.valueOf(foodLevel);
-        int foodLevelTextX = iconX + font.width(foodLevelLabel) / 2;
-        int foodLevelTextY = iconY + font.lineHeight/2;
+        int foodLevelTextX = TextHelper.resolveTextBaseX(textLayout.anchor(), iconX, HUNGER_ICON_BG_SIZE, font.width(foodLevelLabel)) + textLayout.x();
+        int foodLevelTextY = iconY + HUNGER_ICON_BG_SIZE / 2 - font.lineHeight / 2 + textLayout.y();
 
         graphics.drawString(
                 font,
@@ -576,12 +611,13 @@ public class GaugeOverlay implements IGuiOverlay {
             int y,
             int size,
             int offsetX,
-            int offsetY
+            int offsetY,
+            TextLayout textLayout
     ){
         Minecraft mc = Minecraft.getInstance();
 
-        int cornerX = x + size + offsetX;
-        int cornerY = y + size + offsetY;
+        int cornerX = x + offsetX;
+        int cornerY = y + offsetY;
 
         int iconX = cornerX - ARMOR_ICON_SIZE / 2;
         int iconY = cornerY - ARMOR_ICON_SIZE / 2;
@@ -595,14 +631,83 @@ public class GaugeOverlay implements IGuiOverlay {
         );
 
         String armorLevelLabel = String.valueOf(armorLevel);
-        int armorLevelTextX = iconX - font.width(armorLevelLabel) / 2;
-        int armorLevelTextY = iconY + font.lineHeight/2;
+        int armorLevelTextX = TextHelper.resolveTextBaseX(textLayout.anchor(), iconX, ARMOR_ICON_SIZE, font.width(armorLevelLabel)) + textLayout.x();
+        int armorLevelTextY = iconY + ARMOR_ICON_SIZE / 2 - font.lineHeight / 2 + textLayout.y();
 
         graphics.drawString(
                 mc.font,
                 armorLevelLabel,
                 armorLevelTextX,
                 armorLevelTextY,
+                0xFFFFFF,
+                true
+        );
+    }
+
+    public void renderPrivateIndicator(
+            GuiGraphics graphics,
+            int x,
+            int y,
+            int offsetX,
+            int offsetY
+    ) {
+        int cornerX = x + offsetX;
+        int cornerY = y + offsetY;
+
+        int iconX = cornerX - PRIVATE_ICON_WIDTH / 2;
+        int iconY = cornerY - PRIVATE_ICON_HEIGHT/ 2;
+
+        graphics.blit(
+                STATUS_GAUGE_TEX,
+                iconX, iconY,
+                PRIVATE_ICON_U, PRIVATE_ICON_V,
+                PRIVATE_ICON_WIDTH, PRIVATE_ICON_HEIGHT,
+                STATUS_GAUGE_TEX_SIZE, STATUS_GAUGE_TEX_SIZE
+        );
+    }
+
+    public void renderThirst(
+            GuiGraphics graphics,
+            double thirst,
+            double maxThirst,
+            ThirstSourceMode sourceMode,
+            Font font,
+            int x,
+            int y,
+            int size,
+            int offsetX,
+            int offsetY,
+            TextLayout textLayout
+    ) {
+        ThirstIcon icon = ThirstIconRegistry.get(sourceMode);
+        if (icon == null) return;
+
+        int cornerX = x + offsetX;
+        int cornerY = y + offsetY;
+
+        int iconX = cornerX - icon.iconSize() / 2;
+        int iconY = cornerY - icon.iconSize() / 2;
+
+        float percent = maxThirst > 0 ? (float) (thirst / maxThirst) : 0.0f;
+        int stage = icon.stageForPercent(percent);
+
+        graphics.blit(
+                icon.texture(),
+                iconX, iconY,
+                icon.stageU()[stage], icon.v(),
+                icon.iconSize(), icon.iconSize(),
+                icon.textureWidth(), icon.textureHeight()
+        );
+
+        String thirstLabel = String.valueOf((int) Math.ceil(thirst));
+        int thirstTextX = TextHelper.resolveTextBaseX(textLayout.anchor(), iconX, icon.iconSize(), font.width(thirstLabel)) + textLayout.x();
+        int thirstTextY = iconY + icon.iconSize() / 2 - font.lineHeight / 2 + textLayout.y();
+
+        graphics.drawString(
+                font,
+                thirstLabel,
+                thirstTextX,
+                thirstTextY,
                 0xFFFFFF,
                 true
         );

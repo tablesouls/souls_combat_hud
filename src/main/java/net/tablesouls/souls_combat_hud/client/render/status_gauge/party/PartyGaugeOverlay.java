@@ -3,6 +3,7 @@ package net.tablesouls.souls_combat_hud.client.render.status_gauge.party;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.multiplayer.ClientChunkCache;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
@@ -13,6 +14,7 @@ import net.tablesouls.souls_combat_hud.client.render.status_gauge.GaugeSubject;
 import net.tablesouls.souls_combat_hud.client.render.status_gauge.GaugeOverlay;
 import net.tablesouls.souls_combat_hud.compat.TeamProviderRegistry;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
+import net.tablesouls.souls_combat_hud.party.client.PartyMemberClientCache;
 import net.tablesouls.souls_combat_hud.party.network.PartyNetwork;
 import net.tablesouls.souls_combat_hud.config.CrestDisplayMode;
 import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
@@ -42,6 +44,7 @@ public class PartyGaugeOverlay implements IGuiOverlay {
         if (localPlayer == null) return;
 
         List<UUID> teammates = TeamProviderRegistry.resolveDisplayedTeammateIds(localPlayer);
+        teammates = teammates.stream().filter(id -> !PartyMemberClientCache.isHidden(id)).toList();
         if (teammates.isEmpty()) {
             slotsByPlayer.clear();
             subjectsByPlayer.clear();
@@ -93,6 +96,29 @@ public class PartyGaugeOverlay implements IGuiOverlay {
         }
     }
 
+    private static CrestDisplayMode resolveCrestDisplayMode(GaugeSubject subject) {
+        if (SoulsCombatHUDConfig.STATUS_GAUGE.partyGauge.crestDisplayMode.get()
+                != CrestDisplayMode.MODEL) return CrestDisplayMode.FACE;
+
+        Minecraft mc = Minecraft.getInstance();
+        AbstractClientPlayer localPlayer = mc.player;
+        Optional<AbstractClientPlayer> target = subject.asRenderableEntity();
+        if (
+                localPlayer == null
+                        || target.isEmpty()
+                        || mc.level == null
+        ) {
+            return CrestDisplayMode.FACE;
+        }
+
+        double renderDistanceBlocks = mc.options.renderDistance().get() * 16.0;
+        double maxModelDistance = renderDistanceBlocks * 0.9;
+
+        return localPlayer.distanceTo(target.get()) <= maxModelDistance
+                ? CrestDisplayMode.MODEL
+                : CrestDisplayMode.FACE;
+    }
+
     private int renderSlot(GuiGraphics graphics, Font font, GaugeOverlay slot, GaugeSubject subject, int x, int y, boolean mirrored, OptionalInt teamColor) {
         GaugeLayout crestLayout = GaugeStyleRegistry.PARTY.getLayout("crest", GaugeLayout.DEFAULT);
         GaugeLayout playerNameLayout = GaugeStyleRegistry.PARTY.getLayout("player_name", GaugeLayout.DEFAULT);
@@ -103,7 +129,8 @@ public class PartyGaugeOverlay implements IGuiOverlay {
         int contentBottom = y + SLOT_HEIGHT; // never shrink below the configured baseline slot height
 
         if (crestLayout.enabled()) {
-            slot.renderCrest(graphics, subject, font, crestX, y + crestLayout.y(), crestSize, !mirrored, CrestDisplayMode.FACE, teamColor);
+            CrestDisplayMode displayMode = resolveCrestDisplayMode(subject);
+            slot.renderCrest(graphics, subject, font, crestX, y + crestLayout.y(), crestSize, !mirrored, displayMode, teamColor);
             contentBottom = Math.max(contentBottom, y + crestLayout.y() + crestSize);
         }
 

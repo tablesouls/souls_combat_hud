@@ -5,6 +5,8 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.tablesouls.souls_combat_hud.client.util.TextAnchor;
+import net.tablesouls.souls_combat_hud.client.util.TextHelper;
 
 public final class BarRenderer {
 
@@ -39,7 +41,8 @@ public final class BarRenderer {
 
         if (label != null) {
             int nameY = y - 10;
-            int labelX = mirrored ? x + w - Minecraft.getInstance().font.width(label) : x;
+            TextAnchor labelAnchor = mirrored ? TextAnchor.INSIDE_RIGHT : TextAnchor.INSIDE_LEFT;
+            int labelX = TextHelper.resolveTextBaseX(labelAnchor, x, w, Minecraft.getInstance().font.width(label));
             graphics.drawString(Minecraft.getInstance().font, label, labelX, nameY, style.textColor(), true);
         }
 

@@ -8,14 +8,16 @@
     "ScoreboardTeamMixin"
   ],
   "client": [
-    "ReleaseUsingItemMixin",
-    "GuiOffhandMixin",
-    "MobEffectInstanceMixin",
-    "EntityPosePreviewMixin",
-    "LivingEntityPosePreviewMixin",
-    "HumanoidModelPreviewMixin",
-    "PlayerRendererOffsetMixin",
-    "PatchedLivingEntityRendererMixin"
+    "client.ReleaseUsingItemMixin",
+    "client.GuiOffhandMixin",
+    "client.MobEffectInstanceMixin",
+    "client.EntityPosePreviewMixin",
+    "client.LivingEntityPosePreviewMixin",
+    "client.LivingEntityNameTagPreviewMixin",
+    "client.HumanoidModelPreviewMixin",
+    "client.PlayerRendererOffsetMixin",
+    "client.PatchedLivingEntityRendererMixin",
+    "parcool.ParcoolAnimationPreviewMixin"
   ],
   "injectors": {
     "defaultRequire": 1

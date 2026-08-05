@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.mixin;
+package net.tablesouls.souls_combat_hud.mixin.client;
 
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;

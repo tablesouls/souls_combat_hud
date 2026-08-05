@@ -13,6 +13,7 @@ import net.tablesouls.souls_combat_hud.client.render.bars.BarStyle;
 import net.tablesouls.souls_combat_hud.client.render.bars.BarStyleJsonParser;
 import net.tablesouls.souls_combat_hud.client.render.bars.StackedStyleJsonLoader;
 
+import javax.json.Json;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,19 +34,62 @@ public class GaugeStyleReloadListener extends SimplePreparableReloadListener<Jso
 
     @Override
     protected void apply(JsonObject json, ResourceManager manager, ProfilerFiller profiler) {
-        JsonObject crestSection = json.has("crest") ? json.getAsJsonObject("crest") : new JsonObject();
-        JsonObject gaugesSection = json.has("gauges") ? json.getAsJsonObject("gauges") : new JsonObject();
+        try {
+            JsonObject crestSection = json.has("crest") ? json.getAsJsonObject("crest") : new JsonObject();
+            JsonObject gaugesSection = json.has("gauges") ? json.getAsJsonObject("gauges") : new JsonObject();
 
-        parseLayoutSection(json, "player_name", GaugeLayout.DEFAULT);
+            parseLayoutSection(json, "player_name", GaugeLayout.DEFAULT);
 
-        parseLayoutSection(json, "crest", GaugeLayout.DEFAULT);
-        parseLayoutSection(crestSection, "hunger", GaugeLayout.DEFAULT);
-        parseLayoutSection(crestSection, "armor", GaugeLayout.DEFAULT);
+            parseLayoutSection(json, "crest", GaugeLayout.DEFAULT);
+            parseAttributes(crestSection);
 
-        parseLayoutSection(json, "gauges", GaugeLayout.DEFAULT);
+            parseLayoutSection(json, "gauges", GaugeLayout.DEFAULT);
 
-        parseElements(gaugesSection);
-        registry.setRowGap(gaugesSection.has("row_gap") ? gaugesSection.get("row_gap").getAsInt() : 2);
+            parseElements(gaugesSection);
+            registry.setRowGap(gaugesSection.has("row_gap") ? gaugesSection.get("row_gap").getAsInt() : 2);
+        } catch (Exception e) {
+            SoulsCombatHUD.LOGGER.error("Failed to apply gauge style {}, falling back to defaults", gaugeStylePath, e);
+        }
+    }
+
+    private void parseAttributes(JsonObject crestSection) {
+        if (!crestSection.has("attributes") || !crestSection.get("attributes").isJsonArray()) {
+            for (CrestAttribute attribute : CrestAttribute.DEFAULT_ORDER) {
+                registry.setLayout(attribute.key(), GaugeLayout.DEFAULT);
+                registry.setTextLayout(attribute.key(), TextLayout.DEFAULT);
+            }
+            return;
+        }
+
+        for (JsonElement entry : crestSection.getAsJsonArray("attributes")) {
+            if (!entry.isJsonObject()) {
+                SoulsCombatHUD.LOGGER.warn("Crest attribute is not an object in {}, skipping", gaugeStylePath);
+                continue;
+            }
+
+            JsonObject attributeJson = entry.getAsJsonObject();
+            if (!attributeJson.has("type")) {
+                SoulsCombatHUD.LOGGER.warn("Crest attribute missing 'type' in {}, skipping", gaugeStylePath);
+                continue;
+            }
+
+            String typeKey = attributeJson.get("type").getAsString();
+            CrestAttribute attribute = CrestAttribute.byKey(typeKey);
+            if (attribute == null) {
+                SoulsCombatHUD.LOGGER.warn("Unknown crest attribute type '{}' in {}, skipping", typeKey, gaugeStylePath);
+                continue;
+            }
+
+            try {
+                GaugeLayout layout = GaugeLayoutJsonParser.parseLayout(attributeJson, GaugeLayout.DEFAULT);
+                registry.setLayout(attribute.key(), layout);
+
+                TextLayout textLayout = TextLayoutJsonParser.parseTextLayout(attributeJson, TextLayout.DEFAULT);
+                registry.setTextLayout(attribute.key(), textLayout);
+            } catch (Exception e) {
+                SoulsCombatHUD.LOGGER.error("Failed to parse crest attribute '{}' in {}", attribute.key(), gaugeStylePath, e);
+            }
+        }
     }
 
     private void parseElements(JsonObject gaugesSection) {

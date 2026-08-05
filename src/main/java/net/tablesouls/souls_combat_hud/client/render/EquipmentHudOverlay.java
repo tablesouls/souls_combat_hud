@@ -10,6 +10,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+import net.tablesouls.souls_combat_hud.client.util.TextAnchor;
+import net.tablesouls.souls_combat_hud.client.util.TextHelper;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsCompat;
 import net.tablesouls.souls_combat_hud.compat.moreoffhandslots.MoreOffhandSlotsCompat;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
@@ -217,7 +219,8 @@ public class EquipmentHudOverlay implements IGuiOverlay {
     }
 
     private void drawName(GuiGraphics guiGraphics, Minecraft mc, int x, String text, int y, boolean rightAlign) {
-        int textX = rightAlign ? x + SLOT_HALF_W - mc.font.width(text) : x - SLOT_HALF_W;
+        TextAnchor anchor = rightAlign ? TextAnchor.INSIDE_RIGHT : TextAnchor.INSIDE_LEFT;
+        int textX = TextHelper.resolveTextBaseX(anchor, x - SLOT_HALF_W, SLOT_HALF_W * 2, mc.font.width(text));
         guiGraphics.drawString(mc.font, text, textX, y, TEXT_COLOR, true);
     }
 

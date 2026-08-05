@@ -417,6 +417,7 @@ public final class SoulsCombatHUDConfig {
         public final PartyGaugeOverlay partyGauge;
         public final StatusBars statusBars;
         public final StatusEffects statusEffects;
+        public final ForgeConfigSpec.BooleanValue hideStatusFromParty;
 
         StatusGauge(ForgeConfigSpec.Builder builder) {
             builder.comment("Status Gauge").push("status_gauge");
@@ -426,6 +427,9 @@ public final class SoulsCombatHUDConfig {
             partyGauge = new PartyGaugeOverlay(builder);
             statusBars = new StatusBars(builder);
             statusEffects = new StatusEffects(builder);
+            hideStatusFromParty = builder
+                    .comment("Should party members be able to see your status")
+                    .define("hide_status_from_party", false);
 
             builder.pop();
         }
@@ -434,6 +438,7 @@ public final class SoulsCombatHUDConfig {
     public static class ClientSourcePreference {
         public final ForgeConfigSpec.EnumValue<StaminaSourceMode> clientStaminaSource;
         public final ForgeConfigSpec.EnumValue<ManaSourceMode> clientManaSource;
+        public final ForgeConfigSpec.EnumValue<ThirstSourceMode> clientThristSource;
         public final ForgeConfigSpec.BooleanValue ignoreServerStaminaSource;
         public final ForgeConfigSpec.BooleanValue ignoreServerManaSource;
 
@@ -448,6 +453,8 @@ public final class SoulsCombatHUDConfig {
             clientManaSource = builder
                     .comment("Ensure ignore mana source is disabled")
                     .defineEnum("client_mana_source", ManaSourceMode.AUTO);
+            clientThristSource = builder
+                    .defineEnum("client_thirst_source", ThirstSourceMode.AUTO);
 
             ignoreServerStaminaSource = builder
                     .define("ignore_server_stamina_source", false);
@@ -533,7 +540,6 @@ public final class SoulsCombatHUDConfig {
                     .define("crest_team_outline", true);
 
             crestDisplayMode = builder
-                    .comment("MODEL can only be render if Epic Fight's COMPUTE SHADER is OFF")
                     .defineEnum("crest_display_mode", CrestDisplayMode.MODEL);
 
             anchor = builder.defineEnum(
@@ -551,6 +557,7 @@ public final class SoulsCombatHUDConfig {
     public static class PartyGaugeOverlay {
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.BooleanValue crestTeamOutline;
+        public final ForgeConfigSpec.EnumValue<CrestDisplayMode> crestDisplayMode;
         public final ForgeConfigSpec.IntValue maxDisplayedPartyMembers;
         public final ForgeConfigSpec.BooleanValue showOfflineMembers;
         public final ForgeConfigSpec.BooleanValue sortOnlineFirst;
@@ -573,6 +580,9 @@ public final class SoulsCombatHUDConfig {
 
             crestTeamOutline = builder
                     .define("crest_team_outline", true);
+
+            crestDisplayMode = builder
+                    .defineEnum("crest_display_mode", CrestDisplayMode.MODEL);
 
             maxDisplayedPartyMembers = builder
                     .comment("Maximum amount of party members to display")
@@ -786,6 +796,7 @@ public final class SoulsCombatHUDConfig {
     public static class Visibility {
         public final MinecraftGuiSetting minecraftGui;
         public final EpicFightGuiSetting epicfightGui;
+        public final ThirstGuiSetting thirstGui;
 
 
         Visibility(ForgeConfigSpec.Builder builder) {
@@ -793,8 +804,23 @@ public final class SoulsCombatHUDConfig {
 
             minecraftGui = new MinecraftGuiSetting(builder);
             epicfightGui = new EpicFightGuiSetting(builder);
+            thirstGui = new ThirstGuiSetting(builder);
 
             builder.pop();
+        }
+
+        public static class ThirstGuiSetting {
+            public final ForgeConfigSpec.BooleanValue hideThirst;
+
+            ThirstGuiSetting(ForgeConfigSpec.Builder builder) {
+                builder.push("thirst");
+
+                hideThirst = builder
+                        .comment("Hide thirst bar for mods that dont have the config option.")
+                        .define("hide_thirst_bar", true);
+
+                builder.pop();
+            }
         }
 
         public static class EpicFightGuiSetting {

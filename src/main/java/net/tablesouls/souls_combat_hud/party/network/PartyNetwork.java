@@ -14,7 +14,7 @@ import net.tablesouls.souls_combat_hud.party.PartyStatType;
 import java.util.UUID;
 
 public final class PartyNetwork {
-    private static final String PROTOCOL_VERSION = "3";
+    private static final String PROTOCOL_VERSION = "5";
 
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(SoulsCombatHUD.MODID, "party"),
@@ -26,8 +26,6 @@ public final class PartyNetwork {
     private static volatile boolean serverSupportsParty = false;
 
     private static int nextId = 0;
-
-    private PartyNetwork() {}
 
     public static void register() {
         CHANNEL.registerMessage(nextId++, PartyStatUpdatePacket.class,
@@ -50,6 +48,14 @@ public final class PartyNetwork {
                 StaminaSourcePacket::encode,
                 StaminaSourcePacket::decode,
                 StaminaSourcePacket::handle);
+        CHANNEL.registerMessage(nextId++, PartyPrivacyPacket.class,
+                PartyPrivacyPacket::encode,
+                PartyPrivacyPacket::decode,
+                PartyPrivacyPacket::handle);
+        CHANNEL.registerMessage(nextId++, PartyPrivacyStatePacket.class,
+                PartyPrivacyStatePacket::encode,
+                PartyPrivacyStatePacket::decode,
+                PartyPrivacyStatePacket::handle);
     }
 
     public static void sendStatUpdate(ServerPlayer to, UUID subject, PartyStatType type, Object value) {
@@ -70,6 +76,14 @@ public final class PartyNetwork {
 
     public static void sendStaminaSource(ServerPlayer to, StaminaSourceMode mode) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> to), new StaminaSourcePacket(mode));
+    }
+
+    public static void sendPrivacySetting(boolean hidden) {
+        CHANNEL.sendToServer(new PartyPrivacyPacket(hidden));
+    }
+
+    public static void sendPrivacyState(ServerPlayer to, UUID subject, boolean hidden) {
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> to), new PartyPrivacyStatePacket(subject, hidden));
     }
 
     public static void markServerSupportsParty() {

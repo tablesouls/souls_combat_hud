@@ -32,4 +32,14 @@ public class TextHelper {
 
         guiGraphics.drawString(font, text, x, y, color, false);
     }
+
+    public static int resolveTextBaseX(TextAnchor anchor, int boxX, int boxWidth, int textWidth) {
+        return switch (anchor) {
+            case CENTER -> boxX + boxWidth / 2 - textWidth / 2;
+            case OUTSIDE_LEFT -> boxX - textWidth;
+            case OUTSIDE_RIGHT -> boxX + boxWidth;
+            case INSIDE_LEFT -> boxX;
+            case INSIDE_RIGHT -> boxX + boxWidth - textWidth;
+        };
+    }
 }

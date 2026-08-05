@@ -1,5 +1,6 @@
 package net.tablesouls.souls_combat_hud.event;
 
+import akkynaa.moreoffhandslots.MoreOffhandSlots;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.GameType;
@@ -11,14 +12,17 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.tablesouls.souls_combat_hud.client.util.BossBarState;
+import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightCompat;
+import net.tablesouls.souls_combat_hud.compat.thirst_was_reclaimed.ThirstWasReclaimedCompat;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 
 @Mod.EventBusSubscriber(modid = "souls_combat_hud", bus = Mod.EventBusSubscriber.Bus.FORGE, value = {Dist.CLIENT})
 public class ClientForgeRenderEvents {
-    private static final ResourceLocation WEAPON_INNATE_ID = ResourceLocation.fromNamespaceAndPath("epicfight", "weapon_innate");
-    private static final ResourceLocation SKILLS_ID = ResourceLocation.fromNamespaceAndPath("epicfight", "skills");
-    private static final ResourceLocation STAMINA_BAR_ID = ResourceLocation.fromNamespaceAndPath("epicfight", "stamina_bar");
-    private static final ResourceLocation OFFHAND_HUD_ID = ResourceLocation.fromNamespaceAndPath("moreoffhandslots", "offhand_hud");
+    private static final ResourceLocation WEAPON_INNATE_ID = ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MODID, "weapon_innate");
+    private static final ResourceLocation SKILLS_ID = ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MODID, "skills");
+    private static final ResourceLocation STAMINA_BAR_ID = ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MODID, "stamina_bar");
+    private static final ResourceLocation OFFHAND_HUD_ID = ResourceLocation.fromNamespaceAndPath(MoreOffhandSlots.MODID, "offhand_hud");
+    private static final ResourceLocation TWR_THIRST_OVERLAY_ID = ResourceLocation.fromNamespaceAndPath(ThirstWasReclaimedCompat.MODID, "thirst_level");
 
     @SubscribeEvent
     public static void onRenderGuiOverlayPre(RenderGuiOverlayEvent.Pre event) {
@@ -85,6 +89,11 @@ public class ClientForgeRenderEvents {
         }
 
         if (SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.hideMoreOffhandSlots.get() && id.equals(OFFHAND_HUD_ID)) {
+            event.setCanceled(true);
+            return;
+        }
+
+        if (SoulsCombatHUDConfig.VISIBILITY.thirstGui.hideThirst.get() && id.equals(TWR_THIRST_OVERLAY_ID)) {
             event.setCanceled(true);
             return;
         }

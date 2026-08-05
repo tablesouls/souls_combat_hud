@@ -31,6 +31,7 @@ import net.tablesouls.souls_combat_hud.party.PartyEffectSnapshot;
 import net.tablesouls.souls_combat_hud.party.PartyMemberData;
 import net.tablesouls.souls_combat_hud.party.PartyStatType;
 import net.tablesouls.souls_combat_hud.party.server.PartyMembershipRegistry;
+import net.tablesouls.souls_combat_hud.party.server.PartyPrivacyRegistry;
 import net.tablesouls.souls_combat_hud.party.server.PartyTrackerRegistry;
 
 import java.util.Comparator;
@@ -147,7 +148,11 @@ public class PartyServerEvents {
         LAST_TEAMMATES.put(id, newTeammates);
     }
 
-    private static void syncKnownStats(ServerPlayer subject, ServerPlayer to) {
+    static void syncKnownStats(ServerPlayer subject, ServerPlayer to) {
+        boolean hidden = PartyPrivacyRegistry.isHidden(subject.getUUID());
+        PartyNetwork.sendPrivacyState(to, subject.getUUID(), hidden);
+        if (hidden) return;
+
         PartyMemberData data = PartyMemberData.get(subject.getUUID());
         for (PartyStatType type : PartyStatType.values()) {
             if (data.hasStat(type)) {
@@ -247,11 +252,6 @@ public class PartyServerEvents {
             AbstractResourceSourceRegistry.Resolution<StaminaSourceMode> stamina) {
     }
 
-    /**
-     * Resolves the active mana/stamina source for this player fresh (server-authoritative,
-     * honoring force_mana_source / force_stamina_source), and pushes a sync packet to the
-     * client only when the resolved mode actually changed since last time.
-     */
     private static ResolvedResources resolveAndSyncResourceSources(ServerPlayer player) {
         UUID id = player.getUUID();
 
@@ -392,6 +392,7 @@ public class PartyServerEvents {
     }
 
     private static void broadcast(ServerPlayer player, PartyStatType type, Object value) {
+        if (PartyPrivacyRegistry.isHidden(player.getUUID())) return;
         for (var trackerId : PartyTrackerRegistry.getTrackers(player.getUUID())) {
             var tracker = player.getServer().getPlayerList().getPlayer(trackerId);
             if (tracker != null) {

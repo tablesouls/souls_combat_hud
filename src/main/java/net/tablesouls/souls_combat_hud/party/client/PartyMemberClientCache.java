@@ -5,10 +5,14 @@ import net.tablesouls.souls_combat_hud.party.PartyStatType;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class PartyMemberClientCache {
     private static final Map<UUID, Map<PartyStatType, Object>> CACHE = new HashMap<>();
+
+    private static final Set<UUID> HIDDEN = ConcurrentHashMap.newKeySet();
 
     public static void update(UUID player, PartyStatType type, Object value) {
         CACHE.computeIfAbsent(player, k -> new EnumMap<>(PartyStatType.class)).put(type, value);
@@ -29,7 +33,21 @@ public final class PartyMemberClientCache {
         CACHE.remove(player);
     }
 
+    public static void setHidden(UUID player, boolean hidden) {
+        if (hidden) {
+            HIDDEN.add(player);
+            CACHE.remove(player);
+        } else {
+            HIDDEN.remove(player);
+        }
+    }
+
+    public static boolean isHidden(UUID player) {
+        return HIDDEN.contains(player);
+    }
+
     public static void clearAll() {
         CACHE.clear();
+        HIDDEN.clear();
     }
 }

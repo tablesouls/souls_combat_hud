@@ -1,8 +1,7 @@
-package net.tablesouls.souls_combat_hud.mixin;
+package net.tablesouls.souls_combat_hud.mixin.client;
 
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.WalkAnimationState;
 import net.tablesouls.souls_combat_hud.client.util.PlayerModelPreviewRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

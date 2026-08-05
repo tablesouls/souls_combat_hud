@@ -23,6 +23,7 @@ import net.tablesouls.souls_combat_hud.compat.TeamProviderRegistry;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.party.client.PartyDisplayPreferences;
 import net.tablesouls.souls_combat_hud.party.client.PartyMemberProfileCache;
+import net.tablesouls.souls_combat_hud.party.network.PartyNetwork;
 
 import java.util.*;
 
@@ -138,6 +139,15 @@ public class PartySortScreen extends Screen {
 
         boolean hideOffline = !SoulsCombatHUDConfig.STATUS_GAUGE.partyGauge.showOfflineMembers.get();
 
+        int btnWidth = 90;
+        int btnHeight = 14;
+
+        int btnY = this.topPos - btnHeight - 2;
+        int btnGap = 2;
+
+        int combinedWidth = (btnWidth * 2) + btnGap;
+        int combinedX = this.leftPos + (BACKGROUND_WIDTH - combinedWidth) / 2;
+
         Button hideOfflineBtn = Button.builder(
                 Component.translatable(hideOffline
                         ? "gui.souls_combat_hud.party_sort.show_offline"
@@ -146,8 +156,23 @@ public class PartySortScreen extends Screen {
                     SoulsCombatHUDConfig.STATUS_GAUGE.partyGauge.showOfflineMembers.set(hideOffline);
                     PartySortScreen.this.refresh();
                 }
-        ).bounds(this.leftPos + BACKGROUND_WIDTH - LIST_SIDE_PADDING - 90, this.topPos + 2, 90, 14).build();
+        ).bounds(combinedX + btnWidth + btnGap, btnY, btnWidth, btnHeight).build();
         this.addRenderableWidget(hideOfflineBtn);
+
+        boolean hideStatus = !SoulsCombatHUDConfig.STATUS_GAUGE.hideStatusFromParty.get();
+
+        Button hideStatusBtn = Button.builder(
+                Component.translatable(hideStatus
+                        ? "gui.souls_combat_hud.party_sort.hide_status_from_party"
+                        : "gui.souls_combat_hud.party_sort.show_status_from_party"),
+                btn -> {
+                    SoulsCombatHUDConfig.STATUS_GAUGE.hideStatusFromParty.set(hideStatus);
+                    PartyNetwork.sendPrivacySetting(hideStatus);
+                    PartySortScreen.this.refresh();
+                }
+        ).bounds(combinedX, btnY, btnWidth, btnHeight).build();
+        this.addRenderableWidget(hideStatusBtn);
+
 
         if (this.minecraft != null && this.minecraft.player != null) {
             ClientPacketListener connection = this.minecraft.getConnection();
@@ -413,8 +438,8 @@ public class PartySortScreen extends Screen {
             int stackHeight = UP_TEX_HEIGHT + stackGap + DOWN_TEX_HEIGHT;
             int stackTop = top + (ROW_HEIGHT - stackHeight) / 2;
 
-            boolean canMoveUp = !this.first;   // topmost row can't move further up
-            boolean canMoveDown = !this.last;  // bottommost row can't move further down
+            boolean canMoveUp = !this.first;
+            boolean canMoveDown = !this.last;
 
             up.setPosition(arrowX, stackTop);
             up.visible = visible;

@@ -14,6 +14,7 @@ public final class GaugeStyleRegistry {
     private final Map<String, BarStyle> styles = new HashMap<>();
     private final Map<String, BarDecoration> decorations = new HashMap<>();
     private final Map<String, GaugeLayout> layouts = new HashMap<>();
+    private final Map<String, TextLayout> textLayouts = new HashMap<>();
 
     private List<GaugeRow> rowOrder = GaugeRow.DEFAULT_ORDER;
     private int rowGap = 2;
@@ -25,6 +26,10 @@ public final class GaugeStyleRegistry {
 
     void setLayout(String key, GaugeLayout layout) {
         layouts.put(key, layout);
+    }
+
+    void setTextLayout(String key, TextLayout layout) {
+        textLayouts.put(key, layout);
     }
 
     void setRowOrder(List<GaugeRow> rowOrder) {
@@ -45,6 +50,10 @@ public final class GaugeStyleRegistry {
 
     public GaugeLayout getLayout(String key, GaugeLayout fallback) {
         return layouts.getOrDefault(key, fallback);
+    }
+
+    public TextLayout getTextLayout(String key, TextLayout fallback) {
+        return textLayouts.getOrDefault(key, fallback);
     }
 
     public List<GaugeRow> getRowOrder() {

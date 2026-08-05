@@ -20,6 +20,7 @@ import net.tablesouls.souls_combat_hud.party.PartyStatType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.UUID;
 
@@ -123,6 +124,21 @@ public class PartyMemberGaugeSubject implements GaugeSubject {
     @Override
     public OptionalInt getArmorValue() {
         return OptionalInt.empty();
+    }
+
+    @Override
+    public Optional<Boolean> hasThirst() {
+        return Optional.of(false);
+    }
+
+    @Override
+    public OptionalDouble getThirst() {
+        return OptionalDouble.empty();
+    }
+
+    @Override
+    public OptionalDouble getMaxThirst() {
+        return OptionalDouble.empty();
     }
 
     @Override
