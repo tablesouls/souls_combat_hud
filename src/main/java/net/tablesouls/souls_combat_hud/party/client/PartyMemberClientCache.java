@@ -11,11 +11,33 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class PartyMemberClientCache {
     private static final Map<UUID, Map<PartyStatType, Object>> CACHE = new HashMap<>();
-
+    private static final Map<UUID, Integer> STATUS_EFFECTS_RECEIVED_TICK = new HashMap<>();
     private static final Set<UUID> HIDDEN = ConcurrentHashMap.newKeySet();
 
     public static void update(UUID player, PartyStatType type, Object value) {
         CACHE.computeIfAbsent(player, k -> new EnumMap<>(PartyStatType.class)).put(type, value);
+        if (type == PartyStatType.STATUS_EFFECTS) {
+            STATUS_EFFECTS_RECEIVED_TICK.put(player, currentClientTick());
+        }
+    }
+
+    public static int getStatusEffectsReceivedTick(UUID player) {
+        return STATUS_EFFECTS_RECEIVED_TICK.getOrDefault(player, currentClientTick());
+    }
+
+    private static int currentClientTick() {
+        var level = net.minecraft.client.Minecraft.getInstance().level;
+        return level != null ? (int) level.getGameTime() : 0;
+    }
+
+    public static void remove(UUID player, PartyStatType type) {
+        Map<PartyStatType, Object> stats = CACHE.get(player);
+        if (stats != null) {
+            stats.remove(type);
+        }
+        if (type == PartyStatType.STATUS_EFFECTS) {
+            STATUS_EFFECTS_RECEIVED_TICK.remove(player);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -27,10 +49,6 @@ public final class PartyMemberClientCache {
     public static boolean has(UUID player, PartyStatType type) {
         Map<PartyStatType, Object> stats = CACHE.get(player);
         return stats != null && stats.containsKey(type);
-    }
-
-    public static void clear(UUID player) {
-        CACHE.remove(player);
     }
 
     public static void setHidden(UUID player, boolean hidden) {
@@ -48,6 +66,7 @@ public final class PartyMemberClientCache {
 
     public static void clearAll() {
         CACHE.clear();
+        STATUS_EFFECTS_RECEIVED_TICK.clear();
         HIDDEN.clear();
     }
 }

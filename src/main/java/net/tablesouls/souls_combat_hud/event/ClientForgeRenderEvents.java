@@ -13,6 +13,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.tablesouls.souls_combat_hud.client.util.BossBarState;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightCompat;
+import net.tablesouls.souls_combat_hud.compat.helditemtooltips.HeldItemTooltipsCompat;
 import net.tablesouls.souls_combat_hud.compat.thirst_was_reclaimed.ThirstWasReclaimedCompat;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 
@@ -23,6 +24,12 @@ public class ClientForgeRenderEvents {
     private static final ResourceLocation STAMINA_BAR_ID = ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MODID, "stamina_bar");
     private static final ResourceLocation OFFHAND_HUD_ID = ResourceLocation.fromNamespaceAndPath(MoreOffhandSlots.MODID, "offhand_hud");
     private static final ResourceLocation TWR_THIRST_OVERLAY_ID = ResourceLocation.fromNamespaceAndPath(ThirstWasReclaimedCompat.MODID, "thirst_level");
+
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onItemNameOffsetPre(RenderGuiOverlayEvent.Pre event) {
+        if (!HeldItemTooltipsCompat.LOADED) return;
+        applyOverlayOffset(event);
+    }
 
     @SubscribeEvent
     public static void onRenderGuiOverlayPre(RenderGuiOverlayEvent.Pre event) {
@@ -98,6 +105,14 @@ public class ClientForgeRenderEvents {
             return;
         }
 
+        if (!HeldItemTooltipsCompat.LOADED) {
+            applyOverlayOffset(event);
+        }
+    }
+
+    private static void applyOverlayOffset(RenderGuiOverlayEvent.Pre event) {
+        ResourceLocation id = event.getOverlay().id();
+
         if (id.equals(VanillaGuiOverlay.ITEM_NAME.id())) {
             int y = getHudYOffset() - SoulsCombatHUDConfig.VISIBILITY.minecraftGui.itemName.y.get();
 
@@ -119,6 +134,17 @@ public class ClientForgeRenderEvents {
         }
     }
 
+    @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
+    public static void onItemNameOffsetPop(RenderGuiOverlayEvent.Pre event) {
+        if (!HeldItemTooltipsCompat.LOADED) return;
+        if (!event.isCanceled()) return;
+
+        ResourceLocation id = event.getOverlay().id();
+        if (id.equals(VanillaGuiOverlay.ITEM_NAME.id()) || id.equals(VanillaGuiOverlay.RECORD_OVERLAY.id())) {
+            event.getGuiGraphics().pose().popPose();
+        }
+    }
+
     private static int getHudYOffset() {
         Minecraft mc = Minecraft.getInstance();
         return mc.gameMode != null
@@ -133,7 +159,7 @@ public class ClientForgeRenderEvents {
         ResourceLocation id = event.getOverlay().id();
 
         if (id.equals(VanillaGuiOverlay.ITEM_NAME.id())
-            || id.equals(VanillaGuiOverlay.RECORD_OVERLAY.id())
+                || id.equals(VanillaGuiOverlay.RECORD_OVERLAY.id())
         ) {
             event.getGuiGraphics().pose().popPose();
         }

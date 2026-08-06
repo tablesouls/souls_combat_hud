@@ -322,8 +322,8 @@ public class GaugeOverlay implements IGuiOverlay {
                     : 0.0f;
             barWidth = BarScaling.resolveWidth(
                     maxStamina,
-                    StatusBarValues.staminaBaseline(),
-                    StatusBarValues.staminaProjectedMax(),
+                    StatusBarValues.staminaBaseline(subject.getStaminaSourceMode()),
+                    StatusBarValues.staminaProjectedMax(subject.getStaminaSourceMode()),
                     STAMINA_BAR_MIN_WIDTH,
                     STAMINA_BAR_MAX_WIDTH
             );
@@ -349,8 +349,8 @@ public class GaugeOverlay implements IGuiOverlay {
                     : 0.0f;
             barWidth = BarScaling.resolveWidth(
                     maxMana,
-                    StatusBarValues.manaBaseline(),
-                    StatusBarValues.manaProjectedMax(),
+                    StatusBarValues.manaBaseline(subject.getManaSourceMode()),
+                    StatusBarValues.manaProjectedMax(subject.getManaSourceMode()),
                     MANA_BAR_MIN_WIDTH,
                     MANA_BAR_MAX_WIDTH
             );
@@ -733,7 +733,12 @@ public class GaugeOverlay implements IGuiOverlay {
             int statusEffectX = mirrored ? anchorX - step - EFFECT_SLOT_SIZE : anchorX + step;
             int statusEffectY = y + row * (EFFECT_SLOT_SIZE + EFFECT_SLOT_GAP);
 
-            renderStatusEffectSlot(graphics, font, effectInstance, statusEffectX, statusEffectY, EFFECT_SLOT_SIZE);
+            renderStatusEffectSlot(
+                    graphics,
+                    font,
+                    effectInstance,
+                    statusEffectX, statusEffectY,
+                    EFFECT_SLOT_SIZE);
             col++;
         }
     }
@@ -790,7 +795,7 @@ public class GaugeOverlay implements IGuiOverlay {
                 STATUS_GAUGE_TEX,
                 x, y, size, size,
                 STATUS_SLOT_U, STATUS_SLOT_V,
-                16, 16,
+                12, 12,
                 STATUS_GAUGE_TEX_SIZE, STATUS_GAUGE_TEX_SIZE
         );
 
@@ -819,17 +824,24 @@ public class GaugeOverlay implements IGuiOverlay {
 
         if (effectInstance.getAmplifier() > 0) {
             Component amplifierLabel = Component.literal(TextHelper.toRomanNumeral(effectInstance.getAmplifier() + 1));
-            int ampLabelX = x + size - font.width(amplifierLabel)/2;
-            int ampLabelY = y - font.lineHeight/2 + 1;
 
+            float ampLabelScale = 0.8f;
+            int ampLabelX = x + size - font.width(amplifierLabel)/2;
+            int ampLabelY = y - (font.lineHeight/2 - 2);
+
+            graphics.pose().pushPose();
+            graphics.pose().translate(ampLabelX, ampLabelY, 0);
+            graphics.pose().scale(ampLabelScale, ampLabelScale, 1.0f);
             TextHelper.drawOutlinedString(
                     graphics,
                     font,
                     amplifierLabel,
-                    ampLabelX,
-                    ampLabelY,
+                    0,
+                    0,
                     0xFFFFFF,
-                    0x000000);
+                    0x000000
+            );
+            graphics.pose().popPose();
         }
 
         renderEffectTimer(graphics, effectInstance, statusColor, x, y, size);

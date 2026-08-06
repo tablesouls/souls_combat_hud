@@ -5,6 +5,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.tablesouls.souls_combat_hud.client.render.status_gauge.GaugeSubject;
+import net.tablesouls.souls_combat_hud.compat.AbstractResourceSourceRegistry;
 import net.tablesouls.souls_combat_hud.compat.ManaSourceRegistry;
 import net.tablesouls.souls_combat_hud.compat.ResourceSource;
 import net.tablesouls.souls_combat_hud.compat.StaminaSourceRegistry;
@@ -88,7 +89,12 @@ public class PlayerGaugeSubject implements GaugeSubject {
     private ResourceSource<StaminaSourceMode> resolveStaminaSource() {
         if (SoulsCombatHUDConfig.STATUS_GAUGE.clientSourcePreference.ignoreServerStaminaSource.get()) {
             StaminaSourceMode localPreference = SoulsCombatHUDConfig.STATUS_GAUGE.clientSourcePreference.clientStaminaSource.get();
-            return StaminaSourceRegistry.INSTANCE.resolveServerSide(player, localPreference).source();
+            AbstractResourceSourceRegistry.Resolution<StaminaSourceMode> resolution =
+                    StaminaSourceRegistry.INSTANCE.resolveServerSide(player, localPreference);
+            if (resolution.mode() != null) {
+                StaminaSourceRegistry.INSTANCE.setActiveMode(resolution.mode());
+            }
+            return resolution.source();
         }
         return StaminaSourceRegistry.INSTANCE.resolve();
     }
@@ -96,9 +102,26 @@ public class PlayerGaugeSubject implements GaugeSubject {
     private ResourceSource<ManaSourceMode> resolveManaSource() {
         if (SoulsCombatHUDConfig.STATUS_GAUGE.clientSourcePreference.ignoreServerManaSource.get()) {
             ManaSourceMode localPreference = SoulsCombatHUDConfig.STATUS_GAUGE.clientSourcePreference.clientManaSource.get();
-            return ManaSourceRegistry.INSTANCE.resolveServerSide(player, localPreference).source();
+            AbstractResourceSourceRegistry.Resolution<ManaSourceMode> resolution =
+                    ManaSourceRegistry.INSTANCE.resolveServerSide(player, localPreference);
+            if (resolution.mode() != null) {
+                ManaSourceRegistry.INSTANCE.setActiveMode(resolution.mode());
+            }
+            return resolution.source();
         }
         return ManaSourceRegistry.INSTANCE.resolve();
+    }
+
+    @Override
+    public StaminaSourceMode getStaminaSourceMode() {
+        ResourceSource<StaminaSourceMode> source = resolveStaminaSource();
+        return source != null ? source.mode() : null;
+    }
+
+    @Override
+    public ManaSourceMode getManaSourceMode() {
+        ResourceSource<ManaSourceMode> source = resolveManaSource();
+        return source != null ? source.mode() : null;
     }
 
     @Override

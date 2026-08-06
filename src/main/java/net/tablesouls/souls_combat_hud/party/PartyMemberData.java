@@ -42,6 +42,10 @@ public class PartyMemberData {
         }
     }
 
+    public void clearStat(PartyStatType type) {
+        stats.remove(type);
+    }
+
     @SuppressWarnings("unchecked")
     public <T> T getStat(PartyStatType type) {
         return (T) stats.getOrDefault(type, type.empty());

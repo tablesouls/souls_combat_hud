@@ -56,7 +56,18 @@ public class PartyServerEvents {
     private static final Map<UUID, Integer> LAST_HEALTH_PUSH_TICK = new HashMap<>();
     private static final Map<UUID, Integer> LAST_STATUS_EFFECT_PUSH_TICK = new HashMap<>();
 
+    private static final Map<UUID, Boolean> RESOURCE_MAX_PENDING = new HashMap<>();
+    private static final Map<UUID, Boolean> HEALTH_PENDING = new HashMap<>();
+    private static final Map<UUID, Boolean> STATUS_EFFECT_PENDING = new HashMap<>();
+
+    private static final Map<UUID, Boolean> LAST_PARTY_TRACKING_HANDSHAKE = new HashMap<>();
+
     private static final Map<UUID, Map<ResourceLocation, Integer>> EFFECT_MAX_DURATION = new HashMap<>();
+
+    private static Boolean lastHealthTrackingDisabled = null;
+    private static Boolean lastStaminaTrackingDisabled = null;
+    private static Boolean lastManaTrackingDisabled = null;
+    private static Boolean lastStatusEffectTrackingDisabled = null;
 
     @SubscribeEvent
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
@@ -69,9 +80,7 @@ public class PartyServerEvents {
             EpicFightDodgeListener.register(player);
         }
 
-        if (partyTrackingEnabled()) {
-            PartyNetwork.sendFeatureHandshake(player);
-        }
+        PartyNetwork.sendFeatureHandshake(player, partyTrackingEnabled());
     }
 
     private static boolean partyTrackingEnabled() {
@@ -89,6 +98,43 @@ public class PartyServerEvents {
         }
     }
 
+    public static void checkTrackingToggles(MinecraftServer server) {
+        boolean healthDisabled = SoulsCombatHUDConfig.SERVER_RESTRICTIONS.disableHealthTracking.get();
+        boolean staminaDisabled = SoulsCombatHUDConfig.SERVER_RESTRICTIONS.disableStaminaTracking.get();
+        boolean manaDisabled = SoulsCombatHUDConfig.SERVER_RESTRICTIONS.disableManaTracking.get();
+        boolean statusEffectDisabled = SoulsCombatHUDConfig.SERVER_RESTRICTIONS.disableStatusEffectTracking.get();
+
+        if (justDisabled(lastHealthTrackingDisabled, healthDisabled)) {
+            clearStatForAllPlayers(server, PartyStatType.HEALTH, PartyStatType.MAX_HEALTH);
+        }
+        if (justDisabled(lastStaminaTrackingDisabled, staminaDisabled)) {
+            clearStatForAllPlayers(server, PartyStatType.STAMINA, PartyStatType.MAX_STAMINA, PartyStatType.STAMINA_MODE);
+        }
+        if (justDisabled(lastManaTrackingDisabled, manaDisabled)) {
+            clearStatForAllPlayers(server, PartyStatType.MANA, PartyStatType.MAX_MANA, PartyStatType.MANA_MODE);
+        }
+        if (justDisabled(lastStatusEffectTrackingDisabled, statusEffectDisabled)) {
+            clearStatForAllPlayers(server, PartyStatType.STATUS_EFFECTS);
+        }
+
+        lastHealthTrackingDisabled = healthDisabled;
+        lastStaminaTrackingDisabled = staminaDisabled;
+        lastManaTrackingDisabled = manaDisabled;
+        lastStatusEffectTrackingDisabled = statusEffectDisabled;
+    }
+
+    private static boolean justDisabled(Boolean previous, boolean current) {
+        return current && (previous == null || !previous);
+    }
+
+    private static void clearStatForAllPlayers(MinecraftServer server, PartyStatType... types) {
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            for (PartyStatType type : types) {
+                clearStatForTrackers(player, type);
+            }
+        }
+    }
+
     @SubscribeEvent
     public static void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
@@ -101,8 +147,14 @@ public class PartyServerEvents {
         UUID id = player.getUUID();
         PartyTrackerRegistry.clearAllTrackersFor(id); // wipe both directions, then rebuild from current
 
-        // If party tracking is disabled server-side, leave trackers empty
-        if (!partyTrackingEnabled()) {
+        boolean enabled = partyTrackingEnabled();
+        Boolean lastNotified = LAST_PARTY_TRACKING_HANDSHAKE.put(id, enabled);
+        if (lastNotified == null || lastNotified != enabled) {
+            PartyNetwork.sendFeatureHandshake(player, enabled);
+        }
+
+        // If party tracking is disabled server side, leave trackers empty
+        if (!enabled) {
             LAST_TEAMMATES.remove(id);
             LAST_TEAM_MODE.remove(id);
             return;
@@ -171,6 +223,9 @@ public class PartyServerEvents {
         LAST_MANA_MODE.remove(id);
         LAST_STAMINA_MODE.remove(id);
         EFFECT_MAX_DURATION.remove(id);
+        RESOURCE_MAX_PENDING.remove(id);
+        HEALTH_PENDING.remove(id);
+        STATUS_EFFECT_PENDING.remove(id);
     }
 
     @SubscribeEvent
@@ -197,12 +252,6 @@ public class PartyServerEvents {
     @SubscribeEvent
     public static void onEffectAdded(MobEffectEvent.Added event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-
-        ResourceLocation effectId = ForgeRegistries.MOB_EFFECTS.getKey(event.getEffectInstance().getEffect());
-        if (effectId != null) {
-            EFFECT_MAX_DURATION.computeIfAbsent(player.getUUID(), k -> new HashMap<>())
-                    .put(effectId, event.getEffectInstance().getDuration());
-        }
         pushStatusEffects(player);
 
         if (!SoulsCombatHUDConfig.SERVER_PERFORMANCE.updateOnMobEffect.get()) return;
@@ -212,12 +261,7 @@ public class PartyServerEvents {
     @SubscribeEvent
     public static void onEffectExpired(MobEffectEvent.Expired event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        MobEffectInstance instance = event.getEffectInstance();
-        if (instance == null) return;
-
-        ResourceLocation effectId = ForgeRegistries.MOB_EFFECTS.getKey(event.getEffectInstance().getEffect());
-        Map<ResourceLocation, Integer> tracked = EFFECT_MAX_DURATION.get(player.getUUID());
-        if (tracked != null && effectId != null) tracked.remove(effectId);
+        if (event.getEffectInstance() == null) return;
         pushStatusEffects(player);
 
         if (!SoulsCombatHUDConfig.SERVER_PERFORMANCE.updateOnMobEffect.get()) return;
@@ -227,12 +271,7 @@ public class PartyServerEvents {
     @SubscribeEvent
     public static void onEffectRemoved(MobEffectEvent.Remove event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        MobEffectInstance instance = event.getEffectInstance();
-        if (instance == null) return;
-
-        ResourceLocation effectId = ForgeRegistries.MOB_EFFECTS.getKey(event.getEffectInstance().getEffect());
-        Map<ResourceLocation, Integer> tracked = EFFECT_MAX_DURATION.get(player.getUUID());
-        if (tracked != null && effectId != null) tracked.remove(effectId);
+        if (event.getEffectInstance() == null) return;
         pushStatusEffects(player);
 
         if (!SoulsCombatHUDConfig.SERVER_PERFORMANCE.updateOnMobEffect.get()) return;
@@ -266,22 +305,46 @@ public class PartyServerEvents {
         if (LAST_MANA_MODE.get(id) != manaResolution.mode()) {
             PartyNetwork.sendManaSource(player, manaResolution.mode());
             LAST_MANA_MODE.put(id, manaResolution.mode());
+
+            if (manaResolution.mode() != null) {
+                PartyMemberData.get(id).setStat(PartyStatType.MANA_MODE, manaResolution.mode().name(),
+                        v -> broadcast(player, PartyStatType.MANA_MODE, v));
+            } else {
+                clearStatForTrackers(player, PartyStatType.MANA_MODE);
+            }
         }
         if (LAST_STAMINA_MODE.get(id) != staminaResolution.mode()) {
             PartyNetwork.sendStaminaSource(player, staminaResolution.mode());
             LAST_STAMINA_MODE.put(id, staminaResolution.mode());
+
+            if (staminaResolution.mode() != null) {
+                PartyMemberData.get(id).setStat(PartyStatType.STAMINA_MODE, staminaResolution.mode().name(),
+                        v -> broadcast(player, PartyStatType.STAMINA_MODE, v));
+            } else {
+                clearStatForTrackers(player, PartyStatType.STAMINA_MODE);
+            }
         }
 
         return new ResolvedResources(manaResolution, staminaResolution);
     }
 
+    private static boolean shouldThrottle(UUID id, Map<UUID, Integer> lastPushTicks, Map<UUID, Boolean> pending,
+                                          int now, int minTicks) {
+        Integer last = lastPushTicks.get(id);
+        if (last != null && now - last < minTicks) {
+            pending.put(id, true);
+            return true;
+        }
+        lastPushTicks.put(id, now);
+        pending.remove(id);
+        return false;
+    }
+
     public static void pushResourceMax(ServerPlayer player) {
         UUID id = player.getUUID();
         int now = player.tickCount;
-        Integer last = LAST_EFFECT_PUSH_TICK.get(id);
         int minTicks = SoulsCombatHUDConfig.SERVER_PERFORMANCE.minInstantUpdateTicks.get();
-        if (last != null && now - last < minTicks) return;
-        LAST_EFFECT_PUSH_TICK.put(id, now);
+        if (shouldThrottle(id, LAST_EFFECT_PUSH_TICK, RESOURCE_MAX_PENDING, now, minTicks)) return;
 
         PartyMemberData data = PartyMemberData.get(id);
 
@@ -314,24 +377,27 @@ public class PartyServerEvents {
 
         UUID id = player.getUUID();
         int now = player.tickCount;
-        Integer last = LAST_STATUS_EFFECT_PUSH_TICK.get(id);
         int minTicks = SoulsCombatHUDConfig.SERVER_PERFORMANCE.minInstantUpdateTicks.get();
-        if (last != null && now - last < minTicks) return;
-        LAST_STATUS_EFFECT_PUSH_TICK.put(id, now);
+        if (shouldThrottle(id, LAST_STATUS_EFFECT_PUSH_TICK, STATUS_EFFECT_PENDING, now, minTicks)) return;
 
-        Map<ResourceLocation, Integer> maxDurations = EFFECT_MAX_DURATION.getOrDefault(id, Map.of());
+        Map<ResourceLocation, Integer> maxDurations = EFFECT_MAX_DURATION.computeIfAbsent(id, k -> new HashMap<>());
+        Set<ResourceLocation> currentIds = new HashSet<>();
 
         List<PartyEffectSnapshot> snapshots = player.getActiveEffects().stream()
                 .filter(MobEffectInstance::showIcon)
                 .map(instance -> {
                     ResourceLocation effectId = ForgeRegistries.MOB_EFFECTS.getKey(instance.getEffect());
                     if (effectId == null) return null;
-                    int maxDuration = maxDurations.getOrDefault(effectId, instance.getDuration());
-                    return new PartyEffectSnapshot(effectId, instance.getAmplifier(), instance.getDuration(), maxDuration);
+                    currentIds.add(effectId);
+                    int duration = instance.getDuration();
+                    int maxDuration = maxDurations.merge(effectId, duration, Math::max);
+                    return new PartyEffectSnapshot(effectId, instance.getAmplifier(), duration, maxDuration);
                 })
                 .filter(Objects::nonNull)
-                .sorted(Comparator.comparing(s -> s.effectId().toString()))
+                .sorted(Comparator.comparing(PartyEffectSnapshot::effectId))
                 .toList();
+
+        maxDurations.keySet().retainAll(currentIds); // drop anything no longer active
 
         int maxTracked = SoulsCombatHUDConfig.SERVER_RESTRICTIONS.maxTrackedStatusEffects.get();
         if (maxTracked > 0 && snapshots.size() > maxTracked) {
@@ -346,9 +412,18 @@ public class PartyServerEvents {
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.side != LogicalSide.SERVER || event.phase != TickEvent.Phase.END) return;
         if (!(event.player instanceof ServerPlayer player)) return;
-        if (player.tickCount %
-                SoulsCombatHUDConfig.SERVER_PERFORMANCE.ticksInterval.get() != 0) return;
 
+        UUID id = player.getUUID();
+
+        if (Boolean.TRUE.equals(STATUS_EFFECT_PENDING.get(id))) pushStatusEffects(player);
+        if (Boolean.TRUE.equals(HEALTH_PENDING.get(id))) pushHealth(player, player.getHealth());
+        if (Boolean.TRUE.equals(RESOURCE_MAX_PENDING.get(id))) pushResourceMax(player);
+
+        if (player.tickCount % SoulsCombatHUDConfig.SERVER_PERFORMANCE.ticksInterval.get() != 0) return;
+        syncTrackedStats(player);
+    }
+
+    private static void syncTrackedStats(ServerPlayer player) {
         PartyMemberData data = PartyMemberData.get(player.getUUID());
 
         if (!SoulsCombatHUDConfig.SERVER_RESTRICTIONS.disableHealthTracking.get()) {
@@ -377,15 +452,22 @@ public class PartyServerEvents {
         pushStatusEffects(player);
     }
 
+    public static void forceImmediateSync(ServerPlayer player) {
+        syncTrackedStats(player);
+    }
+
+    public static void clearStatForTrackers(ServerPlayer player, PartyStatType type) {
+        PartyMemberData.get(player.getUUID()).clearStat(type);
+        broadcast(player, type, null);
+    }
+
     private static void pushHealth(ServerPlayer player, float health) {
         if (SoulsCombatHUDConfig.SERVER_RESTRICTIONS.disableHealthTracking.get()) return;
 
         UUID id = player.getUUID();
         int now = player.tickCount;
-        Integer last = LAST_HEALTH_PUSH_TICK.get(id);
         int minTicks = SoulsCombatHUDConfig.SERVER_PERFORMANCE.minHealthUpdateTicks.get();
-        if (last != null && now - last < minTicks) return;
-        LAST_HEALTH_PUSH_TICK.put(id, now);
+        if (shouldThrottle(id, LAST_HEALTH_PUSH_TICK, HEALTH_PENDING, now, minTicks)) return;
 
         PartyMemberData.get(id)
                 .setStat(PartyStatType.HEALTH, health, v -> broadcast(player, PartyStatType.HEALTH, v));
@@ -399,5 +481,9 @@ public class PartyServerEvents {
                 PartyNetwork.sendStatUpdate(tracker, player.getUUID(), type, value);
             }
         }
+    }
+
+    public static void forceResyncResourceSources(ServerPlayer player) {
+        resolveAndSyncResourceSources(player);
     }
 }

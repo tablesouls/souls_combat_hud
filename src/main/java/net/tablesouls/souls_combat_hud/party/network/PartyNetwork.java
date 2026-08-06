@@ -7,6 +7,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.config.ManaSourceMode;
+import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.config.StaminaSourceMode;
 import net.tablesouls.souls_combat_hud.config.TeamSourceMode;
 import net.tablesouls.souls_combat_hud.party.PartyStatType;
@@ -56,14 +57,18 @@ public final class PartyNetwork {
                 PartyPrivacyStatePacket::encode,
                 PartyPrivacyStatePacket::decode,
                 PartyPrivacyStatePacket::handle);
+        CHANNEL.registerMessage(nextId++, ConfigReloadPacket.class,
+                ConfigReloadPacket::encode,
+                ConfigReloadPacket::decode,
+                ConfigReloadPacket::handle);
     }
 
     public static void sendStatUpdate(ServerPlayer to, UUID subject, PartyStatType type, Object value) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> to), new PartyStatUpdatePacket(subject, type, value));
     }
 
-    public static void sendFeatureHandshake(ServerPlayer to) {
-        CHANNEL.send(PacketDistributor.PLAYER.with(() -> to), new PartyFeatureHandshakePacket());
+    public static void sendFeatureHandshake(ServerPlayer to, boolean enabled) {
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> to), new PartyFeatureHandshakePacket(enabled));
     }
 
     public static void sendTeamSource(ServerPlayer to, TeamSourceMode mode) {
@@ -84,6 +89,12 @@ public final class PartyNetwork {
 
     public static void sendPrivacyState(ServerPlayer to, UUID subject, boolean hidden) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> to), new PartyPrivacyStatePacket(subject, hidden));
+    }
+
+    public static void broadcastConfigReload() {
+        CHANNEL.send(PacketDistributor.ALL.noArg(), ConfigReloadPacket.fromCurrentServerValues());
+        boolean partyTrackingEnabled = !SoulsCombatHUDConfig.SERVER_RESTRICTIONS.disablePartyTracking.get();
+        CHANNEL.send(PacketDistributor.ALL.noArg(), new PartyFeatureHandshakePacket(partyTrackingEnabled));
     }
 
     public static void markServerSupportsParty() {

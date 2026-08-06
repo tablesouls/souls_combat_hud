@@ -20,11 +20,23 @@ public abstract class AbstractResourceSourceRegistry<M extends Enum<M> & SourceM
     }
 
     public final void setActiveMode(M mode) {
+        M previous = this.activeMode;
         this.activeMode = mode;
+        if (mode != previous) {
+            onModeChanged(previous, mode);
+        }
     }
 
     public final void resetActiveMode() {
         this.activeMode = null;
+    }
+
+    public final M getActiveMode() {
+        return activeMode;
+    }
+
+    protected void onModeChanged(M previousMode, M newMode) {
+        // no-op by default
     }
 
     public final ResourceSource<M> resolve() {

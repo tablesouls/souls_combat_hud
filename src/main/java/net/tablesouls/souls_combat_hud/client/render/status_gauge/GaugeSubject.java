@@ -4,6 +4,8 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.tablesouls.souls_combat_hud.config.ManaSourceMode;
+import net.tablesouls.souls_combat_hud.config.StaminaSourceMode;
 import net.tablesouls.souls_combat_hud.config.ThirstSourceMode;
 
 import java.util.List;
@@ -31,9 +33,17 @@ public interface GaugeSubject {
     float getStamina();
     float getMaxStamina();
 
+    default StaminaSourceMode getStaminaSourceMode() {
+        return null;
+    }
+
     boolean hasMana();
     float getMana();
     float getMaxMana();
+
+    default ManaSourceMode getManaSourceMode() {
+        return null;
+    }
 
     OptionalInt getFoodLevel();
     OptionalInt getArmorValue();

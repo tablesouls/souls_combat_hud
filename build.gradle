@@ -142,6 +142,17 @@ if (localPropsFile.exists()) {
 }
 def compatModsRuntime = localProps.getProperty('enableCompatModsRuntime', 'false').toBoolean()
 
+def compat = [
+        "dev.architectury:architectury-forge:${architectury_version}",
+        "dev.ftb.mods:ftb-library-forge:${ftb_library_version}",
+        "dev.ftb.mods:ftb-teams-forge:${ftb_teams_version}",
+        "maven.modrinth:dTlxEGHS:${moreoffhandslots_version}",
+        "curse.maven:parcool-482378:${parcool_version}",
+        "maven.modrinth:epic-fight:${epicfight_version}",
+        "curse.maven:thirst-was-reclaimed-884742:${thirst_was_reclaimed_version}",
+        "curse.maven:paragliders-289240:${paraglider_version}"
+]
+
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
@@ -153,21 +164,24 @@ dependencies {
     compileOnly fg.deobf("dev.architectury:architectury-forge:${architectury_version}")
     compileOnly fg.deobf("dev.ftb.mods:ftb-library-forge:${ftb_library_version}")
     compileOnly fg.deobf("dev.ftb.mods:ftb-teams-forge:${ftb_teams_version}")
-    compileOnly fg.deobf("maven.modrinth:dTlxEGHS:wquDUF7z")
+    compileOnly fg.deobf("maven.modrinth:dTlxEGHS:${moreoffhandslots_version}")
     compileOnly fg.deobf("curse.maven:parcool-482378:${parcool_version}")
+    implementation fg.deobf("curse.maven:paragliders-289240:${paraglider_version}")
 
     if (compatModsRuntime) {
+        runtimeOnly fg.deobf("curse.maven:configured-457570:5180900")
+        runtimeOnly fg.deobf("maven.modrinth:ghrZDhGW:YWasQFNI")
+
         runtimeOnly fg.deobf("dev.architectury:architectury-forge:${architectury_version}")
         runtimeOnly fg.deobf("dev.ftb.mods:ftb-library-forge:${ftb_library_version}")
         runtimeOnly fg.deobf("dev.ftb.mods:ftb-teams-forge:${ftb_teams_version}")
-        runtimeOnly fg.deobf("maven.modrinth:dTlxEGHS:wquDUF7z")
+        runtimeOnly fg.deobf("maven.modrinth:dTlxEGHS:${moreoffhandslots_version}")
         runtimeOnly fg.deobf("curse.maven:parcool-482378:${parcool_version}")
-        runtimeOnly fg.deobf("curse.maven:configured-457570:5180900")
-        runtimeOnly fg.deobf("maven.modrinth:ghrZDhGW:YWasQFNI")
         runtimeOnly fg.deobf("maven.modrinth:XqqOkvZz:XMYeNIOx")
         runtimeOnly fg.deobf("maven.modrinth:epic-fight:${epicfight_version}")
         runtimeOnly fg.deobf("curse.maven:epicfight-extra-1434276:7961244")
         runtimeOnly fg.deobf("curse.maven:thirst-was-reclaimed-884742:${thirst_was_reclaimed_version}")
+        runtimeOnly fg.deobf("curse.maven:paragliders-289240:${paraglider_version}")
     }
 }
 

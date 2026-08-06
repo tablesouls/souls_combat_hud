@@ -26,6 +26,8 @@ public class ParcoolStaminaSource implements ResourceSource<StaminaSourceMode> {
     @Override
     public float getMax(Player player) {
         Stamina stamina = Stamina.get(player);
-        return stamina !=null ? stamina.getMaxValue() : 0.0f;
+        if (stamina == null) return 0.0f;
+        float max = stamina.getMaxValue();
+        return max > 0.0f ? max : stamina.getValue();
     }
 }

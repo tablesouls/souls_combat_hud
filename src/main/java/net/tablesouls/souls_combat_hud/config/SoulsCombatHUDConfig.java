@@ -4,11 +4,27 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
 import net.tablesouls.souls_combat_hud.client.util.ElementOrientation;
 
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public final class SoulsCombatHUDConfig {
     public static final ForgeConfigSpec CLIENT_SPEC;
     public static final ForgeConfigSpec SERVER_SPEC;
+
+    private static final Map<StaminaSourceMode, int[]> STAMINA_PRESET_DEFAULTS = new EnumMap<>(StaminaSourceMode.class);
+    static {
+        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.EPIC_FIGHT, new int[]{20, 45});
+        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.PARCOOL, new int[]{1000, 2000});
+        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.PARAGLIDER, new int[]{1000, 3000});
+    }
+
+    private static final Map<ManaSourceMode, int[]> MANA_PRESET_DEFAULTS = new EnumMap<>(ManaSourceMode.class);
+    static {
+        MANA_PRESET_DEFAULTS.put(ManaSourceMode.IRONS_SPELLBOOKS, new int[]{100, 800});
+    }
 
     public static final StatsData STATS_DATA;
     public static final ServerPerformance SERVER_PERFORMANCE;
@@ -57,10 +73,44 @@ public final class SoulsCombatHUDConfig {
         }
     }
 
+    public static class PresetStatThreshold<M extends Enum<M>> {
+        public final ForgeConfigSpec.IntValue baseline;
+        public final ForgeConfigSpec.IntValue projectedMax;
+        public final Map<M, StatThreshold> presets;
+
+        PresetStatThreshold(
+                ForgeConfigSpec.Builder builder, String key, Class<M> modeClass,
+                int defaultBaseline, int defaultProjectedMax,
+                Map<M, int[]> presetDefaults
+        ) {
+            builder.push(key);
+
+            baseline = builder
+                    .comment("Default baseline used when the active source has no preset below (e.g. AUTO).")
+                    .defineInRange("baseline", defaultBaseline, 1, Integer.MAX_VALUE);
+            projectedMax = builder
+                    .comment("Default projected_max used when the active source has no preset.")
+                    .defineInRange("projected_max", defaultProjectedMax, 1, Integer.MAX_VALUE);
+
+            builder.push("presets");
+
+            Map<M, StatThreshold> built = new EnumMap<>(modeClass);
+            for (M mode : modeClass.getEnumConstants()) {
+                int[] defaults = presetDefaults.get(mode);
+                if (defaults == null) continue;
+                built.put(mode, new StatThreshold(builder, mode.name().toLowerCase(Locale.ROOT), defaults[0], defaults[1]));
+            }
+            presets = Collections.unmodifiableMap(built);
+
+            builder.pop();
+            builder.pop();
+        }
+    }
+
     public static class StatsData {
         public final StatThreshold health;
-        public final StatThreshold stamina;
-        public final StatThreshold mana;
+        public final PresetStatThreshold<StaminaSourceMode> stamina;
+        public final PresetStatThreshold<ManaSourceMode> mana;
 
         StatsData(ForgeConfigSpec.Builder builder) {
             builder.comment(
@@ -69,8 +119,8 @@ public final class SoulsCombatHUDConfig {
             ).push("stats_data");
 
             health = new StatThreshold(builder, "health", 20, 50);
-            stamina = new StatThreshold(builder, "stamina", 15, 35);
-            mana = new StatThreshold(builder, "mana", 100, 800);
+            stamina = new PresetStatThreshold<>(builder, "stamina", StaminaSourceMode.class, 15, 35, STAMINA_PRESET_DEFAULTS);
+            mana = new PresetStatThreshold<>(builder, "mana", ManaSourceMode.class, 100, 800, MANA_PRESET_DEFAULTS);
 
             builder.pop();
         }
@@ -471,8 +521,8 @@ public final class SoulsCombatHUDConfig {
         public final ForgeConfigSpec.IntValue constantBarWidth;
 
         public final StatThreshold health;
-        public final StatThreshold stamina;
-        public final StatThreshold mana;
+        public final PresetStatThreshold<StaminaSourceMode> stamina;
+        public final PresetStatThreshold<ManaSourceMode> mana;
 
         StatusBars(ForgeConfigSpec.Builder builder) {
             builder
@@ -492,8 +542,8 @@ public final class SoulsCombatHUDConfig {
                     .defineInRange("constant_bar_width", 0, 0, 512);
 
             health = new StatThreshold(builder, "health", 20, 50);
-            stamina = new StatThreshold(builder, "stamina", 15, 35);
-            mana = new StatThreshold(builder, "mana", 100, 800);
+            stamina = new PresetStatThreshold<>(builder, "stamina", StaminaSourceMode.class, 15, 35, STAMINA_PRESET_DEFAULTS);
+            mana = new PresetStatThreshold<>(builder, "mana", ManaSourceMode.class, 100, 800, MANA_PRESET_DEFAULTS);
 
             builder.pop();
         }

@@ -7,8 +7,10 @@ public enum PartyStatType {
     MAX_HEALTH(20.0f),
     STAMINA(0.0f),
     MAX_STAMINA(0.0f),
+    STAMINA_MODE(""),
     MANA(0.0f),
     MAX_MANA(0.0f),
+    MANA_MODE(""),
     DIMENSION(""),
     STATUS_EFFECTS(List.<PartyEffectSnapshot>of());
 

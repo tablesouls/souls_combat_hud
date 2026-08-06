@@ -16,6 +16,7 @@ public class PartyStatUpdatePacket {
     private static final byte KIND_FLOAT = 0;
     private static final byte KIND_STRING = 1;
     private static final byte KIND_EFFECT_LIST = 2;
+    private static final byte KIND_REMOVED = 3; // value == null: tells the client to forget this stat entirely
 
     private final UUID subject;
     private final PartyStatType type;
@@ -31,7 +32,9 @@ public class PartyStatUpdatePacket {
         buf.writeUUID(packet.subject);
         buf.writeEnum(packet.type);
 
-        if (packet.value instanceof Float f) {
+        if (packet.value == null) {
+            buf.writeByte(KIND_REMOVED);
+        } else if (packet.value instanceof Float f) {
             buf.writeByte(KIND_FLOAT);
             buf.writeFloat(f);
         } else if (packet.value instanceof List<?> effects) {
@@ -56,6 +59,7 @@ public class PartyStatUpdatePacket {
         byte kind = buf.readByte();
 
         Object value = switch (kind) {
+            case KIND_REMOVED -> null;
             case KIND_FLOAT -> buf.readFloat();
             case KIND_EFFECT_LIST -> {
                 int size = buf.readVarInt();
@@ -77,7 +81,13 @@ public class PartyStatUpdatePacket {
 
     public static void handle(PartyStatUpdatePacket packet, Supplier<NetworkEvent.Context> ctxSupplier) {
         NetworkEvent.Context ctx = ctxSupplier.get();
-        ctx.enqueueWork(() -> PartyMemberClientCache.update(packet.subject, packet.type, packet.value));
+        ctx.enqueueWork(() -> {
+            if (packet.value == null) {
+                PartyMemberClientCache.remove(packet.subject, packet.type);
+            } else {
+                PartyMemberClientCache.update(packet.subject, packet.type, packet.value);
+            }
+        });
         ctx.setPacketHandled(true);
     }
 }

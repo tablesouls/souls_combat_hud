@@ -19,6 +19,10 @@ public class BarElement {
         return reveal.update(currentFraction);
     }
 
+    public float getDisplayedFraction(float currentFraction, float maxValue) {
+        return reveal.update(currentFraction, maxValue);
+    }
+
     public BarElement() {
         this(null);
     }
@@ -69,12 +73,20 @@ public class BarElement {
             float currentFraction, Component label, Component valueText, boolean mirrored, boolean reductionEnabled,
             float tint
     ) {
+        render(graphics, style, x, y, w, h, currentFraction, label, valueText, mirrored, reductionEnabled, tint, -1f);
+    }
+
+    public void render(
+            GuiGraphics graphics, BarStyle style, int x, int y, int w, int h,
+            float currentFraction, Component label, Component valueText, boolean mirrored, boolean reductionEnabled,
+            float tint, float maxValue
+    ) {
         if (isHidden()) {
             return;
         }
 
         float alpha = getAlpha();
-        float displayedFraction = getDisplayedFraction(currentFraction);
+        float displayedFraction = getDisplayedFraction(currentFraction, maxValue);
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
