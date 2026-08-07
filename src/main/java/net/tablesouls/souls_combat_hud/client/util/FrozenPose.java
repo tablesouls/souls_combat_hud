@@ -19,6 +19,9 @@ public final class FrozenPose {
             float attackAnim,
             float oAttackAnim,
             boolean swimming,
+            float yBodyRotO,
+            float yRotO,
+            float xRotO,
             VehicleSnapshot vehicleSnapshot
     ) {}
 
@@ -37,6 +40,9 @@ public final class FrozenPose {
                 player.attackAnim,
                 player.oAttackAnim,
                 player.isSwimming(),
+                player.yBodyRotO,
+                player.yRotO,
+                player.xRotO,
                 vehicleSnapshot
         );
 
@@ -46,6 +52,10 @@ public final class FrozenPose {
         player.oAttackAnim = 0f;
 
         player.setSwimming(false);
+
+        player.yBodyRotO = player.yBodyRot;
+        player.yRotO = player.getYRot();
+        player.xRotO = player.getXRot();
 
         if (vehicleSnapshot != null) {
             LivingEntity vehicle = vehicleSnapshot.vehicle();
@@ -67,6 +77,10 @@ public final class FrozenPose {
         player.oAttackAnim = snapshot.oAttackAnim();
 
         player.setSwimming(snapshot.swimming());
+
+        player.yBodyRotO = snapshot.yBodyRotO();
+        player.yRotO = snapshot.yRotO();
+        player.xRotO = snapshot.xRotO();
 
         if (snapshot.vehicleSnapshot() != null) {
             VehicleSnapshot vs = snapshot.vehicleSnapshot();

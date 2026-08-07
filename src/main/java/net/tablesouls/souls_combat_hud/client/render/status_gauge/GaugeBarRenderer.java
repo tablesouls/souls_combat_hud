@@ -49,6 +49,6 @@ public final class GaugeBarRenderer {
             valueText = Component.literal(Math.round(currentValue) + "/" + Math.round(maxValue));
         }
 
-        barElement.render(graphics, style, x, parentY + layout.y(), width, height, fraction, null, valueText, mirrored, reductionEnabled, tint);
+        barElement.render(graphics, style, x, parentY + layout.y(), width, height, fraction, null, valueText, mirrored, reductionEnabled, tint, maxValue);
     }
 }

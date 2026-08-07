@@ -12,6 +12,7 @@ import yesman.epicfight.api.client.animation.Layer;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
+import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.capabilities.item.WeaponCategory;
 
@@ -300,6 +301,49 @@ public final class EpicFightAnimationFreezer {
         }
 
         return snapshot;
+    }
+
+    /**
+     * Epic Fight does not derive a humanoid's rendered body orientation from vanilla's
+     * {@code yBodyRot}/{@code yBodyRotO}. Instead {@link PlayerPatch} keeps its own
+     * {@code modelYRot}/{@code modelYRotO} fields, updated once per tick in
+     * {@code PlayerPatch#tick(...)} by smoothing toward the entity's real body rotation
+     * (clamped to 45 deg/tick). Vanilla's {@code InventoryScreen#renderEntityInInventoryFollowsAngle}
+     * only ever overrides the vanilla fields for the duration of a single render call, so that
+     * override never survives long enough to influence the next tick's smoothing step - Epic Fight's
+     * body orientation keeps tracking the entity's actual, live rotation regardless of the preview override.
+     * <p>
+     * Epic Fight itself works around this only for {@code LocalPlayerPatch} (see
+     * {@code LocalPlayerPatch#setModelYRotInGui}), used when rendering the local player's own
+     * character preview. There is no equivalent for other players, which is what party member
+     * previews render as. This mirrors that same trick using the public, patch-agnostic
+     * {@code PlayerPatch#setModelYRot}/{@code #disableModelYRot} API so it also works for remote players.
+     */
+    public static final class FrozenBodyRotation {
+        private final PlayerPatch<?> patch;
+        private final float prevYRot;
+
+        private FrozenBodyRotation(PlayerPatch<?> patch, float prevYRot) {
+            this.patch = patch;
+            this.prevYRot = prevYRot;
+        }
+    }
+
+    public static FrozenBodyRotation freezeBodyRotation(Player player, float targetYRotDeg) {
+        LivingEntityPatch<?> livingPatch = getPatch(player);
+        if (!(livingPatch instanceof PlayerPatch<?> patch)) return null;
+
+        float prevYRot = patch.getYRot();
+        // sendPacket=false: this is a local-render-only override, we must not tell the server
+        // (or, worse, other players' clients) that this player's body rotation changed.
+        patch.setModelYRot(targetYRotDeg, false);
+        return new FrozenBodyRotation(patch, prevYRot);
+    }
+
+    public static void restoreBodyRotation(FrozenBodyRotation snapshot) {
+        if (snapshot == null) return;
+        snapshot.patch.setModelYRot(snapshot.prevYRot, false);
+        snapshot.patch.disableModelYRot(false);
     }
 
     public static void restore(Player player, FrozenAnimation snapshot) {

@@ -5,7 +5,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import net.minecraft.resources.ResourceLocation;
 import net.tablesouls.souls_combat_hud.sounds.ModSounds;
-import net.tablesouls.souls_combat_hud.util.SoundHelper;
+import net.tablesouls.souls_combat_hud.client.util.SoundHelper;
 
 import java.util.ArrayList;
 import java.util.List;

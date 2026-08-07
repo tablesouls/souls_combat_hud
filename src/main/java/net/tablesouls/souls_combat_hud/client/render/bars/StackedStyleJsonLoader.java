@@ -1,6 +1,7 @@
 package net.tablesouls.souls_combat_hud.client.render.bars;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -25,6 +26,8 @@ public final class StackedStyleJsonLoader {
         for (Resource resource : stack) {
             try (Reader reader = new InputStreamReader(resource.open(), StandardCharsets.UTF_8)) {
                 layers.add(GsonHelper.parse(reader));
+            } catch (JsonParseException e) {
+                onError.accept(path.toString(), new IOException("Invalid JSON in gauge style layer", e));
             } catch (IOException e) {
                 onError.accept(path.toString(), e);
             }

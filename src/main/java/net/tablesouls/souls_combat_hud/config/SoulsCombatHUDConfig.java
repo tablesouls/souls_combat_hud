@@ -4,11 +4,27 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
 import net.tablesouls.souls_combat_hud.client.util.ElementOrientation;
 
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public final class SoulsCombatHUDConfig {
     public static final ForgeConfigSpec CLIENT_SPEC;
     public static final ForgeConfigSpec SERVER_SPEC;
+
+    private static final Map<StaminaSourceMode, int[]> STAMINA_PRESET_DEFAULTS = new EnumMap<>(StaminaSourceMode.class);
+    static {
+        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.EPIC_FIGHT, new int[]{20, 45});
+        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.PARCOOL, new int[]{1000, 2000});
+        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.PARAGLIDER, new int[]{1000, 3000});
+    }
+
+    private static final Map<ManaSourceMode, int[]> MANA_PRESET_DEFAULTS = new EnumMap<>(ManaSourceMode.class);
+    static {
+        MANA_PRESET_DEFAULTS.put(ManaSourceMode.IRONS_SPELLBOOKS, new int[]{100, 800});
+    }
 
     public static final StatsData STATS_DATA;
     public static final ServerPerformance SERVER_PERFORMANCE;
@@ -57,10 +73,44 @@ public final class SoulsCombatHUDConfig {
         }
     }
 
+    public static class PresetStatThreshold<M extends Enum<M>> {
+        public final ForgeConfigSpec.IntValue baseline;
+        public final ForgeConfigSpec.IntValue projectedMax;
+        public final Map<M, StatThreshold> presets;
+
+        PresetStatThreshold(
+                ForgeConfigSpec.Builder builder, String key, Class<M> modeClass,
+                int defaultBaseline, int defaultProjectedMax,
+                Map<M, int[]> presetDefaults
+        ) {
+            builder.push(key);
+
+            baseline = builder
+                    .comment("Default baseline used when the active source has no preset below (e.g. AUTO).")
+                    .defineInRange("baseline", defaultBaseline, 1, Integer.MAX_VALUE);
+            projectedMax = builder
+                    .comment("Default projected_max used when the active source has no preset.")
+                    .defineInRange("projected_max", defaultProjectedMax, 1, Integer.MAX_VALUE);
+
+            builder.push("presets");
+
+            Map<M, StatThreshold> built = new EnumMap<>(modeClass);
+            for (M mode : modeClass.getEnumConstants()) {
+                int[] defaults = presetDefaults.get(mode);
+                if (defaults == null) continue;
+                built.put(mode, new StatThreshold(builder, mode.name().toLowerCase(Locale.ROOT), defaults[0], defaults[1]));
+            }
+            presets = Collections.unmodifiableMap(built);
+
+            builder.pop();
+            builder.pop();
+        }
+    }
+
     public static class StatsData {
         public final StatThreshold health;
-        public final StatThreshold stamina;
-        public final StatThreshold mana;
+        public final PresetStatThreshold<StaminaSourceMode> stamina;
+        public final PresetStatThreshold<ManaSourceMode> mana;
 
         StatsData(ForgeConfigSpec.Builder builder) {
             builder.comment(
@@ -69,8 +119,8 @@ public final class SoulsCombatHUDConfig {
             ).push("stats_data");
 
             health = new StatThreshold(builder, "health", 20, 50);
-            stamina = new StatThreshold(builder, "stamina", 15, 35);
-            mana = new StatThreshold(builder, "mana", 100, 800);
+            stamina = new PresetStatThreshold<>(builder, "stamina", StaminaSourceMode.class, 15, 35, STAMINA_PRESET_DEFAULTS);
+            mana = new PresetStatThreshold<>(builder, "mana", ManaSourceMode.class, 100, 800, MANA_PRESET_DEFAULTS);
 
             builder.pop();
         }
@@ -120,7 +170,9 @@ public final class SoulsCombatHUDConfig {
 
     public static class ServerRestrictions {
         public final ForgeConfigSpec.IntValue maxTrackedPartyMembers;
-        public final ForgeConfigSpec.EnumValue<TeamSourcePreference> forceTeamSource;
+        public final ForgeConfigSpec.EnumValue<TeamSourceMode> forceTeamSource;
+        public final ForgeConfigSpec.EnumValue<ManaSourceMode> forceManaSource;
+        public final ForgeConfigSpec.EnumValue<StaminaSourceMode> forceStaminaSource;
         public final ForgeConfigSpec.BooleanValue disablePartyTracking;
         public final ForgeConfigSpec.BooleanValue disableHealthTracking;
         public final ForgeConfigSpec.BooleanValue disableStaminaTracking;
@@ -139,7 +191,13 @@ public final class SoulsCombatHUDConfig {
                             "AUTO = prefer FTB Teams otherwise fall back to vanilla scoreboard teams.",
                             "VANILLA / FTB_TEAMS = always use only that source."
                     )
-                    .defineEnum("force_team_source", TeamSourcePreference.AUTO);
+                    .defineEnum("force_team_source", TeamSourceMode.AUTO);
+
+            forceManaSource = builder
+                    .defineEnum("force_mana_source", ManaSourceMode.AUTO);
+
+            forceStaminaSource = builder
+                    .defineEnum("force_stamina_source", StaminaSourceMode.AUTO);
 
             disablePartyTracking = builder
                     .comment("If true, the server will never track party stats.")
@@ -403,14 +461,68 @@ public final class SoulsCombatHUDConfig {
         }
     }
 
+    public static class StatusGauge {
+        public final ClientSourcePreference clientSourcePreference;
+        public final PlayerGaugeOverlay playerGauge;
+        public final PartyGaugeOverlay partyGauge;
+        public final StatusBars statusBars;
+        public final StatusEffects statusEffects;
+        public final ForgeConfigSpec.BooleanValue hideStatusFromParty;
+
+        StatusGauge(ForgeConfigSpec.Builder builder) {
+            builder.comment("Status Gauge").push("status_gauge");
+
+            clientSourcePreference = new ClientSourcePreference(builder);
+            playerGauge = new PlayerGaugeOverlay(builder);
+            partyGauge = new PartyGaugeOverlay(builder);
+            statusBars = new StatusBars(builder);
+            statusEffects = new StatusEffects(builder);
+            hideStatusFromParty = builder
+                    .comment("Should party members be able to see your status")
+                    .define("hide_status_from_party", false);
+
+            builder.pop();
+        }
+    }
+
+    public static class ClientSourcePreference {
+        public final ForgeConfigSpec.EnumValue<StaminaSourceMode> clientStaminaSource;
+        public final ForgeConfigSpec.EnumValue<ManaSourceMode> clientManaSource;
+        public final ForgeConfigSpec.EnumValue<ThirstSourceMode> clientThristSource;
+        public final ForgeConfigSpec.BooleanValue ignoreServerStaminaSource;
+        public final ForgeConfigSpec.BooleanValue ignoreServerManaSource;
+
+        ClientSourcePreference(ForgeConfigSpec.Builder builder) {
+            builder
+                    .comment("This mostly applies for the player gauge, party gauges will always use the server's preferred source type.")
+                    .push("client_source_preferences");
+
+            clientStaminaSource = builder
+                    .comment("Ensure ignore stamina source is disabled")
+                    .defineEnum("client_stamina_source", StaminaSourceMode.AUTO);
+            clientManaSource = builder
+                    .comment("Ensure ignore mana source is disabled")
+                    .defineEnum("client_mana_source", ManaSourceMode.AUTO);
+            clientThristSource = builder
+                    .defineEnum("client_thirst_source", ThirstSourceMode.AUTO);
+
+            ignoreServerStaminaSource = builder
+                    .define("ignore_server_stamina_source", false);
+            ignoreServerManaSource = builder
+                    .define("ignore_server_mana_source", false);
+
+            builder.pop();
+        }
+    }
+
     public static class StatusBars {
         public final ForgeConfigSpec.BooleanValue trustServerValues;
         public final ForgeConfigSpec.BooleanValue showValueText;
         public final ForgeConfigSpec.IntValue constantBarWidth;
 
         public final StatThreshold health;
-        public final StatThreshold stamina;
-        public final StatThreshold mana;
+        public final PresetStatThreshold<StaminaSourceMode> stamina;
+        public final PresetStatThreshold<ManaSourceMode> mana;
 
         StatusBars(ForgeConfigSpec.Builder builder) {
             builder
@@ -419,7 +531,7 @@ public final class SoulsCombatHUDConfig {
 
             trustServerValues = builder
                     .comment("Let servers override local baseline and projected max values")
-                    .define("trust_server_values", true);
+                    .define("force_server_values", true);
 
             showValueText = builder
                     .comment("Shows current and max value of status bars")
@@ -430,26 +542,8 @@ public final class SoulsCombatHUDConfig {
                     .defineInRange("constant_bar_width", 0, 0, 512);
 
             health = new StatThreshold(builder, "health", 20, 50);
-            stamina = new StatThreshold(builder, "stamina", 15, 35);
-            mana = new StatThreshold(builder, "mana", 100, 800);
-
-            builder.pop();
-        }
-    }
-
-    public static class StatusGauge {
-        public final PlayerGaugeOverlay playerGauge;
-        public final PartyGaugeOverlay partyGauge;
-        public final StatusBars statusBars;
-        public final StatusEffects statusEffects;
-
-        StatusGauge(ForgeConfigSpec.Builder builder) {
-            builder.comment("Status Gauge").push("status_gauge");
-
-            playerGauge = new PlayerGaugeOverlay(builder);
-            partyGauge = new PartyGaugeOverlay(builder);
-            statusBars = new StatusBars(builder);
-            statusEffects = new StatusEffects(builder);
+            stamina = new PresetStatThreshold<>(builder, "stamina", StaminaSourceMode.class, 15, 35, STAMINA_PRESET_DEFAULTS);
+            mana = new PresetStatThreshold<>(builder, "mana", ManaSourceMode.class, 100, 800, MANA_PRESET_DEFAULTS);
 
             builder.pop();
         }
@@ -496,7 +590,6 @@ public final class SoulsCombatHUDConfig {
                     .define("crest_team_outline", true);
 
             crestDisplayMode = builder
-                    .comment("MODEL can only be render if Epic Fight's COMPUTE SHADER is OFF")
                     .defineEnum("crest_display_mode", CrestDisplayMode.MODEL);
 
             anchor = builder.defineEnum(
@@ -514,6 +607,7 @@ public final class SoulsCombatHUDConfig {
     public static class PartyGaugeOverlay {
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.BooleanValue crestTeamOutline;
+        public final ForgeConfigSpec.EnumValue<CrestDisplayMode> crestDisplayMode;
         public final ForgeConfigSpec.IntValue maxDisplayedPartyMembers;
         public final ForgeConfigSpec.BooleanValue showOfflineMembers;
         public final ForgeConfigSpec.BooleanValue sortOnlineFirst;
@@ -536,6 +630,9 @@ public final class SoulsCombatHUDConfig {
 
             crestTeamOutline = builder
                     .define("crest_team_outline", true);
+
+            crestDisplayMode = builder
+                    .defineEnum("crest_display_mode", CrestDisplayMode.MODEL);
 
             maxDisplayedPartyMembers = builder
                     .comment("Maximum amount of party members to display")
@@ -749,6 +846,7 @@ public final class SoulsCombatHUDConfig {
     public static class Visibility {
         public final MinecraftGuiSetting minecraftGui;
         public final EpicFightGuiSetting epicfightGui;
+        public final ThirstGuiSetting thirstGui;
 
 
         Visibility(ForgeConfigSpec.Builder builder) {
@@ -756,8 +854,23 @@ public final class SoulsCombatHUDConfig {
 
             minecraftGui = new MinecraftGuiSetting(builder);
             epicfightGui = new EpicFightGuiSetting(builder);
+            thirstGui = new ThirstGuiSetting(builder);
 
             builder.pop();
+        }
+
+        public static class ThirstGuiSetting {
+            public final ForgeConfigSpec.BooleanValue hideThirst;
+
+            ThirstGuiSetting(ForgeConfigSpec.Builder builder) {
+                builder.push("thirst");
+
+                hideThirst = builder
+                        .comment("Hide thirst bar for mods that dont have the config option.")
+                        .define("hide_thirst_bar", true);
+
+                builder.pop();
+            }
         }
 
         public static class EpicFightGuiSetting {

@@ -11,22 +11,63 @@
     "size": 24,
     "offset": {
       "x": 0,
-      "y": 2
+      "y": 0
     },
-    "hunger": {
-      "enabled": false,
-      "offset": {
-        "x": 0,
-        "y": 0
+    "attributes": [
+      {
+        "type": "hunger",
+        "enabled": true,
+        "offset": {
+          "x": 0,
+          "y": 32
+        },
+        "text": {
+          "anchor": "OUTSIDE_LEFT",
+          "offset": {
+            "x": 0,
+            "y": 4
+          }
+        }
+      },
+      {
+        "type": "armor",
+        "enabled": true,
+        "offset": {
+          "x": 32,
+          "y": 32
+        },
+        "text": {
+          "anchor": "OUTSIDE_LEFT",
+          "offset": {
+            "x": 0,
+            "y": 4
+          }
+        }
+      },
+      {
+        "type": "thirst",
+        "enabled": true,
+        "offset": {
+          "x": 0,
+          "y": 18
+        },
+        "text": {
+          "anchor": "OUTSIDE_LEFT",
+          "offset": {
+            "x": 0,
+            "y": 4
+          }
+        }
+      },
+	  {
+        "type": "private",
+        "enabled": true,
+        "offset": {
+          "x": 40,
+          "y": 0
+        }
       }
-    },
-    "armor": {
-      "enabled": false,
-      "offset": {
-        "x": 0,
-        "y": 0
-      }
-    }
+    ]
   },
   "gauges": {
     "enabled": true,
@@ -39,7 +80,7 @@
       {
         "type": "health",
         "enabled": true,
-		"override_position": false,
+        "override_position": false,
         "offset": {
           "x": 0,
           "y": 0
@@ -54,7 +95,7 @@
       {
         "type": "mana",
         "enabled": true,
-		"override_position": false,
+        "override_position": false,
         "offset": {
           "x": 0,
           "y": 0
@@ -83,7 +124,7 @@
       {
         "type": "status_effects",
         "enabled": true,
-		"override_position": false,
+        "override_position": false,
         "offset": {
           "x": 0,
           "y": 4

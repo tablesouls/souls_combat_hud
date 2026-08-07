@@ -133,6 +133,15 @@ repositories {
     maven {
         url = "https://maven.architectury.dev/"
     }
+    maven {
+        url = "https://maven.kosmx.dev/"
+    }
+    maven {
+        url = "https://maven.theillusivec4.top/"
+    }
+    maven {
+        url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+    }
 }
 
 def localProps = new Properties()
@@ -142,31 +151,43 @@ if (localPropsFile.exists()) {
 }
 def compatModsRuntime = localProps.getProperty('enableCompatModsRuntime', 'false').toBoolean()
 
+def compatDeps = [
+        "io.redspace:irons_spellbooks:${irons_spells_forge_version}",
+        "io.redspace:irons_lib:${irons_lib_forge_version}",
+        "dev.architectury:architectury-forge:${architectury_forge_version}",
+        "dev.ftb.mods:ftb-library-forge:${ftb_library_forge_version}",
+        "dev.ftb.mods:ftb-teams-forge:${ftb_teams_forge_version}",
+        "maven.modrinth:dTlxEGHS:${moreoffhandslots_forge_version}",
+        "curse.maven:parcool-482378:${parcool_forge_version}",
+        "maven.modrinth:epic-fight:${epicfight_forge_version}",
+        "curse.maven:thirst-was-reclaimed-884742:${thirst_was_reclaimed_forge_version}",
+        "curse.maven:paragliders-289240:${paraglider_forge_version}",
+        "dev.kosmx.player-anim:player-animation-lib-forge:${player_animation_lib_forge_version}"
+]
+
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    compileOnly fg.deobf("maven.modrinth:epic-fight:${epicfight_version}")
-    compileOnly fg.deobf("io.redspace:irons_spellbooks:${irons_spells_version}")
-
-    implementation fg.deobf("dev.architectury:architectury-forge:${architectury_version}")
-    implementation fg.deobf("dev.ftb.mods:ftb-library-forge:${ftb_library_version}")
-    implementation fg.deobf("dev.ftb.mods:ftb-teams-forge:${ftb_teams_version}")
-    implementation fg.deobf("maven.modrinth:dTlxEGHS:wquDUF7z")
+    compatDeps.each { dep ->
+        compileOnly fg.deobf(dep)
+        if (compatModsRuntime) {
+            runtimeOnly fg.deobf(dep)
+        }
+    }
 
     if (compatModsRuntime) {
         runtimeOnly fg.deobf("curse.maven:configured-457570:5180900")
         runtimeOnly fg.deobf("maven.modrinth:ghrZDhGW:YWasQFNI")
         runtimeOnly fg.deobf("maven.modrinth:XqqOkvZz:XMYeNIOx")
-        runtimeOnly fg.deobf("maven.modrinth:epic-fight:${epicfight_version}")
+
         runtimeOnly fg.deobf("curse.maven:epicfight-extra-1434276:7961244")
+        runtimeOnly fg.deobf("software.bernie.geckolib:geckolib-forge-1.20.1:${geckolib_forge_version}")
+        runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curio_forge_version}")
     }
 }
 
-// This block of code expands all declared replace properties in the specified resource targets.
-// A missing property will result in an error. Properties are expanded using ${} Groovy notation.
-// When "copyIdeResources" is enabled, this will also run before the game launches in IDE environments.
-// See https://docs.gradle.org/current/dsl/org.gradle.language.jvm.tasks.ProcessResources.html
+
 tasks.named('processResources', ProcessResources).configure {
     var replaceProperties = [
             minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,

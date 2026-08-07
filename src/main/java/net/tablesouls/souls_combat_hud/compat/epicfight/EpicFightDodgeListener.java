@@ -3,7 +3,7 @@ package net.tablesouls.souls_combat_hud.compat.epicfight;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
-import net.tablesouls.souls_combat_hud.party.PartyServerEvents;
+import net.tablesouls.souls_combat_hud.party.network.PartyServerEvents;
 import yesman.epicfight.skill.Skill;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;

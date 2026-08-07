@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.WalkAnimationState;
+import net.minecraft.world.item.ItemStack;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightAnimationFreezer;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightCompat;
@@ -34,12 +35,13 @@ public final class PlayerModelPreviewRenderer {
         return entity != null && entity == previewTarget;
     }
 
-    public static boolean isPreviewWalkAnimation(WalkAnimationState state) {
-        return state != null && state == previewWalkAnimation;
+    public static boolean isPreviewHeldItem(ItemStack stack) {
+        AbstractClientPlayer target = previewTarget;
+        return renderingPreview && target != null && stack != null && target.getMainHandItem() == stack;
     }
 
-    public static boolean canRender() {
-        return !EpicFightCompat.isComputeShaderActive();
+    public static boolean isPreviewWalkAnimation(WalkAnimationState state) {
+        return state != null && state == previewWalkAnimation;
     }
 
     public static boolean isSafeToRender(AbstractClientPlayer player) {
@@ -92,6 +94,7 @@ public final class PlayerModelPreviewRenderer {
 
         FrozenPose.Snapshot poseSnapshot = null;
         Object efSnapshot = null;
+        EpicFightAnimationFreezer.FrozenBodyRotation efBodyRotation = null;
         renderingPreview = true;
         previewTarget = player;
         previewWalkAnimation = player.walkAnimation;
@@ -99,6 +102,11 @@ public final class PlayerModelPreviewRenderer {
         try {
             poseSnapshot = FrozenPose.freeze(player, angleX);
             efSnapshot = EpicFightCompat.LOADED ? EpicFightAnimationFreezer.freezeToIdle(player) : null;
+
+            if (EpicFightCompat.LOADED) {
+                float targetYRot = 180.0f + (float) Math.atan(angleX / 40.0) * 20.0f;
+                efBodyRotation = EpicFightAnimationFreezer.freezeBodyRotation(player, targetYRot);
+            }
 
             if (EpicFightCompat.LOADED && !EpicFightAnimationFreezer.isBaseLayerSafeToRender(player)) {
                 throw new IllegalStateException(
@@ -140,6 +148,7 @@ public final class PlayerModelPreviewRenderer {
             previewWalkAnimation = null;
             if (EpicFightCompat.LOADED) {
                 EpicFightAnimationFreezer.restore(player, (EpicFightAnimationFreezer.FrozenAnimation) efSnapshot);
+                EpicFightAnimationFreezer.restoreBodyRotation(efBodyRotation);
             }
             if (poseSnapshot != null) {
                 FrozenPose.restore(player, poseSnapshot);

@@ -3,13 +3,19 @@ package net.tablesouls.souls_combat_hud.compat.epicfight;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.tablesouls.souls_combat_hud.compat.ResourceSource;
+import net.tablesouls.souls_combat_hud.config.StaminaSourceMode;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
-public class EpicFightStaminaSource implements ResourceSource {
+public class EpicFightStaminaSource implements ResourceSource<StaminaSourceMode> {
+
+    @Override
+    public StaminaSourceMode mode() {
+        return StaminaSourceMode.EPIC_FIGHT;
+    }
 
     @Override
     public boolean isAvailable(Player player) {

@@ -4,7 +4,7 @@ import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.common.MinecraftForge;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
-import net.tablesouls.souls_combat_hud.party.PartyServerEvents;
+import net.tablesouls.souls_combat_hud.party.network.PartyServerEvents;
 
 public final class IronsSpellsSpellCastListener {
     public static void register() {

@@ -8,9 +8,9 @@ import net.tablesouls.souls_combat_hud.compat.ftbteams.FTBTeamsCompat;
 import net.tablesouls.souls_combat_hud.compat.ftbteams.FTBTeamsSource;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.config.TeamSourceMode;
-import net.tablesouls.souls_combat_hud.party.PartyDisplayPreferences;
-import net.tablesouls.souls_combat_hud.party.PartyJoinOrderTracker;
-import net.tablesouls.souls_combat_hud.party.PartyMemberClientCache;
+import net.tablesouls.souls_combat_hud.party.client.PartyDisplayPreferences;
+import net.tablesouls.souls_combat_hud.party.server.PartyJoinOrderTracker;
+import net.tablesouls.souls_combat_hud.party.client.PartyMemberClientCache;
 
 import java.util.*;
 

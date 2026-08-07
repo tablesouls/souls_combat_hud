@@ -11,8 +11,7 @@ import net.tablesouls.souls_combat_hud.compat.ftbteams.FTBTeamsPartyListener;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsCompat;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsSpellCastListener;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
-import net.tablesouls.souls_combat_hud.party.PartyNetwork;
-import net.tablesouls.souls_combat_hud.sounds.ModSounds;
+import net.tablesouls.souls_combat_hud.party.network.PartyNetwork;
 import org.slf4j.Logger;
 
 @Mod(SoulsCombatHUD.MODID)

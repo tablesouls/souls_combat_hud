@@ -12,14 +12,17 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.tablesouls.souls_combat_hud.accessor.IEffectDurationAccessor;
 import net.tablesouls.souls_combat_hud.client.render.status_gauge.GaugeSubject;
+import net.tablesouls.souls_combat_hud.config.ManaSourceMode;
+import net.tablesouls.souls_combat_hud.config.StaminaSourceMode;
 import net.tablesouls.souls_combat_hud.party.PartyEffectSnapshot;
-import net.tablesouls.souls_combat_hud.party.PartyMemberClientCache;
-import net.tablesouls.souls_combat_hud.party.PartyMemberProfileCache;
+import net.tablesouls.souls_combat_hud.party.client.PartyMemberClientCache;
+import net.tablesouls.souls_combat_hud.party.client.PartyMemberProfileCache;
 import net.tablesouls.souls_combat_hud.party.PartyStatType;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.UUID;
 
@@ -101,6 +104,11 @@ public class PartyMemberGaugeSubject implements GaugeSubject {
     }
 
     @Override
+    public StaminaSourceMode getStaminaSourceMode() {
+        return parseMode(PartyMemberClientCache.get(playerId, PartyStatType.STAMINA_MODE), StaminaSourceMode.class);
+    }
+
+    @Override
     public boolean hasMana() {
         return getMaxMana() > 0;
     }
@@ -116,6 +124,20 @@ public class PartyMemberGaugeSubject implements GaugeSubject {
     }
 
     @Override
+    public ManaSourceMode getManaSourceMode() {
+        return parseMode(PartyMemberClientCache.get(playerId, PartyStatType.MANA_MODE), ManaSourceMode.class);
+    }
+
+    private static <M extends Enum<M>> M parseMode(String name, Class<M> type) {
+        if (name == null || name.isEmpty()) return null;
+        try {
+            return Enum.valueOf(type, name);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    @Override
     public OptionalInt getFoodLevel() {
         return OptionalInt.empty();
     }
@@ -123,6 +145,21 @@ public class PartyMemberGaugeSubject implements GaugeSubject {
     @Override
     public OptionalInt getArmorValue() {
         return OptionalInt.empty();
+    }
+
+    @Override
+    public Optional<Boolean> hasThirst() {
+        return Optional.of(false);
+    }
+
+    @Override
+    public OptionalDouble getThirst() {
+        return OptionalDouble.empty();
+    }
+
+    @Override
+    public OptionalDouble getMaxThirst() {
+        return OptionalDouble.empty();
     }
 
     @Override
@@ -137,17 +174,23 @@ public class PartyMemberGaugeSubject implements GaugeSubject {
     @Override
     public List<MobEffectInstance> getStatusEffects() {
         List<PartyEffectSnapshot> snapshots = PartyMemberClientCache.get(playerId, PartyStatType.STATUS_EFFECTS);
-        List<MobEffectInstance> instances = new ArrayList<>(snapshots.size());
+        int receivedTick = PartyMemberClientCache.getStatusEffectsReceivedTick(playerId);
+        int currentTick = (int) Minecraft.getInstance().level.getGameTime();
+        int elapsed = Math.max(0, currentTick - receivedTick);
 
+        List<MobEffectInstance> instances = new ArrayList<>(snapshots.size());
         for (PartyEffectSnapshot snapshot : snapshots) {
             MobEffect effect = ForgeRegistries.MOB_EFFECTS.getValue(snapshot.effectId());
-            if (effect == null) continue; // effect not present on this client (e.g. missing datapack/mod)
+            if (effect == null) continue;
 
-            MobEffectInstance instance = new MobEffectInstance(effect, snapshot.duration(), snapshot.amplifier());
+            boolean infinite = snapshot.duration() < 0;
+            int remaining = infinite ? -1 : snapshot.duration() - elapsed;
+            if (!infinite && remaining <= 0) continue;
+
+            MobEffectInstance instance = new MobEffectInstance(effect, remaining, snapshot.amplifier());
             ((IEffectDurationAccessor) instance).souls_combat_hud$setMaxDuration(snapshot.maxDuration());
             instances.add(instance);
         }
-
         return instances;
     }
 }

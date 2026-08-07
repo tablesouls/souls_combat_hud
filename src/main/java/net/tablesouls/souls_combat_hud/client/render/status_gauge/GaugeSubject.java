@@ -4,9 +4,13 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.tablesouls.souls_combat_hud.config.ManaSourceMode;
+import net.tablesouls.souls_combat_hud.config.StaminaSourceMode;
+import net.tablesouls.souls_combat_hud.config.ThirstSourceMode;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.OptionalInt;
 
 public interface GaugeSubject {
@@ -29,14 +33,34 @@ public interface GaugeSubject {
     float getStamina();
     float getMaxStamina();
 
+    default StaminaSourceMode getStaminaSourceMode() {
+        return null;
+    }
+
     boolean hasMana();
     float getMana();
     float getMaxMana();
 
+    default ManaSourceMode getManaSourceMode() {
+        return null;
+    }
+
     OptionalInt getFoodLevel();
     OptionalInt getArmorValue();
+
+    Optional<Boolean> hasThirst();
+    OptionalDouble getThirst();
+    OptionalDouble getMaxThirst();
+
+    default ThirstSourceMode getThirstSourceMode() {
+        return null;
+    }
 
     Optional<AbstractClientPlayer> asRenderableEntity();
 
     List<MobEffectInstance> getStatusEffects();
+
+    default boolean isPrivate() {
+        return false;
+    }
 }

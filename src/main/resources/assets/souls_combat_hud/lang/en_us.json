@@ -19,5 +19,7 @@
   "gui.souls_combat_hud.party_sort.show_offline": "Show Offline",
   "gui.souls_combat_hud.party_sort.title_with_team": "Sort Party - %s",
   "gui.souls_combat_hud.party_sort.offline_name": "%s (Offline)",
-  "party.souls_combat_hud.unavailable": "Party features is only available if mod is installed on the server."
+  "party.souls_combat_hud.unavailable": "Party features is only available if mod is installed on the server.",
+  "gui.souls_combat_hud.party_sort.hide_status_from_party": "Hide Status",
+  "gui.souls_combat_hud.party_sort.show_status_from_party": "Show Status"
 }
