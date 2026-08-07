@@ -11,13 +11,15 @@
     "client.ReleaseUsingItemMixin",
     "client.GuiOffhandMixin",
     "client.MobEffectInstanceMixin",
-    "client.EntityPosePreviewMixin",
-    "client.LivingEntityPosePreviewMixin",
-    "client.LivingEntityNameTagPreviewMixin",
-    "client.HumanoidModelPreviewMixin",
-    "client.PlayerRendererOffsetMixin",
-    "client.PatchedLivingEntityRendererMixin",
-    "parcool.ParcoolAnimationPreviewMixin"
+    "preview.EntityPreviewMixin",
+    "preview.LivingEntityPosePreviewMixin",
+    "preview.LivingEntityRendererPreviewMixin",
+    "preview.HumanoidModelPreviewMixin",
+    "preview.PlayerRendererOffsetMixin",
+    "preview.PatchedLivingEntityRendererMixin",
+    "preview.parcool.ParcoolAnimationPreviewMixin",
+    "preview.playeranim.PlayerAnimatorPreviewMixin",
+    "preview.paraglider.ParagliderPosePreviewMixin"
   ],
   "injectors": {
     "defaultRequire": 1

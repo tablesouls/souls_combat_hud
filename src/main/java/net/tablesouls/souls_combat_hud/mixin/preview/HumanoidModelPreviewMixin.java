@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.mixin.client;
+package net.tablesouls.souls_combat_hud.mixin.preview;
 
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.world.entity.LivingEntity;

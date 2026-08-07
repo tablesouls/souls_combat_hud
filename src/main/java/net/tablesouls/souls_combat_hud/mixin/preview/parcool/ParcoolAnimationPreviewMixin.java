@@ -1,4 +1,4 @@
-package net.tablesouls.souls_combat_hud.mixin.parcool;
+package net.tablesouls.souls_combat_hud.mixin.preview.parcool;
 
 import net.minecraft.world.entity.player.Player;
 import net.tablesouls.souls_combat_hud.client.util.PlayerModelPreviewRenderer;

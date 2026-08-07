@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.WalkAnimationState;
+import net.minecraft.world.item.ItemStack;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightAnimationFreezer;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightCompat;
@@ -32,6 +33,11 @@ public final class PlayerModelPreviewRenderer {
 
     public static boolean isPreviewTarget(Entity entity) {
         return entity != null && entity == previewTarget;
+    }
+
+    public static boolean isPreviewHeldItem(ItemStack stack) {
+        AbstractClientPlayer target = previewTarget;
+        return renderingPreview && target != null && stack != null && target.getMainHandItem() == stack;
     }
 
     public static boolean isPreviewWalkAnimation(WalkAnimationState state) {
