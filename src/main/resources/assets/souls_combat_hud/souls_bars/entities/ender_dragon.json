@@ -2,6 +2,7 @@
   "target_names": [
     "entity.minecraft.ender_dragon"
   ],
+  "disappear_delay": 0,
   "bar": {
     "color": "#8f00bf",
     "background_color": "#67000000",

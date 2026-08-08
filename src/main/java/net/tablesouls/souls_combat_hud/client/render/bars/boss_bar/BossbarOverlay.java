@@ -1,6 +1,7 @@
 package net.tablesouls.souls_combat_hud.client.render.bars.boss_bar;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.tablesouls.souls_combat_hud.client.render.bars.BarElement;
@@ -53,9 +54,22 @@ public class BossbarOverlay implements IGuiOverlay {
             UUID id = mapEntry.getKey();
             BossBarState.Entry entry = mapEntry.getValue();
 
+            if (entry.name == null) {
+                continue;
+            }
+
+            BossBarStyleDefinition styleDef = BossBarStyleRegistry.resolve(entry.name);
+
             boolean isActive = BossBarState.isActiveThisFrame(id);
 
-            BarElement bar = bars.computeIfAbsent(id, key -> BarElement.withFade(250L, 400L));
+            BarElement bar = bars.computeIfAbsent(
+                    id, key ->
+                            BarElement.withFade(
+                                    250L,
+                                    400L,
+                                    styleDef.disappearDelay() + SoulsCombatHUDConfig.CUSTOM_BOSSBAR.disappear_delay.get()
+                            )
+            );
             bar.setVisible(isActive);
 
             if (bar.isHidden()) {
@@ -71,7 +85,6 @@ public class BossbarOverlay implements IGuiOverlay {
 
             int y = baseY + row * rowStep;
 
-            BossBarStyleDefinition styleDef = BossBarStyleRegistry.resolve(entry.name);
             bar.withDecoration(styleDef.toBarDecoration());
 
             bar.render(
@@ -83,8 +96,13 @@ public class BossbarOverlay implements IGuiOverlay {
                     barH,
                     entry.progress,
                     entry.name,
+                    null,
                     false,
-                    true
+                    true,
+                    1.0f,
+                    entry.maxHealth > 0 ? entry.maxHealth : -1f,
+                    entry.currentHealth,
+                    SoulsCombatHUDConfig.CUSTOM_BOSSBAR.reductionValueText.get()
             );
 
             row++;

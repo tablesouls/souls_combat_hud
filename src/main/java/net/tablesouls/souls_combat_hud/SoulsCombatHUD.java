@@ -11,6 +11,7 @@ import net.tablesouls.souls_combat_hud.compat.ftbteams.FTBTeamsPartyListener;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsCompat;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsSpellCastListener;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
+import net.tablesouls.souls_combat_hud.network.BossNetwork;
 import net.tablesouls.souls_combat_hud.party.network.PartyNetwork;
 import org.slf4j.Logger;
 
@@ -26,6 +27,7 @@ public class SoulsCombatHUD
         context.registerConfig(ModConfig.Type.CLIENT, SoulsCombatHUDConfig.CLIENT_SPEC);
         context.registerConfig(ModConfig.Type.SERVER, SoulsCombatHUDConfig.SERVER_SPEC);
         PartyNetwork.register();
+        BossNetwork.register();
 
         if (FTBTeamsCompat.LOADED) {
             FTBTeamsPartyListener.register();

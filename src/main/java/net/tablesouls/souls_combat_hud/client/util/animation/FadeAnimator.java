@@ -8,8 +8,12 @@ public class FadeAnimator {
     private Boolean activeDirectionVisible = null;
 
     public FadeAnimator(long fadeInMillis, long fadeOutMillis) {
+        this(fadeInMillis, fadeOutMillis, 0L);
+    }
+
+    public FadeAnimator(long fadeInMillis, long fadeOutMillis, long fadeOutHoldMillis) {
         this.fadeIn = new ValueAnimator(fadeInMillis, 0L, ValueAnimator.Easing.LINEAR);
-        this.fadeOut = new ValueAnimator(fadeOutMillis, 0L, ValueAnimator.Easing.LINEAR);
+        this.fadeOut = new ValueAnimator(fadeOutMillis, fadeOutHoldMillis, ValueAnimator.Easing.LINEAR);
     }
 
     public void setVisible(boolean visible) {

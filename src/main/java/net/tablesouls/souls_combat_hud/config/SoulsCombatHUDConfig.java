@@ -783,6 +783,8 @@ public final class SoulsCombatHUDConfig {
 
     public static class CustomBossbar {
         public final ForgeConfigSpec.BooleanValue enabled;
+        public final ForgeConfigSpec.BooleanValue reductionValueText;
+        public final ForgeConfigSpec.LongValue disappear_delay;
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
         public final ForgeConfigSpec.ConfigValue<Integer> maxVisible;
         public final ForgeConfigSpec.ConfigValue<Integer> width;
@@ -796,6 +798,15 @@ public final class SoulsCombatHUDConfig {
             enabled = builder
                     .comment("Toggle whether to use Souls-like bossbars.")
                     .define("enabled", true);
+
+            reductionValueText = builder
+                    .comment("Should the bossbar display the damage value it has taken. This only works if mod is installed on the server.")
+                    .define("reduction_value_text", true);
+
+            disappear_delay = builder
+                    .comment("Delay in miliseconds before the bossbar disappears",
+                            "This is added on to custom bossbar disappear_delay property")
+                    .defineInRange("disappear_delay", 0L, 0, Integer.MAX_VALUE);
 
             anchor = builder.defineEnum(
                     "anchor",

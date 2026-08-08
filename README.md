@@ -8,15 +8,16 @@ The mod includes:
    * Compatability with Iron's Spells n' Spellbooks
    * Compatability with MoreOffhandSlots
 * Status Gauges including status of your teammates.
-* Alternative skill overlay UI for Epic Fight
+* Alternative skill overlay UI for Epic Fight
 * Custom bossbar
 * Support for client only and client-server features.
 
 Each feature can be disabled through the config.
 
-I also recommend:
-*   Configurable mod to update config values without restarting.
-*   A mod that allows you to shift the chatbox, otherwise change the anchor.
+Before using the mod I also recommend:
+* Configurable mod to update config values without restarting.
+* A mod that allows you to shift the chatbox, otherwise change the anchor.
+* To disable existing UI of mods, such as Iron's Spells spell bar.
 
 ***
 # Equipment Slots
@@ -55,12 +56,13 @@ This replaces certain elements found in the vanilla hotbar.
 * Displays status of the player
    * Stamina
       * Epic Fight
+      * Parcool
+      * Paragliders
    * Mana
       * Iron's Spells
 * The bar widths dynamically change depending on how much the player's stats have changed from the baseline max values.
    * Server owners can set their baseline values and projected max/late game values in the server config
    * Clients can do the same or override the server values, but they can also make the bar widths constant.
-   * **This mod was made with epic fight and iron's spells in mind, so please adjust these values accordingly**.
 * Player gauge appearance can be customized in `assets/souls_combat_hud/souls_bars/player_gauge.json`.
 
 ## Party Gauges
@@ -73,7 +75,7 @@ width="340">
 This displays the status of your teammates. **This feature is only enabled if the mod is installed serverside**.
 * Supports vanilla teams and FTB teams.
 * Team color will display as a crest outline.
-* Sort party screen
+* Sort party screen, open with `O` key
 * Certain stat tracking can be restricted via server config.
 * Party gauge appearance can be customized in `assets/souls_combat_hud/souls_bars/party_gauge.json`.
 
@@ -90,7 +92,7 @@ This replaces the vanilla bossbar with a soulslike bossbar.
    * A custom oxygen bar replaces the air level meter.
 * Item highlight name and record label are shifted closer to the hotbar, configurable.
    * By default, the item name shifting when changing from/to creative is disabled.
-   * Cold Sweat mod repositions these text, make sure to disable `Custom hotbar layout`.
+   * Cold Sweat mod repositions this text, make sure to disable `Custom hotbar layout`.
    * No Hunger mod makes armor level reappear, make sure to disable `Render armor at hunger`.
 
 ***

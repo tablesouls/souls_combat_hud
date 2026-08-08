@@ -17,7 +17,8 @@ public record BossBarStyleDefinition(
         int barReductionColor,
         int textColor,
         boolean textDropShadow,
-        ResourceLocation ornamentTexture
+        ResourceLocation ornamentTexture,
+        long disappearDelay
 ) {
     public static final BossBarStyleDefinition DEFAULT = new BossBarStyleDefinition(
             List.of(),
@@ -27,7 +28,8 @@ public record BossBarStyleDefinition(
             0xFFFFFFFF,
             true,
             ResourceLocation.fromNamespaceAndPath(SoulsCombatHUD.MODID,
-                    "textures/gui/sprites/souls_bars/bossbar_ornament.png")
+                    "textures/gui/sprites/souls_bars/bossbar_ornament.png"),
+            0L
     );
 
     public boolean matches(Component bossBarName) {

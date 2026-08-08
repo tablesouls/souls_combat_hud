@@ -33,5 +33,13 @@ public class BossBarState {
     public static class Entry {
         public volatile Component name;
         public volatile float progress;
+        public volatile float currentHealth = -1f;
+        public volatile float maxHealth = -1f;
+    }
+
+    public static void updateHealth(UUID id, float current, float max) {
+        Entry entry = ACTIVE.computeIfAbsent(id, k -> new Entry());
+        entry.currentHealth = current;
+        entry.maxHealth = max;
     }
 }
