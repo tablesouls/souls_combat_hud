@@ -24,22 +24,20 @@ Before using the mod I also recommend:
 
 The equipment slots is essentially an extended hotbar selector. They can be cycled through your arrow keys.
 
-**Weapon slot** - Indicates your selected weapon. By pressing your `Right Arrow` key, your main hand will cycle to weapons in your hotbar. If you are not currently holding a weapon, it will jump to the weapon it indicates.
+**Weapon slot** - Indicates your selected weapon. By pressing your `Right Arrow` key, your main hand will cycle to weapons in your hotbar. If you are not currently holding a weapon, it will jump to the weapon it indicates.
+* If Epic Fight is installed, items in Combat Preferred is included.
+* Items can be added/removed through the config.
 
-*   If Epic Fight is installed, items in Combat Preferred is included.
-*   Items can be added/removed through the config.
-
-**Offhand slot** - Indicates your offhand slot. By pressing your `Left Arrow` key, you are able to cycle through your offhand items (only with MoreOffhandSlots).
+**Offhand slot** - Indicates your offhand slot. By pressing your `Left Arrow` key, you are able to cycle through your offhand items (only with MoreOffhandSlots).
 
 **Spell slot** - Indicates your active spell. By pressing your `Up Arrow` key, you can cycle through your spells.
+* This includes preview slots to see which spells you are cycling to.
 
-*   This includes preview slots to see which spells you are cycling to.
-
-**Consumable slot** - Indicates your food items. By pressing your `Down Arrow` key, you can cycle through your consumable items.
-
-*   This includes preview slots to see which items you are cycling to.
-*   The mod also adds a "Use Consumable key" (`G` key), which will automatically jump to the item and consume without holding right click.
-   *   Thus cycling wont jump to your consumables unless configured.
+**Consumable slot** - Indicates your food items. By pressing your `Down Arrow` key, you can cycle through your consumable items.
+* This includes preview slots to see which items you are cycling to.
+* The mod also adds a "Use Consumable key" (`G` key), which will automatically jump to the item and consume without holding right click.
+   * Thus cycling wont jump to your consumables unless configured.
+* Iron's Spells scrolls are included
 
 # Status Gauges
 ![Preview of status gauges with value text enabled](https://cdn.modrinth.com/data/cached_images/13aafbf8ecc6be55ae19899aeac21922e503d132_0.webp)

@@ -80,6 +80,7 @@ public class BossbarOverlay implements IGuiOverlay {
             }
 
             if (row >= maxVisibleBossbars) {
+                bar.tick();
                 continue;
             }
 

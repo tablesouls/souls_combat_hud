@@ -29,6 +29,10 @@ public class BarElement {
         return reveal.update(currentFraction, maxValue);
     }
 
+    public void tick() {
+        getAlpha();
+    }
+
     public BarElement() {
         this(null);
     }

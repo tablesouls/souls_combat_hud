@@ -67,8 +67,10 @@ public class ClientForgeEvents {
     }
 
     private static void jumpToCycledConsumable(Player player) {
+        if (!EpicFightCompat.canSwitchHoldingItem(player)) return;
+
         int slot = ConsumableSlotManager.getSelectedHotbarSlot(player);
-        if (slot < 0) {
+        if (slot < 0 || slot == player.getInventory().selected) {
             return;
         }
 
@@ -113,6 +115,7 @@ public class ClientForgeEvents {
         }
 
         while (ModKeyBindings.CYCLE_OFFHAND.consumeClick()) {
+            if (!EpicFightCompat.canSwitchHoldingItem(player)) return;
             MoreOffhandSlotsCompat.cycleOffhand(true);
         }
 
@@ -171,6 +174,8 @@ public class ClientForgeEvents {
             cancelAutoEat(player);
             return;
         }
+
+        if (!EpicFightCompat.canSwitchHoldingItem(player)) return;
 
         ItemStack mainHand = player.getMainHandItem();
         if (ConsumableSlotManager.isConsumable(mainHand, player)) {
