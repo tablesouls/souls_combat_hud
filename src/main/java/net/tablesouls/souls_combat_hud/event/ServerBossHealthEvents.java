@@ -4,6 +4,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHealEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -22,6 +23,11 @@ public class ServerBossHealthEvents {
     @SubscribeEvent
     public static void onHeal(LivingHealEvent event) {
         sync(event.getEntity(), event.getEntity().getHealth() + event.getAmount());
+    }
+
+    @SubscribeEvent
+    public static void onDeath(LivingDeathEvent event) {
+        sync(event.getEntity(), 0f);
     }
 
     @SubscribeEvent

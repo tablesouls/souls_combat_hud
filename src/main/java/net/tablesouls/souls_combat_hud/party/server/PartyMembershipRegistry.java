@@ -28,7 +28,7 @@ public final class PartyMembershipRegistry {
     }
 
     public static Resolution resolve(ServerPlayer player) {
-        TeamSourceMode forced = SoulsCombatHUDConfig.SERVER_RESTRICTIONS.forceTeamSource.get();
+        TeamSourceMode forced = SoulsCombatHUDConfig.SERVER_RESTRICTIONS.serverSourcePreference.serverTeamSource.get();
         boolean pinned = !forced.isAuto();
 
         for (PartyMembershipSource source : SOURCES) {

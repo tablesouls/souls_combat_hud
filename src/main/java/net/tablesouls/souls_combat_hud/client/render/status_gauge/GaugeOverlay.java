@@ -418,53 +418,55 @@ public class GaugeOverlay implements IGuiOverlay {
             this.renderFace(graphics, subject, x, y, size);
         }
 
-        GaugeLayout hungerLayout = this.gaugeStyles.getLayout("hunger", GaugeLayout.DEFAULT);
-        TextLayout hungerTextLayout = this.gaugeStyles.getTextLayout("hunger", TextLayout.DEFAULT);
+        if (SoulsCombatHUDConfig.STATUS_GAUGE.playerGauge.crestAttributes.get()) {
+            GaugeLayout hungerLayout = this.gaugeStyles.getLayout("hunger", GaugeLayout.DEFAULT);
+            TextLayout hungerTextLayout = this.gaugeStyles.getTextLayout("hunger", TextLayout.DEFAULT);
 
-        GaugeLayout armorLayout = this.gaugeStyles.getLayout("armor", GaugeLayout.DEFAULT);
-        TextLayout armorTextLayout = this.gaugeStyles.getTextLayout("armor", TextLayout.DEFAULT);
+            GaugeLayout armorLayout = this.gaugeStyles.getLayout("armor", GaugeLayout.DEFAULT);
+            TextLayout armorTextLayout = this.gaugeStyles.getTextLayout("armor", TextLayout.DEFAULT);
 
-        GaugeLayout thirstLayout = this.gaugeStyles.getLayout("thirst", GaugeLayout.DEFAULT);
-        TextLayout thirstTextLayout = this.gaugeStyles.getTextLayout("thirst", TextLayout.DEFAULT);
+            GaugeLayout thirstLayout = this.gaugeStyles.getLayout("thirst", GaugeLayout.DEFAULT);
+            TextLayout thirstTextLayout = this.gaugeStyles.getTextLayout("thirst", TextLayout.DEFAULT);
 
-        OptionalInt foodLevel = subject.getFoodLevel();
-        if (hungerLayout.enabled() && foodLevel.isPresent()) {
-            this.renderHunger(
-                    graphics,
-                    subject,
-                    foodLevel.getAsInt(),
-                    font,
-                    x, y,
-                    size,
-                    hungerLayout.x(), hungerLayout.y(),
-                    hungerTextLayout
-            );
-        }
+            OptionalInt foodLevel = subject.getFoodLevel();
+            if (hungerLayout.enabled() && foodLevel.isPresent()) {
+                this.renderHunger(
+                        graphics,
+                        subject,
+                        foodLevel.getAsInt(),
+                        font,
+                        x, y,
+                        size,
+                        hungerLayout.x(), hungerLayout.y(),
+                        hungerTextLayout
+                );
+            }
 
-        OptionalInt armorValue = subject.getArmorValue();
-        if (armorLayout.enabled() && armorValue.isPresent()) {
-            this.renderArmor(graphics,
-                    armorValue.getAsInt(),
-                    font,
-                    x, y,
-                    size,
-                    armorLayout.x(), armorLayout.y(),
-                    armorTextLayout
-            );
-        }
+            OptionalInt armorValue = subject.getArmorValue();
+            if (armorLayout.enabled() && armorValue.isPresent()) {
+                this.renderArmor(graphics,
+                        armorValue.getAsInt(),
+                        font,
+                        x, y,
+                        size,
+                        armorLayout.x(), armorLayout.y(),
+                        armorTextLayout
+                );
+            }
 
-        if (thirstLayout.enabled() && subject.hasThirst().orElse(false)) {
-            this.renderThirst(
-                    graphics,
-                    subject.getThirst().orElse(0.0),
-                    subject.getMaxThirst().orElse(0.0),
-                    subject.getThirstSourceMode(),
-                    font,
-                    x, y,
-                    size,
-                    thirstLayout.x(), thirstLayout.y(),
-                    thirstTextLayout
-            );
+            if (thirstLayout.enabled() && subject.hasThirst().orElse(false)) {
+                this.renderThirst(
+                        graphics,
+                        subject.getThirst().orElse(0.0),
+                        subject.getMaxThirst().orElse(0.0),
+                        subject.getThirstSourceMode(),
+                        font,
+                        x, y,
+                        size,
+                        thirstLayout.x(), thirstLayout.y(),
+                        thirstTextLayout
+                );
+            }
         }
 
         GaugeLayout privacyLayout = this.gaugeStyles.getLayout("private", GaugeLayout.DEFAULT);

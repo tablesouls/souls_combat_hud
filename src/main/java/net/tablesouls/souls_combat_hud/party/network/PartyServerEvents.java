@@ -294,8 +294,8 @@ public class PartyServerEvents {
     private static ResolvedResources resolveAndSyncResourceSources(ServerPlayer player) {
         UUID id = player.getUUID();
 
-        ManaSourceMode forcedMana = SoulsCombatHUDConfig.SERVER_RESTRICTIONS.forceManaSource.get();
-        StaminaSourceMode forcedStamina = SoulsCombatHUDConfig.SERVER_RESTRICTIONS.forceStaminaSource.get();
+        ManaSourceMode forcedMana = SoulsCombatHUDConfig.SERVER_RESTRICTIONS.serverSourcePreference.serverManaSource.get();
+        StaminaSourceMode forcedStamina = SoulsCombatHUDConfig.SERVER_RESTRICTIONS.serverSourcePreference.serverStaminaSource.get();
 
         AbstractResourceSourceRegistry.Resolution<ManaSourceMode> manaResolution =
                 ManaSourceRegistry.INSTANCE.resolveServerSide(player, forcedMana);

@@ -17,7 +17,7 @@ public final class SoulsCombatHUDConfig {
     private static final Map<StaminaSourceMode, int[]> STAMINA_PRESET_DEFAULTS = new EnumMap<>(StaminaSourceMode.class);
     static {
         STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.EPIC_FIGHT, new int[]{20, 45});
-        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.PARCOOL, new int[]{1000, 2000});
+        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.PARCOOL, new int[]{2000, 3000});
         STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.PARAGLIDER, new int[]{1000, 3000});
     }
 
@@ -170,9 +170,7 @@ public final class SoulsCombatHUDConfig {
 
     public static class ServerRestrictions {
         public final ForgeConfigSpec.IntValue maxTrackedPartyMembers;
-        public final ForgeConfigSpec.EnumValue<TeamSourceMode> forceTeamSource;
-        public final ForgeConfigSpec.EnumValue<ManaSourceMode> forceManaSource;
-        public final ForgeConfigSpec.EnumValue<StaminaSourceMode> forceStaminaSource;
+        public final ServerSourcePreference serverSourcePreference;
         public final ForgeConfigSpec.BooleanValue disablePartyTracking;
         public final ForgeConfigSpec.BooleanValue disableHealthTracking;
         public final ForgeConfigSpec.BooleanValue disableStaminaTracking;
@@ -183,21 +181,10 @@ public final class SoulsCombatHUDConfig {
         ServerRestrictions(ForgeConfigSpec.Builder builder) {
             builder.push("server_restrictions");
 
+            serverSourcePreference = new ServerSourcePreference(builder);
             maxTrackedPartyMembers = builder.comment(
                             "Max teammates the server will track per player, 0 to disable")
                     .defineInRange("max_tracked_party_members", 8, 0, 16);
-            forceTeamSource = builder
-                    .comment(
-                            "AUTO = prefer FTB Teams otherwise fall back to vanilla scoreboard teams.",
-                            "VANILLA / FTB_TEAMS = always use only that source."
-                    )
-                    .defineEnum("force_team_source", TeamSourceMode.AUTO);
-
-            forceManaSource = builder
-                    .defineEnum("force_mana_source", ManaSourceMode.AUTO);
-
-            forceStaminaSource = builder
-                    .defineEnum("force_stamina_source", StaminaSourceMode.AUTO);
 
             disablePartyTracking = builder
                     .comment("If true, the server will never track party stats.")
@@ -223,6 +210,28 @@ public final class SoulsCombatHUDConfig {
                     .comment("Max status effects per party member the server will track and send, 0 to disable limit.")
                     .defineInRange("max_tracked_status_effects", 0, 0, 64);
             builder.pop();
+        }
+
+        public static class ServerSourcePreference {
+            public final ForgeConfigSpec.EnumValue<StaminaSourceMode> serverStaminaSource;
+            public final ForgeConfigSpec.EnumValue<ManaSourceMode> serverManaSource;
+            public final ForgeConfigSpec.EnumValue<TeamSourceMode> serverTeamSource;
+
+            ServerSourcePreference(ForgeConfigSpec.Builder builder) {
+                builder.push("server_source_preferences");
+
+                serverStaminaSource = builder
+                        .defineEnum("server_stamina_source", StaminaSourceMode.AUTO);
+                serverManaSource = builder
+                        .defineEnum("server_mana_source", ManaSourceMode.AUTO);
+                serverTeamSource = builder
+                        .comment(
+                                "AUTO = prefer FTB Teams otherwise fall back to vanilla scoreboard teams.",
+                                "VANILLA / FTB_TEAMS = always use only that source."
+                        )
+                        .defineEnum("server_team_source", TeamSourceMode.AUTO);
+                builder.pop();
+            }
         }
     }
 
@@ -407,6 +416,9 @@ public final class SoulsCombatHUDConfig {
                 public final PreviewSlots previewSlots;
                 public final ForgeConfigSpec.BooleanValue cycleConsumableSwitch;
                 public final ForgeConfigSpec.BooleanValue useConsumableOnSelected;
+                public final ForgeConfigSpec.ConfigValue<List<? extends String>> includeConsumableList;
+                public final ForgeConfigSpec.ConfigValue<List<? extends String>> excludeConsumableList;
+                public final ForgeConfigSpec.ConfigValue<List<? extends String>> excludeAutoConsumeList;
                 public final ForgeConfigSpec.ConfigValue<Integer> x;
                 public final ForgeConfigSpec.ConfigValue<Integer> y;
 
@@ -428,6 +440,17 @@ public final class SoulsCombatHUDConfig {
                             ElementOrientation.HORIZONTAL,
                             0,
                             -16);
+                    includeConsumableList = builder
+                            .comment("Include items as a consumable")
+                            .defineList("include_consumables_list", List.of(), o -> o instanceof String);
+                    excludeConsumableList = builder
+                            .comment("Exclude items as a consumable")
+                            .defineList("exclude_consumables_list", List.of(), o -> o instanceof String);
+                    excludeAutoConsumeList = builder
+                            .comment("Exclude items that should autoconsume")
+                            .defineList("exclude_autoconsume_list", List.of(
+                                    "remnantcurios:flask"
+                            ), o -> o instanceof String);
                     x = builder.define("x", 0);
                     y = builder.define("y", 18);
                     builder.pop();
@@ -572,6 +595,7 @@ public final class SoulsCombatHUDConfig {
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.EnumValue<CrestDisplayMode> crestDisplayMode;
         public final ForgeConfigSpec.BooleanValue crestTeamOutline;
+        public final ForgeConfigSpec.BooleanValue crestAttributes;
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
         public final ForgeConfigSpec.ConfigValue<Integer> x;
         public final ForgeConfigSpec.ConfigValue<Integer> y;
@@ -586,11 +610,14 @@ public final class SoulsCombatHUDConfig {
                     .comment("Toggle player gauge overlay")
                     .define("enabled", true);
 
+            crestDisplayMode = builder
+                    .defineEnum("crest_display_mode", CrestDisplayMode.MODEL);
+
             crestTeamOutline = builder
                     .define("crest_team_outline", true);
 
-            crestDisplayMode = builder
-                    .defineEnum("crest_display_mode", CrestDisplayMode.MODEL);
+            crestAttributes = builder
+                    .define("crest_attributes", true);
 
             anchor = builder.defineEnum(
                     "anchor",
