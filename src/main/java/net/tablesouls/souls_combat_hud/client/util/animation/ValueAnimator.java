@@ -68,4 +68,8 @@ public class ValueAnimator {
     public float getCurrent() {
         return current;
     }
+
+    public float getTarget() {
+        return target;
+    }
 }
