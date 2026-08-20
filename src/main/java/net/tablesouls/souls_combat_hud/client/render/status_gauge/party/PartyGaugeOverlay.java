@@ -28,7 +28,7 @@ public class PartyGaugeOverlay implements IGuiOverlay {
     private static final int SLOT_HEIGHT = 40;
 
     @Override
-    public void render(ForgeGui gui, GuiGraphics graphics, float partialTick, int screenWidth, int screenHeight) {
+    public void render(ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight) {
         Minecraft mc = Minecraft.getInstance();
         Font font = mc.font;
 
@@ -81,7 +81,13 @@ public class PartyGaugeOverlay implements IGuiOverlay {
                 ? TeamProviderRegistry.resolveActiveTeamColor(localPlayer)
                 : OptionalInt.empty();
 
-        int nextSlotY = overlayY;
+        float scale = SoulsCombatHUDConfig.STATUS_GAUGE.partyGauge.scale.get().floatValue();
+
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(overlayX, overlayY, 0);
+        guiGraphics.pose().scale(scale, scale, 1.0f);
+
+        int nextSlotY = 0;
         for (UUID teammateId : teammates) {
             GaugeOverlay slot = slotsByPlayer.computeIfAbsent(
                     teammateId,
@@ -92,8 +98,10 @@ public class PartyGaugeOverlay implements IGuiOverlay {
                     PartyMemberGaugeSubject::new
             );
 
-            nextSlotY = renderSlot(graphics, font, slot, subject, overlayX, nextSlotY, mirrored, teamColor);
+            nextSlotY = renderSlot(guiGraphics, font, slot, subject, 0, nextSlotY, mirrored, teamColor);
         }
+
+        guiGraphics.pose().popPose();
     }
 
     private static CrestDisplayMode resolveCrestDisplayMode(GaugeSubject subject) {
@@ -126,11 +134,11 @@ public class PartyGaugeOverlay implements IGuiOverlay {
 
         int crestSize = crestLayout.size();
         int crestX = mirrored ? x - crestLayout.x() - crestSize : x + crestLayout.x();
-        int contentBottom = y + SLOT_HEIGHT; // never shrink below the configured baseline slot height
+        int contentBottom = y + SLOT_HEIGHT;
 
         if (crestLayout.enabled()) {
             CrestDisplayMode displayMode = resolveCrestDisplayMode(subject);
-            slot.renderCrest(graphics, subject, font, crestX, y + crestLayout.y(), crestSize, !mirrored, displayMode, teamColor);
+            slot.renderCrest(graphics, subject, font, crestX, y + crestLayout.y(), crestSize, displayMode, teamColor);
             contentBottom = Math.max(contentBottom, y + crestLayout.y() + crestSize);
         }
 

@@ -152,17 +152,16 @@ if (localPropsFile.exists()) {
 def compatModsRuntime = localProps.getProperty('enableCompatModsRuntime', 'false').toBoolean()
 
 def compatDeps = [
-        "io.redspace:irons_spellbooks:${irons_spells_forge_version}",
-        "io.redspace:irons_lib:${irons_lib_forge_version}",
-        "dev.architectury:architectury-forge:${architectury_forge_version}",
-        "dev.ftb.mods:ftb-library-forge:${ftb_library_forge_version}",
-        "dev.ftb.mods:ftb-teams-forge:${ftb_teams_forge_version}",
-        "maven.modrinth:dTlxEGHS:${moreoffhandslots_forge_version}",
-        "curse.maven:parcool-482378:${parcool_forge_version}",
-        "maven.modrinth:epic-fight:${epicfight_forge_version}",
-        "curse.maven:thirst-was-reclaimed-884742:${thirst_was_reclaimed_forge_version}",
-        "curse.maven:paragliders-289240:${paraglider_forge_version}",
-        "dev.kosmx.player-anim:player-animation-lib-forge:${player_animation_lib_forge_version}"
+        fg.deobf("io.redspace:irons_spellbooks:${irons_spells_forge_version}"),
+        fg.deobf("io.redspace:irons_lib:${irons_lib_forge_version}"),
+        fg.deobf("dev.architectury:architectury-forge:${architectury_forge_version}"),
+        fg.deobf("dev.ftb.mods:ftb-library-forge:${ftb_library_forge_version}"),
+        fg.deobf("dev.ftb.mods:ftb-teams-forge:${ftb_teams_forge_version}"),
+        fg.deobf("maven.modrinth:dTlxEGHS:${moreoffhandslots_forge_version}"),
+        fg.deobf("maven.modrinth:epic-fight:${epicfight_forge_version}"),
+        fg.deobf("curse.maven:thirst-was-reclaimed-884742:${thirst_was_reclaimed_forge_version}"),
+        fg.deobf("curse.maven:paragliders-289240:${paraglider_forge_version}"),
+        fg.deobf("dev.kosmx.player-anim:player-animation-lib-forge:${player_animation_lib_forge_version}")
 ]
 
 dependencies {
@@ -170,11 +169,13 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
     compatDeps.each { dep ->
-        compileOnly fg.deobf(dep)
+        compileOnly dep
         if (compatModsRuntime) {
-            runtimeOnly fg.deobf(dep)
+            runtimeOnly dep
         }
     }
+
+    compileOnly fg.deobf("curse.maven:parcool-482378:${parcool_forge_version}")
 
     if (compatModsRuntime) {
         runtimeOnly fg.deobf("curse.maven:configured-457570:5180900")

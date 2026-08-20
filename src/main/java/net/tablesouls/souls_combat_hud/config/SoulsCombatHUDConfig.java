@@ -235,21 +235,10 @@ public final class SoulsCombatHUDConfig {
         }
     }
 
-    public static class Toggle {
-        public final ForgeConfigSpec.BooleanValue enabled;
-
-        Toggle(ForgeConfigSpec.Builder builder, String key, boolean defaultValue) {
-            enabled = builder.define(key, defaultValue);
-        }
-
-        Toggle(ForgeConfigSpec.Builder builder, String key, boolean defaultValue, String comment) {
-            enabled = builder.comment(comment).define(key, defaultValue);
-        }
-    }
-
     public static class SkillOverlay {
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
+        public final ForgeConfigSpec.DoubleValue scale;
         public final ForgeConfigSpec.ConfigValue<Integer> x;
         public final ForgeConfigSpec.ConfigValue<Integer> y;
 
@@ -268,6 +257,8 @@ public final class SoulsCombatHUDConfig {
             x = builder.define("x", 12);
             y = builder.define("y", 120);
 
+            scale = builder.defineInRange("scale", 1.0, 0.25, 4.0);
+
             builder.pop();
         }
     }
@@ -279,6 +270,7 @@ public final class SoulsCombatHUDConfig {
         public final Slots slots;
 
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
+        public final ForgeConfigSpec.DoubleValue scale;
         public final ForgeConfigSpec.ConfigValue<Integer> x;
         public final ForgeConfigSpec.ConfigValue<Integer> y;
 
@@ -304,6 +296,8 @@ public final class SoulsCombatHUDConfig {
             x = builder.define("x", 60);
             y = builder.define("y", 60);
 
+            scale = builder.defineInRange("scale", 1.0, 0.25, 4.0);
+
             builder.pop();
         }
 
@@ -322,6 +316,27 @@ public final class SoulsCombatHUDConfig {
                 spell = new SpellSlot(builder);
 
                 builder.pop();
+            }
+
+            public static class ItemNameSetting {
+                public final ForgeConfigSpec.BooleanValue enabled;
+                public final ForgeConfigSpec.BooleanValue autoHide;
+                public final ForgeConfigSpec.IntValue holdMillis;
+                public final ForgeConfigSpec.IntValue fadeMillis;
+
+                ItemNameSetting(ForgeConfigSpec.Builder builder, String key, boolean pEnabled) {
+                    builder.push(key);
+
+                    enabled = builder.define("enabled", pEnabled);
+                    autoHide = builder
+                            .define("auto_hide", false);
+                    holdMillis = builder
+                            .defineInRange("hold_millis", 2000, 0, 20000);
+                    fadeMillis = builder
+                            .defineInRange("fade_millis", 400, 0, 5000);
+
+                    builder.pop();
+                }
             }
 
             public static class PreviewSlots {
@@ -412,7 +427,7 @@ public final class SoulsCombatHUDConfig {
 
             public static class ConsumableSlot {
                 public final ForgeConfigSpec.BooleanValue enabled;
-                public final Toggle name;
+                public final ItemNameSetting itemName;
                 public final PreviewSlots previewSlots;
                 public final ForgeConfigSpec.BooleanValue cycleConsumableSwitch;
                 public final ForgeConfigSpec.BooleanValue useConsumableOnSelected;
@@ -426,7 +441,7 @@ public final class SoulsCombatHUDConfig {
                     builder.push("consumable_slot");
 
                     enabled = builder.define("enabled", true);
-                    name = new Toggle(builder, "name", true);
+                    itemName = new ItemNameSetting(builder, "item_name", true);
                     cycleConsumableSwitch = builder
                             .comment("Should cycling your consumables jump to the item.")
                             .define("cycle_consumable_switch", false);
@@ -459,7 +474,7 @@ public final class SoulsCombatHUDConfig {
 
             public static class SpellSlot {
                 public final ForgeConfigSpec.BooleanValue enabled;
-                public final Toggle name;
+                public final ItemNameSetting itemName;
                 public final PreviewSlots previewSlots;
                 public final ForgeConfigSpec.ConfigValue<Integer> x;
                 public final ForgeConfigSpec.ConfigValue<Integer> y;
@@ -468,7 +483,7 @@ public final class SoulsCombatHUDConfig {
                     builder.push("spell_slot");
 
                     enabled = builder.define("enabled", true);
-                    name = new Toggle(builder, "name", true);
+                    itemName = new ItemNameSetting(builder, "item_name", true);
                     previewSlots = new PreviewSlots(
                             builder,
                             3,
@@ -580,7 +595,7 @@ public final class SoulsCombatHUDConfig {
             builder.comment("Status Effects").push("status_effects");
 
             maxDisplayed = builder
-                    .comment("Max status effect icons shown per gauge, 0 to disable")
+                    .comment("Max status effect icons shown per gauge, 0 to disable.")
                     .defineInRange("max_displayed", 0, 0, 64);
 
             sortOrder = builder
@@ -597,6 +612,7 @@ public final class SoulsCombatHUDConfig {
         public final ForgeConfigSpec.BooleanValue crestTeamOutline;
         public final ForgeConfigSpec.BooleanValue crestAttributes;
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
+        public final ForgeConfigSpec.DoubleValue scale;
         public final ForgeConfigSpec.ConfigValue<Integer> x;
         public final ForgeConfigSpec.ConfigValue<Integer> y;
 
@@ -627,6 +643,8 @@ public final class SoulsCombatHUDConfig {
             x = builder.define("x", 24);
             y = builder.define("y", 24);
 
+            scale = builder.defineInRange("scale", 1.0, 0.25, 4.0);
+
             builder.pop();
         }
     }
@@ -641,6 +659,7 @@ public final class SoulsCombatHUDConfig {
         public final ForgeConfigSpec.IntValue memberRowGap;
         public final ForgeConfigSpec.BooleanValue statusEffectsAffectRowLayout;
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
+        public final ForgeConfigSpec.DoubleValue scale;
         public final ForgeConfigSpec.ConfigValue<Integer> x;
         public final ForgeConfigSpec.ConfigValue<Integer> y;
 
@@ -689,6 +708,8 @@ public final class SoulsCombatHUDConfig {
             x = builder.define("x", 24);
             y = builder.define("y", 76);
 
+            scale = builder.defineInRange("scale", 0.86, 0.25, 4.0);
+
             builder.pop();
         }
     }
@@ -700,6 +721,7 @@ public final class SoulsCombatHUDConfig {
         public final XpTotalTextSetting xpTotalText;
         public final XpLevelTextSetting xpLevelText;
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
+        public final ForgeConfigSpec.DoubleValue scale;
         public final ForgeConfigSpec.ConfigValue<Integer> x;
         public final ForgeConfigSpec.ConfigValue<Integer> y;
 
@@ -721,8 +743,10 @@ public final class SoulsCombatHUDConfig {
                             ElementAnchor.BOTTOM_RIGHT
                     );
 
+            scale = builder.defineInRange("scale", 1.0, 0.25, 4.0);
             x = builder.define("x", 12);
             y = builder.define("y", 12);
+
 
             builder.pop();
         }
@@ -814,6 +838,7 @@ public final class SoulsCombatHUDConfig {
         public final ForgeConfigSpec.LongValue disappear_delay;
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
         public final ForgeConfigSpec.ConfigValue<Integer> maxVisible;
+        public final ForgeConfigSpec.DoubleValue scale;
         public final ForgeConfigSpec.ConfigValue<Integer> width;
         public final ForgeConfigSpec.ConfigValue<Integer> x;
         public final ForgeConfigSpec.ConfigValue<Integer> y;
@@ -845,6 +870,7 @@ public final class SoulsCombatHUDConfig {
                     4
             );
 
+            scale = builder.defineInRange("scale", 1.0, 0.25, 4.0);
             width = builder.define("width", 320);
             x = builder.define("x", 0);
             y = builder.define("y", 72);
@@ -856,6 +882,7 @@ public final class SoulsCombatHUDConfig {
     public static class OxygenBar {
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
+        public final ForgeConfigSpec.DoubleValue scale;
         public final ForgeConfigSpec.ConfigValue<Integer> width;
         public final ForgeConfigSpec.ConfigValue<Integer> x;
         public final ForgeConfigSpec.ConfigValue<Integer> y;
@@ -873,6 +900,7 @@ public final class SoulsCombatHUDConfig {
                     ElementAnchor.BOTTOM_CENTER
             );
 
+            scale = builder.defineInRange("scale", 1.0, 0.25, 4.0);
             width = builder.define("width", 182);
             x = builder.define("x", 0);
             y = builder.define("y", 60);
@@ -979,28 +1007,75 @@ public final class SoulsCombatHUDConfig {
             }
 
             public static class MinecraftHotbarSetting {
-                public final ForgeConfigSpec.BooleanValue hideHealthLevel;
-                public final ForgeConfigSpec.BooleanValue hideArmorLevel;
-                public final ForgeConfigSpec.BooleanValue hideHungerLevel;
-                public final ForgeConfigSpec.BooleanValue hideAirLevel;
-                public final ForgeConfigSpec.BooleanValue hideExperienceBar;
+                public final MinecraftHotbarStatusSetting status;
                 public final ForgeConfigSpec.BooleanValue hideOffhandSlot;
                 public final ForgeConfigSpec.BooleanValue hideMoreOffhandSlots;
 
                 MinecraftHotbarSetting(ForgeConfigSpec.Builder builder) {
                     builder.comment("Vanilla Hotbar settings").push("hotbar");
 
-                    hideHealthLevel = builder.define("hide_health_level", true);
-                    hideArmorLevel = builder.define("hide_armor_level", true);
-                    hideHungerLevel = builder.define("hide_hunger_level", true);
-                    hideAirLevel = builder.define("hide_air_level", true);
-                    hideExperienceBar = builder.define("hide_experience_bar", true);
+                    status = new MinecraftHotbarStatusSetting(builder);
                     hideOffhandSlot = builder.define("hide_offhand_slot", true);
                     hideMoreOffhandSlots = builder
                             .comment("Hides the More Offhand Slots slots in the hotbar.")
                             .define("hide_moreoffhandslots", true);
 
                     builder.pop();
+                }
+
+                public static class MinecraftHotbarStatusSetting {
+                    public final MinecraftHotbarStatusBarSetting healthLevel;
+                    public final MinecraftHotbarStatusBarSetting armorLevel;
+                    public final MinecraftHotbarStatusBarSetting foodLevel;
+                    public final MinecraftHotbarStatusBarSetting airLevel;
+                    public final MinecraftHotbarStatusBarSetting xpBar;
+
+                    public final ForgeConfigSpec.BooleanValue hidden;
+                    public final ForgeConfigSpec.ConfigValue<Integer> x;
+                    public final ForgeConfigSpec.ConfigValue<Integer> y;
+
+                    MinecraftHotbarStatusSetting(ForgeConfigSpec.Builder builder) {
+                        builder.comment("Hotbar Status Setting").push("status");
+
+                        hidden = builder.define("hidden", true);
+                        x = builder.define("x", 0);
+                        y = builder.define("y", -7);
+
+                        healthLevel = new MinecraftHotbarStatusBarSetting(
+                                builder, "health_level", true, 0, 0);
+                        foodLevel = new MinecraftHotbarStatusBarSetting(
+                                builder, "food_level", false, 0, 0);
+                        armorLevel = new MinecraftHotbarStatusBarSetting(
+                                builder, "armor_level", false, 0, 0);
+                        airLevel = new MinecraftHotbarStatusBarSetting(
+                                builder, "air_level", true, 0, 0);
+                        xpBar = new MinecraftHotbarStatusBarSetting(
+                                builder, "xp_level", true, 0, 0);
+
+                        builder.pop();
+                    }
+
+                    public static class MinecraftHotbarStatusBarSetting {
+                        public final ForgeConfigSpec.BooleanValue hidden;
+                        public final ForgeConfigSpec.ConfigValue<Integer> x;
+                        public final ForgeConfigSpec.ConfigValue<Integer> y;
+
+                        MinecraftHotbarStatusBarSetting(
+                                ForgeConfigSpec.Builder builder,
+                                String key,
+                                boolean pHidden,
+                                int pX,
+                                int pY
+                        ) {
+                            builder.push(key);
+
+                            hidden = builder.define("hidden", pHidden);
+                            x = builder.define("x", pX);
+                            y = builder.define("y", pY);
+
+                            builder.pop();
+                        }
+                    }
                 }
             }
         }

@@ -1,7 +1,6 @@
 package net.tablesouls.souls_combat_hud.client.render.bars.boss_bar;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.network.chat.Component;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.tablesouls.souls_combat_hud.client.render.bars.BarElement;
@@ -24,27 +23,34 @@ public class BossbarOverlay implements IGuiOverlay {
             return;
         }
 
+        float scale = SoulsCombatHUDConfig.CUSTOM_BOSSBAR.scale.get().floatValue();
         int barW = SoulsCombatHUDConfig.CUSTOM_BOSSBAR.width.get();
         int barH = 5;
 
         int maxVisibleBossbars = SoulsCombatHUDConfig.CUSTOM_BOSSBAR.maxVisible.get();
         ElementAnchor anchor = SoulsCombatHUDConfig.CUSTOM_BOSSBAR.anchor.get();
 
-        int x = anchor.resolveX(
+        int anchorX = anchor.resolveX(
                 screenWidth,
                 SoulsCombatHUDConfig.CUSTOM_BOSSBAR.x.get(),
-                barW
+                0
         );
 
-        int baseY = anchor.resolveY(
+        int anchorY = anchor.resolveY(
                 screenHeight,
                 SoulsCombatHUDConfig.CUSTOM_BOSSBAR.y.get(),
-                barH
+                0
         );
 
+        int localBarX = -barW * (anchor.dx() + 1) / 2;
+        int localBaseY = -barH * (anchor.dy() + 1) / 2;
         int rowStep = anchor.isBottom() ? -18 : 18;
 
         Map<UUID, BossBarState.Entry> active = BossBarState.getActive();
+
+        graphics.pose().pushPose();
+        graphics.pose().translate(anchorX, anchorY, 0);
+        graphics.pose().scale(scale, scale, 1.0f);
 
         int row = 0;
         List<UUID> toRemove = new ArrayList<>();
@@ -84,14 +90,14 @@ public class BossbarOverlay implements IGuiOverlay {
                 continue;
             }
 
-            int y = baseY + row * rowStep;
+            int y = localBaseY + row * rowStep;
 
             bar.withDecoration(styleDef.toBarDecoration());
 
             bar.render(
                     graphics,
                     styleDef.toBarStyle(),
-                    x,
+                    localBarX,
                     y,
                     barW,
                     barH,
@@ -108,6 +114,8 @@ public class BossbarOverlay implements IGuiOverlay {
 
             row++;
         }
+
+        graphics.pose().popPose();
 
         for (UUID id : toRemove) {
             active.remove(id);

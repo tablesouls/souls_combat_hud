@@ -42,6 +42,7 @@ public class GaugeStyleReloadListener extends SimplePreparableReloadListener<Jso
 
             parseLayoutSection(json, "crest", GaugeLayout.DEFAULT);
             parseAttributes(crestSection);
+            parsePreviewLayout(crestSection);
 
             parseLayoutSection(json, "gauges", GaugeLayout.DEFAULT);
 
@@ -49,6 +50,21 @@ public class GaugeStyleReloadListener extends SimplePreparableReloadListener<Jso
             registry.setRowGap(gaugesSection.has("row_gap") ? gaugesSection.get("row_gap").getAsInt() : 2);
         } catch (Exception e) {
             SoulsCombatHUD.LOGGER.error("Failed to apply gauge style {}, falling back to defaults", gaugeStylePath, e);
+        }
+    }
+
+    private void parsePreviewLayout(JsonObject crestSection) {
+        if (!crestSection.has("preview")) {
+            registry.setPreviewLayout("crest", PreviewLayout.DEFAULT);
+            return;
+        }
+
+        try {
+            JsonObject previewSection = crestSection.getAsJsonObject("preview");
+            PreviewLayout layout = PreviewLayoutJsonParser.parseLayout(previewSection, PreviewLayout.DEFAULT);
+            registry.setPreviewLayout("crest", layout);
+        } catch (Exception e) {
+            SoulsCombatHUD.LOGGER.error("Failed to parse crest preview layout in {}", gaugeStylePath, e);
         }
     }
 

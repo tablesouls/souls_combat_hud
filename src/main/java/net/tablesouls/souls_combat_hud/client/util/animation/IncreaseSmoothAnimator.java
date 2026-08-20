@@ -1,16 +1,15 @@
 package net.tablesouls.souls_combat_hud.client.util.animation;
 
-public class DecreaseRevealAnimator {
-    private static final long HOLD_MS = 400L;
-    private static final long DRAIN_MS = 500L;
+public class IncreaseSmoothAnimator {
+    private static final long RISE_MS = 400L;
 
-    private final ValueAnimator animator = new ValueAnimator(DRAIN_MS, HOLD_MS, ValueAnimator.Easing.LINEAR);
-    private float lastKnownValue = 1.0f;
-    private float lastKnownMax = -1.0f;
+    private final ValueAnimator animator = new ValueAnimator(RISE_MS, 0L, ValueAnimator.Easing.LINEAR);
+    private float lastKnownValue = -1f;
+    private float lastKnownMax = -1f;
     private boolean initialized = false;
 
     public float update(float currentValue) {
-        return update(currentValue, -1.0f);
+        return update(currentValue, -1f);
     }
 
     public float update(float currentValue, float maxValue) {
@@ -27,7 +26,9 @@ public class DecreaseRevealAnimator {
             return currentValue;
         }
 
-        if (maxChanged || currentValue > lastKnownValue + 1.0E-4f) {
+        // Snap instantly on decreases (damage) and whenever max changes,
+        // only animate when the value is rising.
+        if (maxChanged || currentValue < lastKnownValue - 1.0E-4f) {
             animator.snapTo(currentValue);
         }
 

@@ -19,6 +19,9 @@ Before using the mod I also recommend:
 * A mod that allows you to shift the chatbox, otherwise change the anchor.
 * To disable existing UI of mods, such as Iron's Spells spell bar.
 
+Check out my partner mod,[ Souls Message Banners](https://www.curseforge.com/minecraft/mc-mods/souls-message-banners).
+
+Check out my partner mod, [Souls Message Banners](https://modrinth.com/mod/souls-message-banners).
 ***
 # Equipment Slots
 

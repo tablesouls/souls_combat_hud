@@ -16,4 +16,11 @@ public abstract class LivingEntityPosePreviewMixin {
             cir.setReturnValue(0f);
         }
     }
+
+    @Inject(method = "isUsingItem", at = @At("RETURN"), cancellable = true)
+    private void souls_combat_hud$freezeUsingItem(CallbackInfoReturnable<Boolean> cir) {
+        if (PlayerModelPreviewRenderer.isPreviewTarget((Entity) (Object) this)) {
+            cir.setReturnValue(false);
+        }
+    }
 }

@@ -2,16 +2,31 @@
   "player_name": {
     "enabled": true,
     "offset": {
-      "x": 32,
+      "x": 40,
       "y": 4
     }
   },
   "crest": {
     "enabled": true,
-    "size": 24,
+    "size": 32,
     "offset": {
       "x": 0,
       "y": 0
+    },
+    "preview": {
+      "size": 32,
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "preview_model": {
+        "rotation": 340,
+        "size": 32,
+        "offset": {
+          "x": 0,
+          "y": 0
+        }
+      }
     },
     "attributes": [
       {
@@ -59,7 +74,7 @@
           }
         }
       },
-	  {
+      {
         "type": "private",
         "enabled": true,
         "offset": {
@@ -72,7 +87,7 @@
   "gauges": {
     "enabled": true,
     "offset": {
-      "x": 32,
+      "x": 40,
       "y": 14
     },
     "row_gap": 3,

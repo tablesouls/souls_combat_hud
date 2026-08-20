@@ -5,9 +5,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.tablesouls.souls_combat_hud.client.util.animation.DecreaseRevealAnimator;
 import net.tablesouls.souls_combat_hud.client.util.animation.FadeAnimator;
+import net.tablesouls.souls_combat_hud.client.util.animation.IncreaseSmoothAnimator;
 
 public class BarElement {
     private final DecreaseRevealAnimator reveal = new DecreaseRevealAnimator();
+    private final IncreaseSmoothAnimator increaseAnim = new IncreaseSmoothAnimator();
     private final FadeAnimator fade;
     private BarDecoration decoration; // null = no decoration
 
@@ -129,7 +131,9 @@ public class BarElement {
         }
 
         float alpha = getAlpha();
-        float displayedFraction = getDisplayedFraction(currentFraction, maxValue);
+
+        float smoothedFraction = increaseAnim.update(currentFraction, maxValue);
+        float displayedFraction = reveal.update(smoothedFraction, maxValue);
 
         if (currentRawValue >= 0f) {
             if (lastRawValue < 0f) {
@@ -159,12 +163,45 @@ public class BarElement {
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShaderColor(tint, tint, tint, alpha);
 
-        BarRenderer.render(graphics, style, x, y, w, h, currentFraction, displayedFraction, label, valueText, damageText, mirrored, reductionEnabled, showDamageText);
+        BarRenderer.render(graphics, style, x, y, w, h, smoothedFraction, displayedFraction, label, valueText, damageText, mirrored, reductionEnabled, showDamageText);
 
         if (decoration != null) {
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
-            BarDecorationRenderer.render(graphics, decoration, x, y, w, h, currentFraction, mirrored);
+            BarDecorationRenderer.render(graphics, decoration, x, y, w, h, smoothedFraction, mirrored);
+        }
+
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.disableBlend();
+    }
+
+    /**
+     * Renders using a fraction the caller has already smoothed itself, bypassing
+     * this element's internal {@code increaseAnim}/{@code reveal} chain entirely.
+     * Intended for bars (like oxygen) that don't want the combat-style
+     * "instant heal, slow damage reveal" behavior and would otherwise get
+     * double-smoothed.
+     */
+    public void renderPreSmoothed(
+            GuiGraphics graphics, BarStyle style, int x, int y, int w, int h,
+            float fraction, boolean mirrored
+    ) {
+        if (isHidden()) {
+            return;
+        }
+
+        float alpha = getAlpha();
+
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, alpha);
+
+        BarRenderer.render(graphics, style, x, y, w, h, fraction, fraction, null, null, null, mirrored, false, false);
+
+        if (decoration != null) {
+            RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
+            BarDecorationRenderer.render(graphics, decoration, x, y, w, h, fraction, mirrored);
         }
 
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);

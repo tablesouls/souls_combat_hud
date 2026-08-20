@@ -6,6 +6,7 @@ import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.PotionItem;
+import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsCompat;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.sounds.ModSounds;
@@ -95,12 +96,21 @@ public class ConsumableSlotManager {
             selectedIndex = idx; // still on the exact slot we picked — keep it
         } else if (lastSelectedItem != null) {
             NonNullList items = player.getInventory().items;
+            boolean matched = false;
             for (int i = 0; i < slots.size(); i++) {
                 if (((ItemStack) items.get(slots.get(i))).getItem() == lastSelectedItem) {
                     selectedIndex = i;
+                    matched = true;
                     break;
                 }
             }
+            if (!matched) {
+                SoulsCombatHUD.LOGGER.warn("[ConsumableSlot] resync fallthrough: lastSelectedSlot={} gone, item={} not found in slots={}, stale selectedIndex={}",
+                        lastSelectedSlot, lastSelectedItem, slots, selectedIndex);
+            }
+        } else {
+            SoulsCombatHUD.LOGGER.warn("[ConsumableSlot] resync fallthrough: no lastSelectedSlot/Item, stale selectedIndex={} slots={}",
+                    selectedIndex, slots);
         }
         return slots;
     }

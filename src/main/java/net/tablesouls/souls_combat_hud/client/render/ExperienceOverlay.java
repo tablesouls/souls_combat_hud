@@ -67,20 +67,20 @@ public class ExperienceOverlay implements IGuiOverlay {
 
         //XP bar
         int barWidth = BG_WIDTH - BAR_PADDING_L - BAR_PADDING_R;
-        int barX = overlayX + BAR_PADDING_L;
-        int barY = overlayY + BG_HEIGHT - 1;
+        int barX =  BAR_PADDING_L;
+        int barY = BG_HEIGHT - 1;
 
         int filledWidth = (int)(barWidth * xpProgress);
 
         //XP icon
         ElementAnchor xpIconAnchor = SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.xpIcon.anchor.get();
 
-        int iconX = overlayX + xpIconAnchor.resolveX(
+        int iconX = xpIconAnchor.resolveX(
                 BG_WIDTH,
                 SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.xpIcon.x.get(),
                 ICON_TEX_WIDTH
         );
-        int iconY = overlayY + xpIconAnchor.resolveY(
+        int iconY = xpIconAnchor.resolveY(
                 BG_HEIGHT,
                 SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.xpIcon.y.get(),
                 ICON_TEX_HEIGHT
@@ -90,13 +90,13 @@ public class ExperienceOverlay implements IGuiOverlay {
         Component xpTotalText = Component.literal(String.valueOf(xpTotal));
 
         ElementAnchor xpTotalTextAnchor = SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.xpTotalText.anchor.get();
-        int xpTotalTextX = overlayX + xpTotalTextAnchor.resolveX(
+        int xpTotalTextX = xpTotalTextAnchor.resolveX(
                 BG_WIDTH,
                 SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.xpTotalText.x.get(),
                 font.width(xpTotalText)
         );
 
-        int xpTotalTextY = overlayY + xpTotalTextAnchor.resolveY(
+        int xpTotalTextY = xpTotalTextAnchor.resolveY(
                 BG_HEIGHT,
                 SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.xpTotalText.y.get(),
                 font.lineHeight - 1
@@ -106,24 +106,31 @@ public class ExperienceOverlay implements IGuiOverlay {
         Component xpLevelText = Component.literal(String.valueOf(xpLevel));
 
         ElementAnchor xpLevelTextAnchor = SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.xpLevelText.anchor.get();
-        int xpLevelTextX = overlayX + xpLevelTextAnchor.resolveX(
+        int xpLevelTextX = xpLevelTextAnchor.resolveX(
                 BG_WIDTH,
                 SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.xpLevelText.x.get(),
                 font.width(xpLevelText)
         );
 
-        int xpLevelTextY = overlayY + xpLevelTextAnchor.resolveY(
+        int xpLevelTextY = xpLevelTextAnchor.resolveY(
                 BG_HEIGHT,
                 SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.xpLevelText.y.get(),
                 font.lineHeight
         );
+
+        float scale = SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.scale.get().floatValue();
+
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
 
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(overlayX, overlayY, 0);
+        guiGraphics.pose().scale(scale, scale, 1.0f);
+
         guiGraphics.blit(
                 BG_TEX,
-                overlayX,
-                overlayY,
+                0,
+                0,
                 BG_U,
                 BG_V,
                 BG_WIDTH,
@@ -179,6 +186,7 @@ public class ExperienceOverlay implements IGuiOverlay {
             );
         }
 
+        guiGraphics.pose().popPose();
         RenderSystem.disableBlend();
     }
 }

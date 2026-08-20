@@ -2,6 +2,7 @@ package net.tablesouls.souls_combat_hud.client.render.bars;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
+import org.joml.Vector3f;
 
 public final class BarDecorationRenderer {
     public static void render(
@@ -36,7 +37,18 @@ public final class BarDecorationRenderer {
         int middleScissorMaxX = rightCapX;
 
         if (middleScissorMaxX > middleScissorMinX) {
-            graphics.enableScissor(middleScissorMinX, decorationY, middleScissorMaxX, decorationY + tileSize);
+            // enableScissor works in absolute screen pixels and ignores the pose stack, so
+            // local coordinates (which may live inside a scaled gauge overlay transform)
+            // must be converted to real screen coordinates before use here.
+            Vector3f screenMin = graphics.pose().last().pose()
+                    .transformPosition(new Vector3f(middleScissorMinX, decorationY, 0));
+            Vector3f screenMax = graphics.pose().last().pose()
+                    .transformPosition(new Vector3f(middleScissorMaxX, decorationY + tileSize, 0));
+
+            graphics.enableScissor(
+                    Math.round(screenMin.x()), Math.round(screenMin.y()),
+                    Math.round(screenMax.x()), Math.round(screenMax.y())
+            );
             renderTiledMiddle(
                     graphics,
                     decoration.texture(),
