@@ -61,14 +61,6 @@ public class GaugeOverlay implements IGuiOverlay {
                     "textures/gui/icons.png");
     private static final int MINECRAFT_ICONS_TEX_SIZE = 256;
 
-    private static final int SKIN_TEX_SIZE = 64;
-    private static final int FACE_U = 8;
-    private static final int FACE_V = 8;
-    private static final int FACE_TEX_SIZE = 8;
-
-    private static final int FACE_LAYER_U = 40;
-    private static final int FACE_LAYER_V = 8;
-
     private static final int HEALTH_BAR_MIN_WIDTH = 0;
     private static final int HEALTH_BAR_MAX_WIDTH = 196;
     private static final int HEALTH_BAR_HEIGHT = 5;
@@ -81,7 +73,7 @@ public class GaugeOverlay implements IGuiOverlay {
     private static final int MANA_BAR_MAX_WIDTH = 196;
     private static final int MANA_BAR_HEIGHT = 5;
 
-    private static final int CREST_SIZE = 32;
+    private static final int CREST_TEX_SIZE = 32;
     private static final int CREST_U = 0;
     private static final int CREST_V = 0;
 
@@ -125,7 +117,7 @@ public class GaugeOverlay implements IGuiOverlay {
 
     @Override
     public void render(ForgeGui gui,
-                       GuiGraphics graphics,
+                       GuiGraphics guiGraphics,
                        float partialTick,
                        int screenWidth,
                        int screenHeight
@@ -158,36 +150,45 @@ public class GaugeOverlay implements IGuiOverlay {
         GaugeLayout crestLayout = this.gaugeStyles.getLayout("crest", GaugeLayout.DEFAULT);
         GaugeLayout gaugesLayout = this.gaugeStyles.getLayout("gauges", GaugeLayout.DEFAULT);
 
-        int playerNameX = mirrored ? overlayX - playerNameLayout.x() : overlayX + playerNameLayout.x();
-        int playerNameY = overlayY + playerNameLayout.y();
+        // All positions below are LOCAL to the anchor origin (0,0 == overlayX, overlayY)
+        // so that the pushPose/scale block around them scales the whole overlay in place.
+        int playerNameX = mirrored ? -playerNameLayout.x() : playerNameLayout.x();
+        int playerNameY = playerNameLayout.y();
 
         int crestSize = crestLayout.size();
-        int crestX = mirrored ? overlayX - crestLayout.x() - crestSize : overlayX + crestLayout.x();
-        int crestY = overlayY + crestLayout.y();
+        int crestX = mirrored ? -crestLayout.x() - crestSize : crestLayout.x();
+        int crestY = crestLayout.y();
 
-        int gaugesX = mirrored ? overlayX - gaugesLayout.x() : overlayX + gaugesLayout.x();
-        int gaugesY = overlayY + gaugesLayout.y();
+        int gaugesX = mirrored ? -gaugesLayout.x() : gaugesLayout.x();
+        int gaugesY = gaugesLayout.y();
+
+        float scale = SoulsCombatHUDConfig.STATUS_GAUGE.playerGauge.scale.get().floatValue();
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(overlayX, overlayY, 0);
+        guiGraphics.pose().scale(scale, scale, 1.0f);
+
         if (crestLayout.enabled()) {
-            boolean faceRight = !mirrored;
             CrestDisplayMode displayMode = SoulsCombatHUDConfig.STATUS_GAUGE.playerGauge.crestDisplayMode.get();
             OptionalInt teamColor = SoulsCombatHUDConfig.STATUS_GAUGE.playerGauge.crestTeamOutline.get()
                     ? TeamProviderRegistry.resolveActiveTeamColor(player)
                     : OptionalInt.empty();
-            this.renderCrest(graphics, subject, font, crestX, crestY, crestSize, faceRight, displayMode, teamColor);
+            this.renderCrest(guiGraphics, subject, font, crestX, crestY, crestSize, displayMode, teamColor);
         }
 
         if (subject.isOnline() && gaugesLayout.enabled()) {
-            this.renderGaugeRows(graphics, subject, font, gaugesX, gaugesY, mirrored);
+            this.renderGaugeRows(guiGraphics, subject, font, gaugesX, gaugesY, mirrored);
         }
 
         if (playerNameLayout.enabled()) {
-            this.renderPlayerName(graphics, subject, font, playerNameX, playerNameY, mirrored);
+            this.renderPlayerName(guiGraphics, subject, font, playerNameX, playerNameY, mirrored);
         }
+
+        guiGraphics.pose().popPose();
 
         RenderSystem.disableBlend();
     }
@@ -370,10 +371,9 @@ public class GaugeOverlay implements IGuiOverlay {
             int x,
             int y,
             int size,
-            boolean faceRight,
             CrestDisplayMode displayMode
     ) {
-        this.renderCrest(graphics, subject, font, x, y, size, faceRight, displayMode, OptionalInt.empty());
+        this.renderCrest(graphics, subject, font, x, y, size, displayMode, OptionalInt.empty());
     }
 
     public void renderCrest(
@@ -383,7 +383,6 @@ public class GaugeOverlay implements IGuiOverlay {
             int x,
             int y,
             int size,
-            boolean faceRight,
             CrestDisplayMode displayMode,
             OptionalInt teamColor
     ) {
@@ -399,11 +398,22 @@ public class GaugeOverlay implements IGuiOverlay {
 
         graphics.blit(
                 STATUS_GAUGE_TEX,
-                x, y, size, size,
+                x, y,
+                size, size,
                 crestU, crestV,
-                CREST_SIZE, CREST_SIZE,
+                CREST_TEX_SIZE, CREST_TEX_SIZE,
                 STATUS_GAUGE_TEX_SIZE, STATUS_GAUGE_TEX_SIZE
         );
+
+        PreviewLayout previewLayout = this.gaugeStyles.getPreviewLayout("crest", PreviewLayout.DEFAULT);
+        int previewX = x + previewLayout.x();
+        int previewY = y + previewLayout.y();
+        int previewSize = previewLayout.size();
+
+        PreviewModelLayout modelLayout = previewLayout.model();
+        int modelX = previewX + modelLayout.x();
+        int modelY = previewY + modelLayout.y();
+        int modelSize = modelLayout.size();
 
         Optional<AbstractClientPlayer> renderableEntity = subject.asRenderableEntity();
         boolean useModel = displayMode == CrestDisplayMode.MODEL
@@ -412,59 +422,64 @@ public class GaugeOverlay implements IGuiOverlay {
                 && PlayerModelPreviewRenderer.isSafeToRender(renderableEntity.get());
 
         boolean rendered = useModel
-                && PlayerModelPreviewRenderer.render(graphics, renderableEntity.get(), x, y, size, faceRight);
+                && PlayerModelPreviewRenderer.render(graphics, renderableEntity.get(),
+                previewX, previewY, previewSize,
+                modelX, modelY, modelSize,
+                modelLayout.rotation());
 
         if (!rendered) {
-            this.renderFace(graphics, subject, x, y, size);
+            this.renderFace(graphics, subject, previewX, previewY, previewSize);
         }
 
-        GaugeLayout hungerLayout = this.gaugeStyles.getLayout("hunger", GaugeLayout.DEFAULT);
-        TextLayout hungerTextLayout = this.gaugeStyles.getTextLayout("hunger", TextLayout.DEFAULT);
+        if (SoulsCombatHUDConfig.STATUS_GAUGE.playerGauge.crestAttributes.get()) {
+            GaugeLayout hungerLayout = this.gaugeStyles.getLayout("hunger", GaugeLayout.DEFAULT);
+            TextLayout hungerTextLayout = this.gaugeStyles.getTextLayout("hunger", TextLayout.DEFAULT);
 
-        GaugeLayout armorLayout = this.gaugeStyles.getLayout("armor", GaugeLayout.DEFAULT);
-        TextLayout armorTextLayout = this.gaugeStyles.getTextLayout("armor", TextLayout.DEFAULT);
+            GaugeLayout armorLayout = this.gaugeStyles.getLayout("armor", GaugeLayout.DEFAULT);
+            TextLayout armorTextLayout = this.gaugeStyles.getTextLayout("armor", TextLayout.DEFAULT);
 
-        GaugeLayout thirstLayout = this.gaugeStyles.getLayout("thirst", GaugeLayout.DEFAULT);
-        TextLayout thirstTextLayout = this.gaugeStyles.getTextLayout("thirst", TextLayout.DEFAULT);
+            GaugeLayout thirstLayout = this.gaugeStyles.getLayout("thirst", GaugeLayout.DEFAULT);
+            TextLayout thirstTextLayout = this.gaugeStyles.getTextLayout("thirst", TextLayout.DEFAULT);
 
-        OptionalInt foodLevel = subject.getFoodLevel();
-        if (hungerLayout.enabled() && foodLevel.isPresent()) {
-            this.renderHunger(
-                    graphics,
-                    subject,
-                    foodLevel.getAsInt(),
-                    font,
-                    x, y,
-                    size,
-                    hungerLayout.x(), hungerLayout.y(),
-                    hungerTextLayout
-            );
-        }
+            OptionalInt foodLevel = subject.getFoodLevel();
+            if (hungerLayout.enabled() && foodLevel.isPresent()) {
+                this.renderHunger(
+                        graphics,
+                        subject,
+                        foodLevel.getAsInt(),
+                        font,
+                        x, y,
+                        size,
+                        hungerLayout.x(), hungerLayout.y(),
+                        hungerTextLayout
+                );
+            }
 
-        OptionalInt armorValue = subject.getArmorValue();
-        if (armorLayout.enabled() && armorValue.isPresent()) {
-            this.renderArmor(graphics,
-                    armorValue.getAsInt(),
-                    font,
-                    x, y,
-                    size,
-                    armorLayout.x(), armorLayout.y(),
-                    armorTextLayout
-            );
-        }
+            OptionalInt armorValue = subject.getArmorValue();
+            if (armorLayout.enabled() && armorValue.isPresent()) {
+                this.renderArmor(graphics,
+                        armorValue.getAsInt(),
+                        font,
+                        x, y,
+                        size,
+                        armorLayout.x(), armorLayout.y(),
+                        armorTextLayout
+                );
+            }
 
-        if (thirstLayout.enabled() && subject.hasThirst().orElse(false)) {
-            this.renderThirst(
-                    graphics,
-                    subject.getThirst().orElse(0.0),
-                    subject.getMaxThirst().orElse(0.0),
-                    subject.getThirstSourceMode(),
-                    font,
-                    x, y,
-                    size,
-                    thirstLayout.x(), thirstLayout.y(),
-                    thirstTextLayout
-            );
+            if (thirstLayout.enabled() && subject.hasThirst().orElse(false)) {
+                this.renderThirst(
+                        graphics,
+                        subject.getThirst().orElse(0.0),
+                        subject.getMaxThirst().orElse(0.0),
+                        subject.getThirstSourceMode(),
+                        font,
+                        x, y,
+                        size,
+                        thirstLayout.x(), thirstLayout.y(),
+                        thirstTextLayout
+                );
+            }
         }
 
         GaugeLayout privacyLayout = this.gaugeStyles.getLayout("private", GaugeLayout.DEFAULT);
@@ -765,7 +780,7 @@ public class GaugeOverlay implements IGuiOverlay {
     }
 
     private void renderStatusEffectSlot(
-            GuiGraphics graphics,
+            GuiGraphics guiGraphics,
             Font font,
             MobEffectInstance effectInstance,
             int x, int y,
@@ -791,7 +806,7 @@ public class GaugeOverlay implements IGuiOverlay {
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         RenderSystem.setShaderTexture(0, STATUS_GAUGE_TEX);
-        graphics.blit(
+        guiGraphics.blit(
                 STATUS_GAUGE_TEX,
                 x, y, size, size,
                 STATUS_SLOT_U, STATUS_SLOT_V,
@@ -807,14 +822,14 @@ public class GaugeOverlay implements IGuiOverlay {
         int offsetX = x + (size - iconSize) / 2;
         int offsetY = y + (size - iconSize) / 2;
 
-        graphics.blit(offsetX, offsetY, 0, iconSize, iconSize, sprite);
+        guiGraphics.blit(offsetX, offsetY, 0, iconSize, iconSize, sprite);
 
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         int categoryIconX = offsetX - (EFFECT_CATEGORY_SIZE/2);
         int categoryIconY = offsetY + iconSize - EFFECT_CATEGORY_SIZE;
 
-        graphics.blit(
+        guiGraphics.blit(
                 STATUS_GAUGE_TEX,
                 categoryIconX, categoryIconY,
                 categoryIconU, categoryIconV,
@@ -829,11 +844,11 @@ public class GaugeOverlay implements IGuiOverlay {
             int ampLabelX = x + size - font.width(amplifierLabel)/2;
             int ampLabelY = y - (font.lineHeight/2 - 2);
 
-            graphics.pose().pushPose();
-            graphics.pose().translate(ampLabelX, ampLabelY, 0);
-            graphics.pose().scale(ampLabelScale, ampLabelScale, 1.0f);
+            guiGraphics.pose().pushPose();
+            guiGraphics.pose().translate(ampLabelX, ampLabelY, 0);
+            guiGraphics.pose().scale(ampLabelScale, ampLabelScale, 1.0f);
             TextHelper.drawOutlinedString(
-                    graphics,
+                    guiGraphics,
                     font,
                     amplifierLabel,
                     0,
@@ -841,10 +856,10 @@ public class GaugeOverlay implements IGuiOverlay {
                     0xFFFFFF,
                     0x000000
             );
-            graphics.pose().popPose();
+            guiGraphics.pose().popPose();
         }
 
-        renderEffectTimer(graphics, effectInstance, statusColor, x, y, size);
+        renderEffectTimer(guiGraphics, effectInstance, statusColor, x, y, size);
     }
 
     private static float elapsedFraction(MobEffectInstance instance) {

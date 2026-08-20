@@ -9,10 +9,12 @@ import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.tablesouls.souls_combat_hud.client.render.bars.BarElement;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
+import net.tablesouls.souls_combat_hud.client.util.animation.SymmetricFractionAnimator;
 
 public class OxygenBarOverlay implements IGuiOverlay {
 
     private final BarElement bar = BarElement.withFade(0L, 500L);
+    private final SymmetricFractionAnimator fractionAnim = new SymmetricFractionAnimator(250L);
 
     @Override
     public void render(
@@ -33,7 +35,14 @@ public class OxygenBarOverlay implements IGuiOverlay {
         int maxAirSupply = player.getMaxAirSupply();
 
         boolean submerged = player.isEyeInFluid(FluidTags.WATER);
-        boolean shouldShow = submerged || airSupply < maxAirSupply;
+
+        float fraction = maxAirSupply > 0
+                ? net.minecraft.util.Mth.clamp((float) airSupply / maxAirSupply, 0.0f, 1.0f)
+                : 0.0f;
+
+        float visualFraction = fractionAnim.update(fraction);
+
+        boolean shouldShow = submerged || visualFraction < 0.999f;
         bar.setVisible(shouldShow);
 
         if (bar.isHidden()) return;
@@ -42,12 +51,12 @@ public class OxygenBarOverlay implements IGuiOverlay {
         int barHeight = 4;
 
         ElementAnchor anchor = SoulsCombatHUDConfig.OXYGEN_BAR.anchor.get();
-        int x = anchor.resolveX(screenWidth, SoulsCombatHUDConfig.OXYGEN_BAR.x.get(), barWidth);
-        int y = anchor.resolveY(screenHeight, SoulsCombatHUDConfig.OXYGEN_BAR.y.get(), barHeight);
+        int anchorX = anchor.resolveX(screenWidth, SoulsCombatHUDConfig.OXYGEN_BAR.x.get(), 0);
+        int anchorY = anchor.resolveY(screenHeight, SoulsCombatHUDConfig.OXYGEN_BAR.y.get(), 0);
+        float scale = SoulsCombatHUDConfig.OXYGEN_BAR.scale.get().floatValue();
 
-        float fraction = maxAirSupply > 0
-                ? net.minecraft.util.Mth.clamp((float) airSupply / maxAirSupply, 0.0f, 1.0f)
-                : 0.0f;
+        int localX = -barWidth * (anchor.dx() + 1) / 2;
+        int localY = -barHeight * (anchor.dy() + 1) / 2;
 
         OxygenBarStyleDefinition styleDef = OxygenBarStyleRegistry.get();
         bar.withDecoration(styleDef.toBarDecoration());
@@ -55,15 +64,19 @@ public class OxygenBarOverlay implements IGuiOverlay {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
 
-        bar.render(
+        graphics.pose().pushPose();
+        graphics.pose().translate(anchorX, anchorY, 0);
+        graphics.pose().scale(scale, scale, 1.0f);
+
+        bar.renderPreSmoothed(
                 graphics,
                 styleDef.toBarStyle(),
-                x, y,
+                localX, localY,
                 barWidth, barHeight,
-                fraction,
-                null,
-                false,
+                visualFraction,
                 false);
+
+        graphics.pose().popPose();
 
         RenderSystem.disableBlend();
     }

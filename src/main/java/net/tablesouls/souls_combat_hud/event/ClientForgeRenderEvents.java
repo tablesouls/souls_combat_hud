@@ -46,38 +46,13 @@ public class ClientForgeRenderEvents {
             return;
         }
 
-        if (SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.hideHealthLevel.get()
-                && id.equals(VanillaGuiOverlay.PLAYER_HEALTH.id())
-        ) {
-            event.setCanceled(true);
-            return;
-        }
-
-        if (SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.hideArmorLevel.get()
-                && id.equals(VanillaGuiOverlay.ARMOR_LEVEL.id())
-        ) {
-            event.setCanceled(true);
-            return;
-        }
-
-        if (SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.hideHungerLevel.get()
-                && id.equals(VanillaGuiOverlay.FOOD_LEVEL.id())
-        ) {
-            event.setCanceled(true);
-            return;
-        }
-
-        if (SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.hideAirLevel.get()
-                && id.equals(VanillaGuiOverlay.AIR_LEVEL.id())
-        ) {
-            event.setCanceled(true);
-            return;
-        }
-
-        if (SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.hideExperienceBar.get()
-                && id.equals(VanillaGuiOverlay.EXPERIENCE_BAR.id())
-        ) {
-            event.setCanceled(true);
+        var statusBarSetting = getStatusBarSetting(id);
+        if (statusBarSetting != null) {
+            if (statusHidden() || statusBarSetting.hidden.get()) {
+                event.setCanceled(true);
+            } else if (!HeldItemTooltipsCompat.LOADED) {
+                applyStatusOverlayOffset(id, event);
+            }
             return;
         }
 
@@ -110,6 +85,10 @@ public class ClientForgeRenderEvents {
         }
     }
 
+    private static boolean statusHidden() {
+        return SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.hidden.get();
+    }
+
     private static void applyOverlayOffset(RenderGuiOverlayEvent.Pre event) {
         ResourceLocation id = event.getOverlay().id();
 
@@ -132,15 +111,72 @@ public class ClientForgeRenderEvents {
                     0
             );
         }
+
+        if (isStatusBarOverlay(id)) {
+            applyStatusOverlayOffset(id, event);
+        }
+    }
+
+    private static boolean isStatusBarOverlay(ResourceLocation id) {
+        return getStatusBarSetting(id) != null;
+    }
+
+    /**
+     * Maps a vanilla status-bar overlay id to its corresponding config setting,
+     * or returns null if the id isn't one of the status bar overlays.
+     */
+    private static SoulsCombatHUDConfig.Visibility.MinecraftGuiSetting.MinecraftHotbarSetting.MinecraftHotbarStatusSetting.MinecraftHotbarStatusBarSetting getStatusBarSetting(ResourceLocation id) {
+        var status = SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status;
+
+        if (id.equals(VanillaGuiOverlay.PLAYER_HEALTH.id())) {
+            return status.healthLevel;
+        } else if (id.equals(VanillaGuiOverlay.ARMOR_LEVEL.id())) {
+            return status.armorLevel;
+        } else if (id.equals(VanillaGuiOverlay.FOOD_LEVEL.id())) {
+            return status.foodLevel;
+        } else if (id.equals(VanillaGuiOverlay.AIR_LEVEL.id())) {
+            return status.airLevel;
+        } else if (id.equals(VanillaGuiOverlay.EXPERIENCE_BAR.id())) {
+            return status.xpBar;
+        }
+        return null;
+    }
+
+    private static void applyStatusOverlayOffset(ResourceLocation id, RenderGuiOverlayEvent.Pre event) {
+        int x = SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.x.get();
+        int y = SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.y.get();
+
+        if (id.equals(VanillaGuiOverlay.PLAYER_HEALTH.id())) {
+            x += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.healthLevel.x.get();
+            y += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.healthLevel.y.get();
+        } else if (id.equals(VanillaGuiOverlay.ARMOR_LEVEL.id())) {
+            x += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.armorLevel.x.get();
+            y += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.armorLevel.y.get();
+        } else if (id.equals(VanillaGuiOverlay.FOOD_LEVEL.id())) {
+            x += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.foodLevel.x.get();
+            y += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.foodLevel.y.get();
+        } else if (id.equals(VanillaGuiOverlay.AIR_LEVEL.id())) {
+            x += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.airLevel.x.get();
+            y += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.airLevel.y.get();
+        } else if (id.equals(VanillaGuiOverlay.EXPERIENCE_BAR.id())) {
+            x += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.xpBar.x.get();
+            y += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.xpBar.y.get();
+        }
+
+        event.getGuiGraphics().pose().pushPose();
+        event.getGuiGraphics().pose().translate(x, -y, 0);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
-    public static void onItemNameOffsetPop(RenderGuiOverlayEvent.Pre event) {
+    public static void onGuiOffsetPop(RenderGuiOverlayEvent.Pre event) {
         if (!HeldItemTooltipsCompat.LOADED) return;
         if (!event.isCanceled()) return;
 
         ResourceLocation id = event.getOverlay().id();
-        if (id.equals(VanillaGuiOverlay.ITEM_NAME.id()) || id.equals(VanillaGuiOverlay.RECORD_OVERLAY.id())) {
+        if (id.equals(VanillaGuiOverlay.ITEM_NAME.id())
+                || id.equals(VanillaGuiOverlay.RECORD_OVERLAY.id())
+                || isStatusBarOverlay(id)
+        ) {
             event.getGuiGraphics().pose().popPose();
         }
     }
@@ -160,6 +196,7 @@ public class ClientForgeRenderEvents {
 
         if (id.equals(VanillaGuiOverlay.ITEM_NAME.id())
                 || id.equals(VanillaGuiOverlay.RECORD_OVERLAY.id())
+                || isStatusBarOverlay(id)
         ) {
             event.getGuiGraphics().pose().popPose();
         }

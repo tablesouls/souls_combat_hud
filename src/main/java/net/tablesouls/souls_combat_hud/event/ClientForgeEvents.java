@@ -36,7 +36,6 @@ import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsProvid
 
 @Mod.EventBusSubscriber(modid = SoulsCombatHUD.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = {Dist.CLIENT})
 public class ClientForgeEvents {
-
     private static boolean autoEating;
     private static boolean autoCastingScroll;
     private static int castingGraceTicks;
@@ -44,6 +43,7 @@ public class ClientForgeEvents {
     private static int pendingConsumeDelay;
     private static int previousSlot;
     private static int jumpedToSlot = -1;
+    private static boolean pendingRestoreSlot;
 
     private static void jumpOrCycleWeapon(Player player) {
         if (player.isUsingItem()) return;
@@ -54,8 +54,6 @@ public class ClientForgeEvents {
         int slot = WeaponSlotManager.getNextSlot(player);
         if (slot < 0) return;
 
-        previousSlot = player.getInventory().selected;
-        jumpedToSlot = slot;
         player.getInventory().selected = slot;
 
         SoundHelper.playCycleSound(ModSounds.CYCLE_WEAPON);
@@ -66,33 +64,69 @@ public class ClientForgeEvents {
         }
     }
 
-    private static void jumpToCycledConsumable(Player player) {
-        int slot = ConsumableSlotManager.getSelectedHotbarSlot(player);
-        if (slot < 0) {
-            return;
-        }
+    private static void switchToConsumableChain(Player player, int slot) {
+        int fromSlot = player.getInventory().selected;
 
-        previousSlot = player.getInventory().selected;
-        jumpedToSlot = slot;
+        AutoConsumeHelper.stop();
+        if (player.isUsingItem()) {
+            Minecraft.getInstance().gameMode.releaseUsingItem(player);
+        }
+        autoEating = false;
+
         player.getInventory().selected = slot;
 
         ClientPacketListener connection = Minecraft.getInstance().getConnection();
         if (connection != null) {
             connection.send(new ServerboundSetCarriedItemPacket(slot));
         }
-    }
 
-    private static void restorePreviousSlot() {
-        if (jumpedToSlot < 0) {
+        if (ConsumableSlotManager.isAutoConsumeExcluded(player.getInventory().items.get(slot))) {
+            ConsumableSlotManager.setSelectedToHeldItem(player);
+            cancelPendingRestore();
             return;
         }
 
-        ClientPacketListener connection = Minecraft.getInstance().getConnection();
-        if (connection != null) {
-            connection.send(new ServerboundSetCarriedItemPacket(previousSlot));
+        if (previousSlot < 0) {
+            previousSlot = fromSlot;
+        }
+        jumpedToSlot = slot;
+        pendingAutoConsumeStack = player.getMainHandItem();
+        pendingConsumeDelay = 2;
+    }
+
+    private static void jumpToCycledConsumable(Player player) {
+        if (!EpicFightCompat.canSwitchHoldingItem(player)) return;
+
+        int slot = ConsumableSlotManager.getSelectedHotbarSlot(player);
+        if (slot < 0 || slot == player.getInventory().selected) {
+            return;
         }
 
-        jumpedToSlot = -1;
+        if (autoEating) {
+            AutoConsumeHelper.stop();
+            if (player.isUsingItem()) {
+                Minecraft.getInstance().gameMode.releaseUsingItem(player);
+            }
+            autoEating = false;
+            cancelPendingRestore();
+        }
+
+        int fromSlot = player.getInventory().selected;
+        player.getInventory().selected = slot;
+
+        ClientPacketListener connection = Minecraft.getInstance().getConnection();
+        if (connection != null) {
+            connection.send(new ServerboundSetCarriedItemPacket(slot));
+        }
+
+        if (ConsumableSlotManager.isAutoConsumeExcluded(player.getInventory().items.get(slot))) {
+            ConsumableSlotManager.setSelectedToHeldItem(player);
+            cancelPendingRestore();
+            return;
+        }
+
+        previousSlot = fromSlot;
+        jumpedToSlot = slot;
     }
 
     @SubscribeEvent
@@ -113,6 +147,7 @@ public class ClientForgeEvents {
         }
 
         while (ModKeyBindings.CYCLE_OFFHAND.consumeClick()) {
+            if (!EpicFightCompat.canSwitchHoldingItem(player)) return;
             MoreOffhandSlotsCompat.cycleOffhand(true);
         }
 
@@ -146,7 +181,13 @@ public class ClientForgeEvents {
             if (pendingConsumeDelay > 0) {
                 pendingConsumeDelay--;
             } else {
-                beginAutoConsume(player);
+                if (player.getInventory().selected == jumpedToSlot
+                        && ItemStack.isSameItem(player.getMainHandItem(), pendingAutoConsumeStack)) {
+                    beginAutoConsume(player);
+                } else {
+                    previousSlot = -1;
+                    jumpedToSlot = -1;
+                }
                 pendingAutoConsumeStack = null;
                 pendingConsumeDelay = -1;
             }
@@ -164,46 +205,73 @@ public class ClientForgeEvents {
         if (autoEating && !player.isUsingItem()) {
             stopAutoEat(player);
         }
+
+        if (pendingRestoreSlot && !Minecraft.getInstance().options.keyUse.isDown()) {
+            restorePreviousSlot(player);
+        }
     }
 
     private static void jumpToSelectedConsumable(Player player) {
+        if (!EpicFightCompat.canSwitchHoldingItem(player)) return;
+
+        int slot = ConsumableSlotManager.getSelectedHotbarSlot(player);
+
         if (autoEating) {
-            cancelAutoEat(player);
+            if (slot < 0 || slot == player.getInventory().selected) {
+                cancelAutoEat(player);
+                return;
+            }
+            switchToConsumableChain(player, slot);
             return;
         }
+
+        if (player.isUsingItem()) return;
 
         ItemStack mainHand = player.getMainHandItem();
         if (ConsumableSlotManager.isConsumable(mainHand, player)) {
             if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.useConsumableOnSelected.get()) {
                 ConsumableSlotManager.setSelectedToHeldItem(player);
+                if (ConsumableSlotManager.isAutoConsumeExcluded(mainHand)) {
+                    return;
+                }
                 beginAutoConsume(player);
                 return;
             }
         }
 
-        int slot = ConsumableSlotManager.getSelectedHotbarSlot(player);
         if (slot < 0) {
             return;
         }
 
+        ItemStack targetStack = player.getInventory().items.get(slot);
+        boolean excluded = ConsumableSlotManager.isAutoConsumeExcluded(targetStack);
+
         if (player.getInventory().selected != slot) {
-            previousSlot = player.getInventory().selected;
-            jumpedToSlot = slot;
+            int fromSlot = player.getInventory().selected;
             player.getInventory().selected = slot;
 
             ClientPacketListener connection = Minecraft.getInstance().getConnection();
-
             if (connection != null) {
                 connection.send(new ServerboundSetCarriedItemPacket(slot));
             }
 
+            if (excluded) {
+                ConsumableSlotManager.setSelectedToHeldItem(player);
+                cancelPendingRestore();
+                return;
+            }
+
+            previousSlot = fromSlot;
+            jumpedToSlot = slot;
             pendingAutoConsumeStack = player.getMainHandItem();
             pendingConsumeDelay = 2;
-
             return;
         }
 
-        // If already holding a consumable, dont return
+        if (excluded) {
+            return;
+        }
+
         if (jumpedToSlot != slot) {
             previousSlot = -1;
             jumpedToSlot = -1;
@@ -213,6 +281,8 @@ public class ClientForgeEvents {
 
     private static void beginAutoConsume(Player player) {
         ItemStack stack = player.getMainHandItem();
+        if (!ConsumableSlotManager.isConsumable(stack, player)
+                && !IronsSpellsCompat.isScroll(stack)) return;
 
         Minecraft.getInstance().gameMode.useItem(player, InteractionHand.MAIN_HAND);
 
@@ -225,21 +295,44 @@ public class ClientForgeEvents {
         if (player.isUsingItem()) {
             autoEating = true;
             AutoConsumeHelper.start(stack.getItem());
+            return;
         }
+
+        cancelPendingRestore();
+    }
+
+    private static void cancelPendingRestore() {
+        previousSlot = -1;
+        jumpedToSlot = -1;
+        pendingRestoreSlot = false;
     }
 
     private static void restorePreviousSlot(Player player) {
-        if (previousSlot < 0) {
+        if (jumpedToSlot < 0) {
             return;
         }
 
         // If the player manually switched away from the consumable slot, dont return
-        if (jumpedToSlot >= 0 && player.getInventory().selected != jumpedToSlot) {
+        if (player.getInventory().selected != jumpedToSlot) {
             previousSlot = -1;
             jumpedToSlot = -1;
+            pendingRestoreSlot = false;
             return;
         }
 
+        // Never write an invalid slot back into the hotbar
+        if (previousSlot < 0) {
+            jumpedToSlot = -1;
+            pendingRestoreSlot = false;
+            return;
+        }
+
+        if (Minecraft.getInstance().options.keyUse.isDown()) {
+            pendingRestoreSlot = true;
+            return;
+        }
+
+        pendingRestoreSlot = false;
         int slotToRestore = previousSlot;
         previousSlot = -1;
         jumpedToSlot = -1;
@@ -272,6 +365,18 @@ public class ClientForgeEvents {
         restorePreviousSlot(player);
     }
 
+    private static void resetState() {
+        autoEating = false;
+        autoCastingScroll = false;
+        castingGraceTicks = 0;
+        pendingAutoConsumeStack = null;
+        pendingConsumeDelay = -1;
+        previousSlot = -1;
+        jumpedToSlot = -1;
+        pendingRestoreSlot = false;
+        AutoConsumeHelper.stop();
+    }
+
     @SubscribeEvent
     public static void onLoggingIn(ClientPlayerNetworkEvent.LoggingIn event) {
         PartyNetwork.resetServerSupportsParty();
@@ -279,6 +384,7 @@ public class ClientForgeEvents {
         ManaSourceRegistry.INSTANCE.resetActiveMode();
         StaminaSourceRegistry.INSTANCE.resetActiveMode();
         LocalResourceFallback.reset();
+        resetState();
     }
 
     @SubscribeEvent
@@ -288,6 +394,7 @@ public class ClientForgeEvents {
         ManaSourceRegistry.INSTANCE.resetActiveMode();
         StaminaSourceRegistry.INSTANCE.resetActiveMode();
         PartyMemberProfileCache.flush();
+        resetState();
     }
 
     @SubscribeEvent

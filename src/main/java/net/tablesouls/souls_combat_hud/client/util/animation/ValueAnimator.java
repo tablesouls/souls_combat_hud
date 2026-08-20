@@ -9,6 +9,13 @@ public class ValueAnimator {
 
         Easing LINEAR = t -> t;
         Easing EASE_OUT_QUAD = t -> 1f - (1f - t) * (1f - t);
+        Easing EASE_IN_QUAD = t -> t * t;
+        Easing EASE_OUT_BACK = t -> {
+            float c1 = 1.70158f;
+            float c3 = c1 + 1f;
+            float tm1 = t - 1f;
+            return 1f + c3 * tm1 * tm1 * tm1 + c1 * tm1 * tm1;
+        };
     }
 
     private final long durationMs;

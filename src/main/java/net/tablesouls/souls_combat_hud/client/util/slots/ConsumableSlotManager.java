@@ -6,31 +6,41 @@ import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.PotionItem;
+import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsCompat;
+import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.sounds.ModSounds;
 import net.tablesouls.souls_combat_hud.client.util.SoundHelper;
+import net.tablesouls.souls_combat_hud.util.RegexItemList;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ConsumableSlotManager {
+    private static final RegexItemList INCLUDE_CONSUMABLES =
+            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.includeConsumableList);
+    private static final RegexItemList EXCLUDE_CONSUMABLES =
+            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.excludeConsumableList);
+    private static final RegexItemList EXCLUDE_AUTO_CONSUME =
+            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.excludeAutoConsumeList);
 
     private static int selectedIndex = 0;
     private static Item lastSelectedItem = null;
     private static int lastSelectedSlot = -1;
 
     public static boolean isConsumable(ItemStack stack, Player player) {
-        if (stack.isEmpty()) {
-            return false;
-        }
+        if (stack.isEmpty()) return false;
+        if (EXCLUDE_CONSUMABLES.matches(stack)) return false;
+
         FoodProperties food = stack.getItem().getFoodProperties(stack, player);
-        if (food != null) {
-            return true;
-        }
-        if (IronsSpellsCompat.isScroll(stack)) {
-            return true;
-        }
-        return stack.getItem() instanceof PotionItem;
+        if (food != null) return true;
+        if (IronsSpellsCompat.isScroll(stack)) return true;
+        return INCLUDE_CONSUMABLES.matches(stack)
+                || stack.getItem() instanceof PotionItem;
+    }
+
+    public static boolean isAutoConsumeExcluded(ItemStack stack) {
+        return !stack.isEmpty() && EXCLUDE_AUTO_CONSUME.matches(stack);
     }
 
     public static void setSelectedToHeldItem(Player player) {
@@ -86,12 +96,21 @@ public class ConsumableSlotManager {
             selectedIndex = idx; // still on the exact slot we picked — keep it
         } else if (lastSelectedItem != null) {
             NonNullList items = player.getInventory().items;
+            boolean matched = false;
             for (int i = 0; i < slots.size(); i++) {
                 if (((ItemStack) items.get(slots.get(i))).getItem() == lastSelectedItem) {
                     selectedIndex = i;
+                    matched = true;
                     break;
                 }
             }
+            if (!matched) {
+                SoulsCombatHUD.LOGGER.warn("[ConsumableSlot] resync fallthrough: lastSelectedSlot={} gone, item={} not found in slots={}, stale selectedIndex={}",
+                        lastSelectedSlot, lastSelectedItem, slots, selectedIndex);
+            }
+        } else {
+            SoulsCombatHUD.LOGGER.warn("[ConsumableSlot] resync fallthrough: no lastSelectedSlot/Item, stale selectedIndex={} slots={}",
+                    selectedIndex, slots);
         }
         return slots;
     }

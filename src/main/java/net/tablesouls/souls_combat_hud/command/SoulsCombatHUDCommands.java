@@ -102,7 +102,7 @@ public final class SoulsCombatHUDCommands {
                     + ". Valid values: " + Arrays.toString(StaminaSourceMode.values())));
             return 0;
         }
-        return applyForcedSource(source, SoulsCombatHUDConfig.SERVER_RESTRICTIONS.forceStaminaSource, mode, "stamina");
+        return applyForcedSource(source, SoulsCombatHUDConfig.SERVER_RESTRICTIONS.serverSourcePreference.serverStaminaSource, mode, "stamina");
     }
 
     private static int setManaMode(CommandSourceStack source, String rawMode) {
@@ -114,7 +114,7 @@ public final class SoulsCombatHUDCommands {
                     + ". Valid values: " + Arrays.toString(ManaSourceMode.values())));
             return 0;
         }
-        return applyForcedSource(source, SoulsCombatHUDConfig.SERVER_RESTRICTIONS.forceManaSource, mode, "mana");
+        return applyForcedSource(source, SoulsCombatHUDConfig.SERVER_RESTRICTIONS.serverSourcePreference.serverManaSource, mode, "mana");
     }
 
     private static <M extends Enum<M>> int applyForcedSource(

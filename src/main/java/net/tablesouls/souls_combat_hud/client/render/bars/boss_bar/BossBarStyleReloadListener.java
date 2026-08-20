@@ -46,6 +46,9 @@ public class BossBarStyleReloadListener extends SimpleJsonResourceReloadListener
         BarStyle style = BarStyleJsonParser.parseBarStyle(json, BarStyle.BOSS);
         ResourceLocation ornamentTexture = BarStyleJsonParser.parseOrnamentTexture(
                 json, id.getNamespace(), BossBarStyleDefinition.DEFAULT.ornamentTexture());
+        long disappearDelayMs = json.has("disappear_delay")
+                ? json.get("disappear_delay").getAsLong()
+                : BossBarStyleDefinition.DEFAULT.disappearDelay();
 
         return new BossBarStyleDefinition(
                 targetNames,
@@ -54,7 +57,8 @@ public class BossBarStyleReloadListener extends SimpleJsonResourceReloadListener
                 style.barReductionColor(),
                 style.textColor(),
                 style.textDropShadow(),
-                ornamentTexture
+                ornamentTexture,
+                disappearDelayMs
         );
     }
 }

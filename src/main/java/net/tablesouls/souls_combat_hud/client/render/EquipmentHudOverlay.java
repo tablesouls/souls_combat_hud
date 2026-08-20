@@ -2,16 +2,19 @@ package net.tablesouls.souls_combat_hud.client.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import java.util.List;
+import java.util.Objects;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.tablesouls.souls_combat_hud.client.util.TextAnchor;
 import net.tablesouls.souls_combat_hud.client.util.TextHelper;
+import net.tablesouls.souls_combat_hud.client.util.animation.FadeAnimator;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsCompat;
 import net.tablesouls.souls_combat_hud.compat.moreoffhandslots.MoreOffhandSlotsCompat;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
@@ -21,6 +24,7 @@ import net.tablesouls.souls_combat_hud.client.util.ElementOrientation;
 import net.tablesouls.souls_combat_hud.client.util.slots.PreviewRowLayout;
 import net.tablesouls.souls_combat_hud.client.util.slots.ConsumableSlotManager;
 import net.tablesouls.souls_combat_hud.client.util.slots.WeaponSlotManager;
+import org.joml.Vector3f;
 
 public class EquipmentHudOverlay implements IGuiOverlay {
 
@@ -31,7 +35,8 @@ public class EquipmentHudOverlay implements IGuiOverlay {
     private static final int SLOT_HALF_W = 12;
     private static final int SLOT_HALF_H = 16;
 
-    private static final int PREVIEW_SIZE = 12;
+    private static final int PREVIEW_SIZE = 14;
+    private static final int PREVIEW_ITEM_SIZE = 10;
     private static final int PREVIEW_GAP = 4;
 
     private static final int MAIN_SLOT_W = 24;
@@ -43,7 +48,7 @@ public class EquipmentHudOverlay implements IGuiOverlay {
     private static final int MAIN_V = 0;
 
     private static final int PREVIEW_U_SPELL = 96;
-    private static final int PREVIEW_U_CONSUMABLE = 108;
+    private static final int PREVIEW_U_CONSUMABLE = 110;
     private static final int PREVIEW_V = 0;
 
     private static final int ICON_SIZE = 16;
@@ -52,6 +57,9 @@ public class EquipmentHudOverlay implements IGuiOverlay {
     private static final int TEXT_COLOR = -1;
     private static final int COOLDOWN_COLOR = Integer.MAX_VALUE;
     private static final int TEXT_PADDING = 4;
+
+    private final NameFadeState consumableNameFade = new NameFadeState();
+    private final NameFadeState spellNameFade = new NameFadeState();
 
     @Override
     public void render(ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight) {
@@ -69,6 +77,7 @@ public class EquipmentHudOverlay implements IGuiOverlay {
         int offsetY = SoulsCombatHUDConfig.EQUIPMENT_HUD.y.get();
         int anchorX = anchor.resolveX(screenWidth, offsetX, 0);
         int anchorY = anchor.resolveY(screenHeight, offsetY, 0);
+        float scale = SoulsCombatHUDConfig.EQUIPMENT_HUD.scale.get().floatValue();
 
         int weaponOffsetX = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.x.get();
         int weaponOffsetY = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.y.get();
@@ -82,20 +91,24 @@ public class EquipmentHudOverlay implements IGuiOverlay {
         int spellOffsetX = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.spell.x.get();
         int spellOffsetY = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.spell.y.get();
 
-        int weaponX = anchorX + weaponOffsetX;
-        int weaponY = anchorY + weaponOffsetY;
+        int weaponX = weaponOffsetX;
+        int weaponY = weaponOffsetY;
 
-        int offhandX = anchorX + offhandOffsetX;
-        int offhandY = anchorY + offhandOffsetY;
+        int offhandX = offhandOffsetX;
+        int offhandY = offhandOffsetY;
 
-        int consumableX = anchorX + consumableOffsetX;
-        int consumableY = anchorY + consumableOffsetY;
+        int consumableX = consumableOffsetX;
+        int consumableY = consumableOffsetY;
 
-        int spellX = anchorX + spellOffsetX;
-        int spellY = anchorY + spellOffsetY;
+        int spellX = spellOffsetX;
+        int spellY = spellOffsetY;
 
         int maxConsumablePreviewSlots = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.previewSlots.maxSlots.get();
         int maxSpellPreviewSlots = SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.spell.previewSlots.maxSlots.get();
+
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(anchorX, anchorY, 0);
+        guiGraphics.pose().scale(scale, scale, 1.0f);
 
         if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.enabled.get()) {
             ItemStack weaponSlotStack;
@@ -149,11 +162,18 @@ public class EquipmentHudOverlay implements IGuiOverlay {
             this.renderItemSlot(guiGraphics, mc, consumableX, consumableY, consumable, MAIN_U_CONSUMABLE);
 
             if (!consumable.isEmpty()) {
-                if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.name.enabled.get()) {
-                    String name = consumable.getHoverName().getString();
-                    int nameY = consumableY + SLOT_HALF_H + TEXT_PADDING;
-                    this.drawName(guiGraphics, mc, consumableX, name, nameY, anchor.isRight());
-                };
+                String name = consumable.getHoverName().getString();
+                int nameY = consumableY + SLOT_HALF_H + TEXT_PADDING;
+                this.drawAutoHideName(
+                        guiGraphics, mc, consumableNameFade,
+                        SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.itemName.enabled.get(),
+                        SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.itemName.autoHide.get(),
+                        SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.itemName.holdMillis.get(),
+                        SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.itemName.fadeMillis.get(),
+                        name, consumableX, nameY, anchor.isRight()
+                );
+            } else if (consumableNameFade.isFullyHidden()) {
+                consumableNameFade.reset();
             }
 
             if (ConsumableSlotManager.hasMultipleConsumables(player)) {
@@ -187,11 +207,18 @@ public class EquipmentHudOverlay implements IGuiOverlay {
 
             String spellName = IronsSpellsProvider.getSelectedSpellName();
             if (spellName != null) {
-                if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.spell.name.enabled.get()) {
-                    int textHeight = 9;
-                    int nameY = spellY - SLOT_HALF_H - TEXT_PADDING - textHeight;
-                    this.drawName(guiGraphics, mc, spellX, spellName, nameY, anchor.isRight());
-                }
+                int textHeight = 9;
+                int nameY = spellY - SLOT_HALF_H - TEXT_PADDING - textHeight;
+                this.drawAutoHideName(
+                        guiGraphics, mc, spellNameFade,
+                        SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.spell.itemName.enabled.get(),
+                        SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.spell.itemName.autoHide.get(),
+                        SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.spell.itemName.holdMillis.get(),
+                        SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.spell.itemName.fadeMillis.get(),
+                        spellName, spellX, nameY, anchor.isRight()
+                );
+            } else if (spellNameFade.isFullyHidden()) {
+                spellNameFade.reset();
             }
 
             if (IronsSpellsProvider.hasMultipleSpells()) {
@@ -216,12 +243,32 @@ public class EquipmentHudOverlay implements IGuiOverlay {
                         (gg, entry, cx, cy) -> this.renderPreviewIconSlot(gg, cx, cy, entry.icon(), entry.cooldownPercent()));
             }
         }
+
+        guiGraphics.pose().popPose();
     }
 
-    private void drawName(GuiGraphics guiGraphics, Minecraft mc, int x, String text, int y, boolean rightAlign) {
+    private void drawAutoHideName(
+            GuiGraphics guiGraphics, Minecraft mc, NameFadeState state,
+            boolean enabled, boolean autoHide, int holdMillis, int fadeMillis,
+            String name, int x, int y, boolean rightAlign
+    ) {
+        if (!enabled) {
+            state.reset();
+            return;
+        }
+
+        float alpha = state.update(name, autoHide, holdMillis, fadeMillis);
+        if (alpha > 0.0f) {
+            this.drawName(guiGraphics, mc, x, name, y, rightAlign, alpha);
+        }
+    }
+
+    private void drawName(GuiGraphics guiGraphics, Minecraft mc, int x, String text, int y, boolean rightAlign, float alpha) {
         TextAnchor anchor = rightAlign ? TextAnchor.INSIDE_RIGHT : TextAnchor.INSIDE_LEFT;
         int textX = TextHelper.resolveTextBaseX(anchor, x - SLOT_HALF_W, SLOT_HALF_W * 2, mc.font.width(text));
-        guiGraphics.drawString(mc.font, text, textX, y, TEXT_COLOR, true);
+        int alphaBits = Mth.clamp(Math.round(alpha * 255f), 0, 255) << 24;
+        int color = alphaBits | (TEXT_COLOR & 0x00FFFFFF);
+        guiGraphics.drawString(mc.font, text, textX, y, color, true);
     }
 
     private void renderWeaponSlot(GuiGraphics guiGraphics, Minecraft mc, int centerX, int centerY, ItemStack stack, boolean isPreviewOnly) {
@@ -245,7 +292,7 @@ public class EquipmentHudOverlay implements IGuiOverlay {
         boolean empty = stack.isEmpty();
         this.blitSlotFrame(guiGraphics, centerX, centerY, PREVIEW_U_CONSUMABLE, PREVIEW_V, PREVIEW_SIZE, PREVIEW_SIZE);
         if (!empty) {
-            this.renderItemIcon(guiGraphics, mc, centerX, centerY, stack, PREVIEW_SIZE, 1.0f);
+            this.renderItemIcon(guiGraphics, mc, centerX, centerY, stack, PREVIEW_ITEM_SIZE, 1.0f);
         }
     }
 
@@ -262,12 +309,21 @@ public class EquipmentHudOverlay implements IGuiOverlay {
         boolean empty = icon == null;
         this.blitSlotFrame(guiGraphics, centerX, centerY, PREVIEW_U_SPELL, PREVIEW_V, PREVIEW_SIZE, PREVIEW_SIZE);
         if (!empty) {
-            this.blitIcon(guiGraphics, icon, centerX, centerY, PREVIEW_SIZE);
+            this.blitIcon(guiGraphics, icon, centerX, centerY, PREVIEW_ITEM_SIZE);
             this.renderCooldownOverlay(guiGraphics, centerX, centerY, PREVIEW_SIZE, cooldownPercent);
         }
     }
 
     private void renderItemIcon(GuiGraphics guiGraphics, Minecraft mc, int centerX, int centerY, ItemStack stack, int iconSize, float alpha) {
+        int half = iconSize / 2;
+        Vector3f screenCenter = guiGraphics.pose().last().pose().transformPosition(new Vector3f(centerX, centerY, 0));
+        float ambientScale = guiGraphics.pose().last().pose().m00();
+        int scaledHalf = Math.round(half * ambientScale);
+        int scissorMinX = Math.round(screenCenter.x()) - scaledHalf;
+        int scissorMinY = Math.round(screenCenter.y()) - scaledHalf;
+        int scissorMaxX = Math.round(screenCenter.x()) + scaledHalf;
+        int scissorMaxY = Math.round(screenCenter.y()) + scaledHalf;
+
         float scale = (float) iconSize / 16.0f;
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, alpha);
         guiGraphics.pose().pushPose();
@@ -277,8 +333,7 @@ public class EquipmentHudOverlay implements IGuiOverlay {
         guiGraphics.renderItemDecorations(mc.font, stack, 0, 0);
         guiGraphics.flush();
 
-        int half = iconSize/2;
-        guiGraphics.enableScissor(centerX - half, centerY - half, centerX + half, centerY + half);
+        guiGraphics.enableScissor(scissorMinX, scissorMinY, scissorMaxX, scissorMaxY);
         RenderSystem.clearDepth(1.0D);
         RenderSystem.clear(org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT, false);
         guiGraphics.disableScissor();
@@ -316,5 +371,41 @@ public class EquipmentHudOverlay implements IGuiOverlay {
         RenderSystem.defaultBlendFunc();
         guiGraphics.blit(SLOT_ATLAS, x, y, regionW, regionH, u, v, regionW, regionH, ATLAS_W, ATLAS_H);
         RenderSystem.disableBlend();
+    }
+
+    private static final class NameFadeState {
+        private FadeAnimator fade;
+        private String committedValue;
+        private long visibleUntilMillis = 0L;
+
+        float update(String currentValue, boolean autoHide, int holdMillis, int fadeMillis) {
+            if (!autoHide) {
+                committedValue = currentValue;
+                return 1.0f;
+            }
+            if (fade == null) {
+                fade = new FadeAnimator(0L, fadeMillis, 0L, FadeAnimator.Mode.FADE_OUT);
+            }
+
+            long now = System.currentTimeMillis();
+
+            if (!Objects.equals(currentValue, committedValue)) {
+                committedValue = currentValue;
+                visibleUntilMillis = now + holdMillis;
+            }
+
+            boolean visible = committedValue != null && now < visibleUntilMillis;
+            fade.setVisible(visible);
+            return fade.tick();
+        }
+
+        void reset() {
+            committedValue = null;
+            visibleUntilMillis = 0L;
+        }
+
+        boolean isFullyHidden() {
+            return fade == null || fade.isHidden();
+        }
     }
 }

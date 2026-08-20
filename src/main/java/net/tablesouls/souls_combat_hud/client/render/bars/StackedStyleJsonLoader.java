@@ -16,9 +16,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 
 public final class StackedStyleJsonLoader {
-    private StackedStyleJsonLoader() {
-    }
-
     public static JsonObject loadMerged(ResourceManager manager, ResourceLocation path, BiConsumer<String, IOException> onError) {
         List<JsonObject> layers = new ArrayList<>();
         List<Resource> stack = manager.getResourceStack(path);

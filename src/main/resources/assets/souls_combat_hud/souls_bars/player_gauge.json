@@ -13,6 +13,21 @@
       "x": 0,
       "y": 0
     },
+    "preview": {
+      "size": 32,
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "preview_model": {
+        "rotation": 340,
+        "size": 32,
+        "offset": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
     "attributes": [
       {
         "type": "hunger",
@@ -59,7 +74,7 @@
           }
         }
       },
-	  {
+      {
         "type": "private",
         "enabled": true,
         "offset": {

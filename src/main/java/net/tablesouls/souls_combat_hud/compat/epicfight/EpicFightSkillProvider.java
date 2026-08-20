@@ -60,23 +60,34 @@ public final class EpicFightSkillProvider {
         ElementAnchor anchor = SoulsCombatHUDConfig.SKILL_OVERLAY.anchor.get();
         int offsetX = SoulsCombatHUDConfig.SKILL_OVERLAY.x.get();
         int offsetY = SoulsCombatHUDConfig.SKILL_OVERLAY.y.get();
+        float scale = SoulsCombatHUDConfig.SKILL_OVERLAY.scale.get().floatValue();
 
         int rowWidth = SkillOverlayRenderer.rowWidth();
         int rowHeight = SkillOverlayRenderer.rowHeight();
         int rowGap = SkillOverlayRenderer.rowGap();
 
         int anchorX = anchor.resolveX(screenWidth, offsetX, rowWidth);
-        int cursorY = anchor.resolveY(screenHeight, offsetY, rowHeight);
+        int anchorY = anchor.resolveY(screenHeight, offsetY, rowHeight);
         int step = anchor.isBottom() ? -(rowHeight + rowGap) : (rowHeight + rowGap);
 
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(anchorX, anchorY, 0);
+        guiGraphics.pose().scale(scale, scale, 1.0f);
+
+        // Local to the translated/scaled origin: rows (and the gaps between them)
+        // scale together as one block, same as the gauge overlays.
+        int cursorY = 0;
+
         if (drawWeaponInnate) {
-            SkillOverlayRenderer.draw(guiGraphics, font, weaponInnate, anchorX, cursorY, partialTick, anchor.isRight());
+            SkillOverlayRenderer.draw(guiGraphics, font, weaponInnate, 0, cursorY, partialTick, anchor.isRight());
             cursorY += step;
         }
 
         for (SkillContainer container : otherSkills) {
-            SkillOverlayRenderer.draw(guiGraphics, font, container, anchorX, cursorY, partialTick, anchor.isRight());
+            SkillOverlayRenderer.draw(guiGraphics, font, container, 0, cursorY, partialTick, anchor.isRight());
             cursorY += step;
         }
+
+        guiGraphics.pose().popPose();
     }
 }

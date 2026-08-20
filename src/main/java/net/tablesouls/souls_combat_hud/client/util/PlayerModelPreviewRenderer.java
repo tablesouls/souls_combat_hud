@@ -10,6 +10,8 @@ import net.minecraft.world.item.ItemStack;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightAnimationFreezer;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightCompat;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 
 import java.util.Map;
@@ -17,7 +19,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class PlayerModelPreviewRenderer {
-    private static final float MODEL_YAW_BIAS = 50f;
+    private static final float BASE_YAW = 180f;
     private static final long FAILURE_COOLDOWN_MS = 3000L;
 
     private static boolean renderingPreview = false;
@@ -76,21 +78,20 @@ public final class PlayerModelPreviewRenderer {
     public static boolean render(
             GuiGraphics graphics,
             AbstractClientPlayer player,
-            int x,
-            int y,
-            int size,
-            boolean faceRight
+            int scissorX,
+            int scissorY,
+            int scissorSize,
+            int modelX,
+            int modelY,
+            int modelSize,
+            float rotationDegrees
     ) {
-        int anchorX = x + size / 2;
-        int anchorY = y + (int) (size * 1.6f);
+        int anchorX = modelX + modelSize / 2;
+        int anchorY = modelY + (int) (modelSize * 1.6f);
 
-        int modelScale = (int) (size * 0.9f);
+        int modelScale = (int) (modelSize * 0.9f);
 
-        float lookAtX = faceRight ? -MODEL_YAW_BIAS : MODEL_YAW_BIAS;
-        float lookAtY = 0f;
-
-        float angleX = (float) Math.atan(lookAtX / 40.0);
-        float angleY = (float) Math.atan(lookAtY / 40.0);
+        float bodyYaw = BASE_YAW + rotationDegrees;
 
         FrozenPose.Snapshot poseSnapshot = null;
         Object efSnapshot = null;
@@ -99,13 +100,18 @@ public final class PlayerModelPreviewRenderer {
         previewTarget = player;
         previewWalkAnimation = player.walkAnimation;
 
+        float savedBodyRot = player.yBodyRot;
+        float savedYRot = player.getYRot();
+        float savedXRot = player.getXRot();
+        float savedHeadRotO = player.yHeadRotO;
+        float savedHeadRot = player.yHeadRot;
+
         try {
-            poseSnapshot = FrozenPose.freeze(player, angleX);
+            poseSnapshot = FrozenPose.freeze(player, 0f);
             efSnapshot = EpicFightCompat.LOADED ? EpicFightAnimationFreezer.freezeToIdle(player) : null;
 
             if (EpicFightCompat.LOADED) {
-                float targetYRot = 180.0f + (float) Math.atan(angleX / 40.0) * 20.0f;
-                efBodyRotation = EpicFightAnimationFreezer.freezeBodyRotation(player, targetYRot);
+                efBodyRotation = EpicFightAnimationFreezer.freezeBodyRotation(player, bodyYaw);
             }
 
             if (EpicFightCompat.LOADED && !EpicFightAnimationFreezer.isBaseLayerSafeToRender(player)) {
@@ -113,19 +119,36 @@ public final class PlayerModelPreviewRenderer {
                         "Post-freeze animation state unsafe to render (holding " + player.getMainHandItem() + ")");
             }
 
+            player.yBodyRot = bodyYaw;
+            player.setYRot(bodyYaw);
+            player.setXRot(0f);
+            player.xRotO = 0f;
+            player.yHeadRot = bodyYaw;
+            player.yHeadRotO = bodyYaw;
+
             int pad = 32;
 
-            graphics.enableScissor(
-                    x - pad,
-                    y - pad,
-                    x + size + pad,
-                    y + size);
+            Vector3f screenOrigin = graphics.pose().last().pose().transformPosition(new Vector3f(scissorX, scissorY, 0));
+            float ambientScale = graphics.pose().last().pose().m00();
+            int scaledPad = Math.round(pad * ambientScale);
+            int scaledSize = Math.round(scissorSize * ambientScale);
+            int screenX = Math.round(screenOrigin.x());
+            int screenY = Math.round(screenOrigin.y());
 
-            InventoryScreen.renderEntityInInventoryFollowsAngle(
+            graphics.enableScissor(
+                    screenX - scaledPad,
+                    screenY - scaledPad,
+                    screenX + scaledSize + scaledPad,
+                    screenY + scaledSize);
+
+            Quaternionf entityRotation = new Quaternionf().rotateZ((float) Math.PI);
+
+            InventoryScreen.renderEntityInInventory(
                     graphics,
                     anchorX, anchorY,
                     modelScale,
-                    angleX, angleY,
+                    entityRotation,
+                    null,
                     player
             );
 
@@ -143,6 +166,12 @@ public final class PlayerModelPreviewRenderer {
             skipUntil.put(player.getUUID(), System.currentTimeMillis() + FAILURE_COOLDOWN_MS);
             return false;
         } finally {
+            player.yBodyRot = savedBodyRot;
+            player.setYRot(savedYRot);
+            player.setXRot(savedXRot);
+            player.yHeadRotO = savedHeadRotO;
+            player.yHeadRot = savedHeadRot;
+
             renderingPreview = false;
             previewTarget = null;
             previewWalkAnimation = null;
