@@ -6,12 +6,14 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
 import net.tablesouls.souls_combat_hud.client.util.TextHelper;
+import net.tablesouls.souls_combat_hud.client.util.animation.ExperienceGainAnimator;
 
 public class ExperienceOverlay implements IGuiOverlay {
     private static final ResourceLocation BG_TEX =
@@ -39,6 +41,11 @@ public class ExperienceOverlay implements IGuiOverlay {
     private static final int BAR_PADDING_L = 1;
     private static final int BAR_PADDING_R = 1;
 
+    private static final int GAIN_TEXT_COLOR = 0xFFFFFF;
+    private static final float GAIN_SLIDE_DISTANCE_PX = 10.0f;
+
+    private final ExperienceGainAnimator gainAnimator = new ExperienceGainAnimator();
+
     @Override
     public void render(
             ForgeGui gui,
@@ -55,6 +62,10 @@ public class ExperienceOverlay implements IGuiOverlay {
         int xpLevel = minecraft.player.experienceLevel;
         int xpTotal = minecraft.player.totalExperience;
         float xpProgress = minecraft.player.experienceProgress;
+
+        boolean gainPopupEnabled = SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.xpGainPopup.enabled.get();
+        gainAnimator.update(xpTotal, gainPopupEnabled);
+        int displayedXpTotal = gainAnimator.getDisplayedTotal();
 
         ElementAnchor anchor = SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.anchor.get();
         int overlayX = anchor.resolveX(
@@ -86,8 +97,8 @@ public class ExperienceOverlay implements IGuiOverlay {
                 ICON_TEX_HEIGHT
         );
 
-        //XP total xp text
-        Component xpTotalText = Component.literal(String.valueOf(xpTotal));
+        //XP total text
+        Component xpTotalText = Component.literal(String.valueOf(displayedXpTotal));
 
         ElementAnchor xpTotalTextAnchor = SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.xpTotalText.anchor.get();
         int xpTotalTextX = xpTotalTextAnchor.resolveX(
@@ -186,7 +197,56 @@ public class ExperienceOverlay implements IGuiOverlay {
             );
         }
 
+        if (gainPopupEnabled && gainAnimator.isPopupVisible()) {
+            renderGainPopup(guiGraphics, font);
+        }
+
         guiGraphics.pose().popPose();
         RenderSystem.disableBlend();
+    }
+
+    private void renderGainPopup(GuiGraphics guiGraphics, Font font) {
+        Component gainText = Component.literal("+" + gainAnimator.getPendingGain());
+        int gainTextWidth = font.width(gainText);
+
+        ElementAnchor gainAnchor = SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.xpGainPopup.anchor.get();
+        int gainX = gainAnchor.resolveX(
+                BG_WIDTH,
+                SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.xpGainPopup.x.get(),
+                gainTextWidth
+        );
+        int gainY = gainAnchor.resolveY(
+                BG_HEIGHT,
+                SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.xpGainPopup.y.get(),
+                font.lineHeight
+        );
+
+        float popupAlpha = Mth.clamp(gainAnimator.getPopupAlpha(), 0f, 1f);
+        if (popupAlpha <= 0f) return;
+
+        float popupScale = gainAnimator.getPopupScale();
+        float popupOffsetY = gainAnimator.getPopupOffsetY(GAIN_SLIDE_DISTANCE_PX);
+
+        int alphaBits = Math.round(popupAlpha * 255f) << 24;
+        int gainColor = alphaBits | (GAIN_TEXT_COLOR & 0xFFFFFF);
+
+        float pivotX = gainX + gainTextWidth / 2.0f;
+        float pivotY = gainY + font.lineHeight / 2.0f;
+
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(pivotX, pivotY + popupOffsetY, 0);
+        guiGraphics.pose().scale(popupScale, popupScale, 1.0f);
+        guiGraphics.pose().translate(-pivotX, -pivotY, 0);
+
+        guiGraphics.drawString(
+                font,
+                gainText,
+                gainX,
+                gainY,
+                gainColor,
+                false
+        );
+
+        guiGraphics.pose().popPose();
     }
 }

@@ -122,15 +122,12 @@ public final class PlayerModelPreviewRenderer {
             player.yBodyRot = bodyYaw;
             player.setYRot(bodyYaw);
             player.setXRot(0f);
+            player.xRotO = 0f;
             player.yHeadRot = bodyYaw;
             player.yHeadRotO = bodyYaw;
 
             int pad = 32;
 
-            // enableScissor works in absolute screen pixels and ignores the pose stack.
-            // Callers (e.g. the player/party gauge overlays) may be rendering inside a
-            // scaled overlay transform, so scissorX/scissorY/scissorSize/pad must be
-            // converted from that local space into real screen coordinates first.
             Vector3f screenOrigin = graphics.pose().last().pose().transformPosition(new Vector3f(scissorX, scissorY, 0));
             float ambientScale = graphics.pose().last().pose().m00();
             int scaledPad = Math.round(pad * ambientScale);
