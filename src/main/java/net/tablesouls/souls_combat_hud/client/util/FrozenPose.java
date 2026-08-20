@@ -19,6 +19,9 @@ public final class FrozenPose {
             float attackAnim,
             float oAttackAnim,
             boolean swimming,
+            int deathTime,
+            int hurtTime,
+            int hurtDuration,
             float yBodyRotO,
             float yRotO,
             float xRotO,
@@ -40,6 +43,9 @@ public final class FrozenPose {
                 player.attackAnim,
                 player.oAttackAnim,
                 player.isSwimming(),
+                player.deathTime,
+                player.hurtTime,
+                player.hurtDuration,
                 player.yBodyRotO,
                 player.yRotO,
                 player.xRotO,
@@ -52,6 +58,10 @@ public final class FrozenPose {
         player.oAttackAnim = 0f;
 
         player.setSwimming(false);
+
+        player.deathTime = 0;
+        player.hurtTime = 0;
+        player.hurtDuration = 0;
 
         player.yBodyRotO = player.yBodyRot;
         player.yRotO = player.getYRot();
@@ -77,6 +87,10 @@ public final class FrozenPose {
         player.oAttackAnim = snapshot.oAttackAnim();
 
         player.setSwimming(snapshot.swimming());
+
+        player.deathTime = snapshot.deathTime();
+        player.hurtTime = snapshot.hurtTime();
+        player.hurtDuration = snapshot.hurtDuration();
 
         player.yBodyRotO = snapshot.yBodyRotO();
         player.yRotO = snapshot.yRotO();

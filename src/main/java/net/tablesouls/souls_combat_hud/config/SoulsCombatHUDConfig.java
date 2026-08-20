@@ -720,6 +720,7 @@ public final class SoulsCombatHUDConfig {
         public final XpBarSetting xpBar;
         public final XpTotalTextSetting xpTotalText;
         public final XpLevelTextSetting xpLevelText;
+        public final XpGainPopupSetting xpGainPopup;
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
         public final ForgeConfigSpec.DoubleValue scale;
         public final ForgeConfigSpec.ConfigValue<Integer> x;
@@ -736,6 +737,7 @@ public final class SoulsCombatHUDConfig {
             xpBar = new XpBarSetting(builder);
             xpTotalText = new XpTotalTextSetting(builder);
             xpLevelText = new XpLevelTextSetting(builder);
+            xpGainPopup = new XpGainPopupSetting(builder);
 
             anchor = builder
                     .defineEnum(
@@ -826,6 +828,24 @@ public final class SoulsCombatHUDConfig {
                 );
                 x = builder.define("x", 12);
                 y = builder.define("y", -1);
+
+                builder.pop();
+            }
+        }
+
+        public static class XpGainPopupSetting {
+            public final ForgeConfigSpec.BooleanValue enabled;
+            public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
+            public final ForgeConfigSpec.ConfigValue<Integer> x;
+            public final ForgeConfigSpec.ConfigValue<Integer> y;
+
+            XpGainPopupSetting(ForgeConfigSpec.Builder builder) {
+                builder.push("xp_gain_popup");
+
+                enabled = builder.define("enabled", true);
+                anchor = builder.defineEnum("anchor", ElementAnchor.TOP_RIGHT);
+                x = builder.define("x", 4);
+                y = builder.define("y", -12);
 
                 builder.pop();
             }
