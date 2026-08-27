@@ -161,7 +161,7 @@ def compatDeps = [
         fg.deobf("maven.modrinth:epic-fight:${epicfight_forge_version}"),
         fg.deobf("curse.maven:thirst-was-reclaimed-884742:${thirst_was_reclaimed_forge_version}"),
         fg.deobf("curse.maven:paragliders-289240:${paraglider_forge_version}"),
-        fg.deobf("dev.kosmx.player-anim:player-animation-lib-forge:${player_animation_lib_forge_version}")
+        fg.deobf("dev.kosmx.player-anim:player-animation-lib-forge:${player_animation_lib_forge_version}"),
 ]
 
 dependencies {
@@ -176,13 +176,14 @@ dependencies {
     }
 
     compileOnly fg.deobf("curse.maven:parcool-482378:${parcool_forge_version}")
+    compileOnly fg.deobf("curse.maven:not-enough-animations-433760:${not_enough_animations_version}")
 
     if (compatModsRuntime) {
         runtimeOnly fg.deobf("curse.maven:configured-457570:5180900")
         runtimeOnly fg.deobf("maven.modrinth:ghrZDhGW:YWasQFNI")
         runtimeOnly fg.deobf("maven.modrinth:XqqOkvZz:XMYeNIOx")
 
-        runtimeOnly fg.deobf("curse.maven:epicfight-extra-1434276:7961244")
+        //runtimeOnly fg.deobf("curse.maven:epicfight-extra-1434276:7961244")
         runtimeOnly fg.deobf("software.bernie.geckolib:geckolib-forge-1.20.1:${geckolib_forge_version}")
         runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curio_forge_version}")
     }
