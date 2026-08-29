@@ -68,28 +68,18 @@ public final class PlayerModelPreviewRenderer {
         previewTarget = player;
         previewWalkAnimation = player.walkAnimation;
 
-        float savedBodyRot = player.yBodyRot;
-        float savedYRot = player.getYRot();
-        float savedXRot = player.getXRot();
-        float savedHeadRotO = player.yHeadRotO;
-        float savedHeadRot = player.yHeadRot;
-
         EpicFightAnimationFreezer.LockedFacingSnapshot lockedFacing =
                 EpicFightCompat.LOADED ? EpicFightAnimationFreezer.captureLockedFacing(player) : null;
 
-        FrozenPose.Snapshot poseSnapshot = FrozenPose.freeze(player, rotationDegrees);
+        EpicFightAnimationFreezer.FrozenBodyRotation bodyRotationSnapshot =
+                EpicFightCompat.LOADED ? EpicFightAnimationFreezer.freezeBodyRotation(player, bodyYaw) : null;
+
+        FrozenPose.Snapshot poseSnapshot = FrozenPose.freeze(player, bodyYaw, 0f, rotationDegrees);
 
         EpicFightAnimationFreezer.FrozenAnimation animationSnapshot =
                 EpicFightCompat.LOADED ? EpicFightAnimationFreezer.freezeToIdle(player) : null;
 
         try {
-            player.yBodyRot = bodyYaw;
-            player.setYRot(bodyYaw);
-            player.setXRot(0f);
-            player.xRotO = 0f;
-            player.yHeadRot = bodyYaw;
-            player.yHeadRotO = bodyYaw;
-
             int pad = 32;
 
             Vector3f screenOrigin = graphics.pose().last().pose().transformPosition(new Vector3f(scissorX, scissorY, 0));
@@ -130,13 +120,8 @@ public final class PlayerModelPreviewRenderer {
             skipUntil.put(player.getUUID(), System.currentTimeMillis() + FAILURE_COOLDOWN_MS);
             return false;
         } finally {
-            player.yBodyRot = savedBodyRot;
-            player.setYRot(savedYRot);
-            player.setXRot(savedXRot);
-            player.yHeadRotO = savedHeadRotO;
-            player.yHeadRot = savedHeadRot;
-
             if (EpicFightCompat.LOADED) {
+                EpicFightAnimationFreezer.restoreBodyRotation(bodyRotationSnapshot);
                 EpicFightAnimationFreezer.restoreLockedFacingIfStillActive(lockedFacing);
                 if (animationSnapshot != null) {
                     EpicFightAnimationFreezer.restore(player, animationSnapshot);

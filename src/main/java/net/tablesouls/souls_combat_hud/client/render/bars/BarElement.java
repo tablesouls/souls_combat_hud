@@ -132,7 +132,7 @@ public class BarElement {
 
         float alpha = getAlpha();
 
-        float smoothedFraction = increaseAnim.update(currentFraction, maxValue);
+        float smoothedFraction = increaseAnim.update(currentFraction, maxValue, (float) w);
         float displayedFraction = reveal.update(smoothedFraction, maxValue, (float) w);
 
         if (currentRawValue >= 0f) {
