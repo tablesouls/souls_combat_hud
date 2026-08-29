@@ -220,11 +220,8 @@ public final class EpicFightAnimationFreezer {
 
         AssetAccessor<? extends StaticAnimation> validIdle = getValidWeaponIdOverride(player);
 
-        // Some weapons register their idle stance as a composite-layer overlay
         AssetAccessor<? extends StaticAnimation> idleComposite = animator.getCompositeLivingMotion(LivingMotions.IDLE);
         if (idleComposite != null && idleComposite.get().getAnimationClip() == null) {
-            // This composite idle's backing asset failed to load (e.g. epicfightx's broken guard-stance registration).
-            // prefer epic fight's original animations
             idleComposite = validIdle;
         }
         Layer.Priority idleCompositePriority = idleComposite != null ? idleComposite.get().getPriority() : null;
@@ -269,10 +266,12 @@ public final class EpicFightAnimationFreezer {
     public static final class FrozenBodyRotation {
         private final PlayerPatch<?> patch;
         private final float prevYRot;
+        private final float prevYRotO;
 
-        private FrozenBodyRotation(PlayerPatch<?> patch, float prevYRot) {
+        private FrozenBodyRotation(PlayerPatch<?> patch, float prevYRot, float prevYRotO) {
             this.patch = patch;
             this.prevYRot = prevYRot;
+            this.prevYRotO = prevYRotO;
         }
     }
 
@@ -281,13 +280,18 @@ public final class EpicFightAnimationFreezer {
         if (!(livingPatch instanceof PlayerPatch<?> patch)) return null;
 
         float prevYRot = patch.getYRot();
+        float prevYRotO = patch.getYRotO();
+
         patch.setModelYRot(targetYRotDeg, false);
-        return new FrozenBodyRotation(patch, prevYRot);
+        patch.setYRotO(targetYRotDeg);
+
+        return new FrozenBodyRotation(patch, prevYRot, prevYRotO);
     }
 
     public static void restoreBodyRotation(FrozenBodyRotation snapshot) {
         if (snapshot == null) return;
         snapshot.patch.setModelYRot(snapshot.prevYRot, false);
+        snapshot.patch.setYRotO(snapshot.prevYRotO);
         snapshot.patch.disableModelYRot(false);
     }
 

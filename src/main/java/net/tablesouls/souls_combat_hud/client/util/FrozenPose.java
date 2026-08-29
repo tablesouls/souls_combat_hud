@@ -22,13 +22,18 @@ public final class FrozenPose {
             int deathTime,
             int hurtTime,
             int hurtDuration,
+            float yBodyRot,
             float yBodyRotO,
+            float yRot,
             float yRotO,
+            float xRot,
             float xRotO,
+            float yHeadRot,
+            float yHeadRotO,
             VehicleSnapshot vehicleSnapshot
     ) {}
 
-    public static Snapshot freeze(AbstractClientPlayer player, float angleX) {
+    public static Snapshot freeze(AbstractClientPlayer player, float targetBodyYaw, float targetXRot, float rotationDegrees) {
         Entity vehicleEntity = player.getVehicle();
         VehicleSnapshot vehicleSnapshot = null;
         if (vehicleEntity instanceof LivingEntity vehicle) {
@@ -46,9 +51,14 @@ public final class FrozenPose {
                 player.deathTime,
                 player.hurtTime,
                 player.hurtDuration,
+                player.yBodyRot,
                 player.yBodyRotO,
+                player.getYRot(),
                 player.yRotO,
+                player.getXRot(),
                 player.xRotO,
+                player.yHeadRot,
+                player.yHeadRotO,
                 vehicleSnapshot
         );
 
@@ -63,18 +73,23 @@ public final class FrozenPose {
         player.hurtTime = 0;
         player.hurtDuration = 0;
 
-        player.yBodyRotO = player.yBodyRot;
-        player.yRotO = player.getYRot();
-        player.xRotO = player.getXRot();
+        player.yBodyRot = targetBodyYaw;
+        player.yBodyRotO = targetBodyYaw;
+        player.setYRot(targetBodyYaw);
+        player.yRotO = targetBodyYaw;
+        player.setXRot(targetXRot);
+        player.xRotO = targetXRot;
+        player.yHeadRot = targetBodyYaw;
+        player.yHeadRotO = targetBodyYaw;
 
         if (vehicleSnapshot != null) {
             LivingEntity vehicle = vehicleSnapshot.vehicle();
-            float targetYRot = 180.0f + angleX * 40.0f;
-            float targetYBodyRot = 180.0f + angleX * 20.0f;
-            vehicle.setYRot(targetYRot);
-            vehicle.yRotO = targetYRot;
-            vehicle.yBodyRot = targetYBodyRot;
-            vehicle.yBodyRotO = targetYBodyRot;
+            float vehicleTargetYRot = 180.0f + rotationDegrees * 40.0f;
+            float vehicleTargetYBodyRot = 180.0f + rotationDegrees * 20.0f;
+            vehicle.setYRot(vehicleTargetYRot);
+            vehicle.yRotO = vehicleTargetYRot;
+            vehicle.yBodyRot = vehicleTargetYBodyRot;
+            vehicle.yBodyRotO = vehicleTargetYBodyRot;
         }
 
         return snapshot;
@@ -92,9 +107,14 @@ public final class FrozenPose {
         player.hurtTime = snapshot.hurtTime();
         player.hurtDuration = snapshot.hurtDuration();
 
+        player.yBodyRot = snapshot.yBodyRot();
         player.yBodyRotO = snapshot.yBodyRotO();
+        player.setYRot(snapshot.yRot());
         player.yRotO = snapshot.yRotO();
+        player.setXRot(snapshot.xRot());
         player.xRotO = snapshot.xRotO();
+        player.yHeadRot = snapshot.yHeadRot();
+        player.yHeadRotO = snapshot.yHeadRotO();
 
         if (snapshot.vehicleSnapshot() != null) {
             VehicleSnapshot vs = snapshot.vehicleSnapshot();

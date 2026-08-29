@@ -2,7 +2,7 @@ package net.tablesouls.souls_combat_hud.client.util.animation;
 
 public class DecreaseRevealAnimator {
     private static final long HOLD_MS = 1000L;
-    private static final float DRAIN_PIXELS_PER_MS = 0.08f;
+    private static final float DRAIN_PIXELS_PER_MS = 0.1f;
 
     private float lastKnownValue = 1.0f;
     private float lastKnownMax = -1.0f;
