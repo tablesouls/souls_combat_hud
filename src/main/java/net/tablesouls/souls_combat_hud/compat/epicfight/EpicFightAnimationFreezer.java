@@ -160,43 +160,6 @@ public final class EpicFightAnimationFreezer {
         return null;
     }
 
-    public static boolean isBaseLayerSafeToRender(Player player) {
-        ClientAnimator animator = getClientAnimator(player);
-        if (animator == null) return true;
-
-        Layer.BaseLayer baseLayer = animator.baseLayer;
-
-        // Base layer is queried unconditionally by ClientAnimator.getPose(), regardless of its disabled/empty state, so it must always be checked.
-        if (!isLayerAnimationSafe(baseLayer)) {
-            return false;
-        }
-
-        for (Layer.Priority priority : baseLayer.getBaseLayerPriority().highers()) {
-            Layer compositeLayer = baseLayer.getLayer(priority);
-
-            // Matches ClientAnimator.getPose()'s own guard: only layers that are enabled and non-empty are actually queried for a pose.
-            if (compositeLayer.isOff()) {
-                continue;
-            }
-
-            if (!isLayerAnimationSafe(compositeLayer)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static boolean isLayerAnimationSafe(Layer layer) {
-        AssetAccessor<? extends DynamicAnimation> current = layer.animationPlayer.getAnimation();
-
-        if (current == null || current.get() == null) {
-            return false;
-        }
-
-        return current.get().getAnimationClip() != null;
-    }
-
     private static final class PlayerSnapshot {
         private final AssetAccessor<? extends DynamicAnimation> prevAnim;
         private final float prevElapsedTime;
@@ -257,11 +220,8 @@ public final class EpicFightAnimationFreezer {
 
         AssetAccessor<? extends StaticAnimation> validIdle = getValidWeaponIdOverride(player);
 
-        // Some weapons register their idle stance as a composite-layer overlay
         AssetAccessor<? extends StaticAnimation> idleComposite = animator.getCompositeLivingMotion(LivingMotions.IDLE);
         if (idleComposite != null && idleComposite.get().getAnimationClip() == null) {
-            // This composite idle's backing asset failed to load (e.g. epicfightx's broken guard-stance registration).
-            // prefer epic fight's original animations
             idleComposite = validIdle;
         }
         Layer.Priority idleCompositePriority = idleComposite != null ? idleComposite.get().getPriority() : null;
@@ -303,29 +263,15 @@ public final class EpicFightAnimationFreezer {
         return snapshot;
     }
 
-    /**
-     * Epic Fight does not derive a humanoid's rendered body orientation from vanilla's
-     * {@code yBodyRot}/{@code yBodyRotO}. Instead {@link PlayerPatch} keeps its own
-     * {@code modelYRot}/{@code modelYRotO} fields, updated once per tick in
-     * {@code PlayerPatch#tick(...)} by smoothing toward the entity's real body rotation
-     * (clamped to 45 deg/tick). Vanilla's {@code InventoryScreen#renderEntityInInventoryFollowsAngle}
-     * only ever overrides the vanilla fields for the duration of a single render call, so that
-     * override never survives long enough to influence the next tick's smoothing step - Epic Fight's
-     * body orientation keeps tracking the entity's actual, live rotation regardless of the preview override.
-     * <p>
-     * Epic Fight itself works around this only for {@code LocalPlayerPatch} (see
-     * {@code LocalPlayerPatch#setModelYRotInGui}), used when rendering the local player's own
-     * character preview. There is no equivalent for other players, which is what party member
-     * previews render as. This mirrors that same trick using the public, patch-agnostic
-     * {@code PlayerPatch#setModelYRot}/{@code #disableModelYRot} API so it also works for remote players.
-     */
     public static final class FrozenBodyRotation {
         private final PlayerPatch<?> patch;
         private final float prevYRot;
+        private final float prevYRotO;
 
-        private FrozenBodyRotation(PlayerPatch<?> patch, float prevYRot) {
+        private FrozenBodyRotation(PlayerPatch<?> patch, float prevYRot, float prevYRotO) {
             this.patch = patch;
             this.prevYRot = prevYRot;
+            this.prevYRotO = prevYRotO;
         }
     }
 
@@ -334,16 +280,42 @@ public final class EpicFightAnimationFreezer {
         if (!(livingPatch instanceof PlayerPatch<?> patch)) return null;
 
         float prevYRot = patch.getYRot();
-        // sendPacket=false: this is a local-render-only override, we must not tell the server
-        // (or, worse, other players' clients) that this player's body rotation changed.
+        float prevYRotO = patch.getYRotO();
+
         patch.setModelYRot(targetYRotDeg, false);
-        return new FrozenBodyRotation(patch, prevYRot);
+        patch.setYRotO(targetYRotDeg);
+
+        return new FrozenBodyRotation(patch, prevYRot, prevYRotO);
     }
 
     public static void restoreBodyRotation(FrozenBodyRotation snapshot) {
         if (snapshot == null) return;
         snapshot.patch.setModelYRot(snapshot.prevYRot, false);
+        snapshot.patch.setYRotO(snapshot.prevYRotO);
         snapshot.patch.disableModelYRot(false);
+    }
+
+    public static final class LockedFacingSnapshot {
+        private final PlayerPatch<?> patch;
+        private final float modelYRot;
+
+        private LockedFacingSnapshot(PlayerPatch<?> patch, float modelYRot) {
+            this.patch = patch;
+            this.modelYRot = modelYRot;
+        }
+    }
+
+    public static LockedFacingSnapshot captureLockedFacing(Player player) {
+        LivingEntityPatch<?> livingPatch = getPatch(player);
+        if (!(livingPatch instanceof PlayerPatch<?> patch)) return null;
+        if (!patch.getEntityState().turningLocked()) return null;
+        return new LockedFacingSnapshot(patch, patch.getYRot());
+    }
+
+    public static void restoreLockedFacingIfStillActive(LockedFacingSnapshot snapshot) {
+        if (snapshot == null) return;
+        if (!snapshot.patch.getEntityState().turningLocked()) return;
+        snapshot.patch.setModelYRot(snapshot.modelYRot, false);
     }
 
     public static void restore(Player player, FrozenAnimation snapshot) {

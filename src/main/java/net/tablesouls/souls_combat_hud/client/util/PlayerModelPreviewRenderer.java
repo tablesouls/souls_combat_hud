@@ -46,35 +46,6 @@ public final class PlayerModelPreviewRenderer {
         return state != null && state == previewWalkAnimation;
     }
 
-    public static boolean isSafeToRender(AbstractClientPlayer player) {
-        if (!EpicFightCompat.LOADED) {
-            return true;
-        }
-
-        UUID id = player.getUUID();
-        long now = System.currentTimeMillis();
-        Long until = skipUntil.get(id);
-        if (until != null) {
-            if (until > now) {
-                return false;
-            }
-            skipUntil.remove(id);
-        }
-
-        boolean safe = EpicFightAnimationFreezer.isBaseLayerSafeToRender(player);
-
-        if (!safe) {
-            SoulsCombatHUD.LOGGER.warn(
-                    "Skipping player model preview for {} (holding {}): base animation layer is empty",
-                    player.getGameProfile().getName(),
-                    player.getMainHandItem()
-            );
-            skipUntil.put(id, now + FAILURE_COOLDOWN_MS);
-        }
-
-        return safe;
-    }
-
     public static boolean render(
             GuiGraphics graphics,
             AbstractClientPlayer player,
@@ -93,39 +64,22 @@ public final class PlayerModelPreviewRenderer {
 
         float bodyYaw = BASE_YAW + rotationDegrees;
 
-        FrozenPose.Snapshot poseSnapshot = null;
-        Object efSnapshot = null;
-        EpicFightAnimationFreezer.FrozenBodyRotation efBodyRotation = null;
         renderingPreview = true;
         previewTarget = player;
         previewWalkAnimation = player.walkAnimation;
 
-        float savedBodyRot = player.yBodyRot;
-        float savedYRot = player.getYRot();
-        float savedXRot = player.getXRot();
-        float savedHeadRotO = player.yHeadRotO;
-        float savedHeadRot = player.yHeadRot;
+        EpicFightAnimationFreezer.LockedFacingSnapshot lockedFacing =
+                EpicFightCompat.LOADED ? EpicFightAnimationFreezer.captureLockedFacing(player) : null;
+
+        EpicFightAnimationFreezer.FrozenBodyRotation bodyRotationSnapshot =
+                EpicFightCompat.LOADED ? EpicFightAnimationFreezer.freezeBodyRotation(player, bodyYaw) : null;
+
+        FrozenPose.Snapshot poseSnapshot = FrozenPose.freeze(player, bodyYaw, 0f, rotationDegrees);
+
+        EpicFightAnimationFreezer.FrozenAnimation animationSnapshot =
+                EpicFightCompat.LOADED ? EpicFightAnimationFreezer.freezeToIdle(player) : null;
 
         try {
-            poseSnapshot = FrozenPose.freeze(player, 0f);
-            efSnapshot = EpicFightCompat.LOADED ? EpicFightAnimationFreezer.freezeToIdle(player) : null;
-
-            if (EpicFightCompat.LOADED) {
-                efBodyRotation = EpicFightAnimationFreezer.freezeBodyRotation(player, bodyYaw);
-            }
-
-            if (EpicFightCompat.LOADED && !EpicFightAnimationFreezer.isBaseLayerSafeToRender(player)) {
-                throw new IllegalStateException(
-                        "Post-freeze animation state unsafe to render (holding " + player.getMainHandItem() + ")");
-            }
-
-            player.yBodyRot = bodyYaw;
-            player.setYRot(bodyYaw);
-            player.setXRot(0f);
-            player.xRotO = 0f;
-            player.yHeadRot = bodyYaw;
-            player.yHeadRotO = bodyYaw;
-
             int pad = 32;
 
             Vector3f screenOrigin = graphics.pose().last().pose().transformPosition(new Vector3f(scissorX, scissorY, 0));
@@ -166,22 +120,19 @@ public final class PlayerModelPreviewRenderer {
             skipUntil.put(player.getUUID(), System.currentTimeMillis() + FAILURE_COOLDOWN_MS);
             return false;
         } finally {
-            player.yBodyRot = savedBodyRot;
-            player.setYRot(savedYRot);
-            player.setXRot(savedXRot);
-            player.yHeadRotO = savedHeadRotO;
-            player.yHeadRot = savedHeadRot;
+            if (EpicFightCompat.LOADED) {
+                EpicFightAnimationFreezer.restoreBodyRotation(bodyRotationSnapshot);
+                EpicFightAnimationFreezer.restoreLockedFacingIfStillActive(lockedFacing);
+                if (animationSnapshot != null) {
+                    EpicFightAnimationFreezer.restore(player, animationSnapshot);
+                }
+            }
+
+            FrozenPose.restore(player, poseSnapshot);
 
             renderingPreview = false;
             previewTarget = null;
             previewWalkAnimation = null;
-            if (EpicFightCompat.LOADED) {
-                EpicFightAnimationFreezer.restore(player, (EpicFightAnimationFreezer.FrozenAnimation) efSnapshot);
-                EpicFightAnimationFreezer.restoreBodyRotation(efBodyRotation);
-            }
-            if (poseSnapshot != null) {
-                FrozenPose.restore(player, poseSnapshot);
-            }
             graphics.disableScissor();
         }
     }

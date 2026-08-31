@@ -1,38 +1,105 @@
 package net.tablesouls.souls_combat_hud.client.util.animation;
 
 public class DecreaseRevealAnimator {
-    private static final long HOLD_MS = 400L;
-    private static final long DRAIN_MS = 500L;
+    private static final long HOLD_MS = 1000L;
 
-    private final ValueAnimator animator = new ValueAnimator(DRAIN_MS, HOLD_MS, ValueAnimator.Easing.LINEAR);
+    private static final float DRAIN_FRACTION_PER_SECOND = 0.75f;
+    private static final float DRAIN_FRACTION_PER_MS = DRAIN_FRACTION_PER_SECOND / 1000f;
+
     private float lastKnownValue = 1.0f;
     private float lastKnownMax = -1.0f;
     private boolean initialized = false;
 
+    private float lastDisplayedValue = 1.0f;
+
+    private boolean sequenceActive = false;
+    private long holdStartMillis;
+    private float holdValue;
+
+    private boolean draining = false;
+    private float drainCurrent;
+    private long lastDrainTickMillis;
+    private float sequenceBottom;
+
     public float update(float currentValue) {
-        return update(currentValue, -1.0f);
+        return update(currentValue, -1.0f, -1.0f);
     }
 
     public float update(float currentValue, float maxValue) {
+        return update(currentValue, maxValue, -1.0f);
+    }
+
+    public float update(float currentValue, float maxValue, float widthPx) {
+        long now = System.currentTimeMillis();
+
         boolean maxChanged = initialized
                 && maxValue >= 0f
                 && lastKnownMax >= 0f
                 && Math.abs(maxValue - lastKnownMax) > 1.0E-4f;
 
         if (!initialized) {
-            animator.snapTo(currentValue);
             lastKnownValue = currentValue;
             lastKnownMax = maxValue;
+            lastDisplayedValue = currentValue;
             initialized = true;
+            sequenceActive = false;
+            draining = false;
             return currentValue;
         }
 
-        if (maxChanged || currentValue > lastKnownValue + 1.0E-4f) {
-            animator.snapTo(currentValue);
+        if (maxChanged) {
+            lastKnownValue = currentValue;
+            lastKnownMax = maxValue;
+            lastDisplayedValue = currentValue;
+            sequenceActive = false;
+            draining = false;
+            return currentValue;
+        }
+
+        if (currentValue < lastKnownValue - 1.0E-4f) {
+            if (!sequenceActive) {
+                holdStartMillis = now;
+                holdValue = lastDisplayedValue;
+                sequenceActive = true;
+                draining = false;
+            }
+            sequenceBottom = currentValue;
+            if (draining) {
+                drainCurrent = lastDisplayedValue;
+                lastDrainTickMillis = now;
+            }
         }
 
         lastKnownValue = currentValue;
         lastKnownMax = maxValue;
-        return animator.update(currentValue);
+
+        float result;
+        if (!sequenceActive) {
+            result = currentValue;
+        } else {
+            long elapsed = now - holdStartMillis;
+            if (elapsed <= HOLD_MS) {
+                result = holdValue;
+            } else {
+                if (!draining) {
+                    draining = true;
+                    drainCurrent = holdValue;
+                    lastDrainTickMillis = now;
+                }
+                long dt = Math.max(0L, now - lastDrainTickMillis);
+                lastDrainTickMillis = now;
+
+                drainCurrent -= DRAIN_FRACTION_PER_MS * dt;
+                if (drainCurrent <= sequenceBottom + 1.0E-4f) {
+                    drainCurrent = sequenceBottom;
+                    sequenceActive = false;
+                    draining = false;
+                }
+                result = drainCurrent;
+            }
+        }
+
+        lastDisplayedValue = result;
+        return result;
     }
 }

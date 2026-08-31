@@ -17,7 +17,7 @@ public class BarElement {
     private float lastRawValue = -1f;
     private int pendingDamageRaw = 0;
     private long damageTextExpireAt = 0L;
-    private static final long DAMAGE_TEXT_HOLD_MS = 1500L;
+    private static final long DAMAGE_TEXT_HOLD_MS = 2000L;
 
     public float getAlpha() {
         return fade != null ? fade.tick() : 1.0F;
@@ -132,8 +132,8 @@ public class BarElement {
 
         float alpha = getAlpha();
 
-        float smoothedFraction = increaseAnim.update(currentFraction, maxValue);
-        float displayedFraction = reveal.update(smoothedFraction, maxValue);
+        float smoothedFraction = increaseAnim.update(currentFraction, maxValue, (float) w);
+        float displayedFraction = reveal.update(smoothedFraction, maxValue, (float) w);
 
         if (currentRawValue >= 0f) {
             if (lastRawValue < 0f) {
@@ -175,13 +175,6 @@ public class BarElement {
         RenderSystem.disableBlend();
     }
 
-    /**
-     * Renders using a fraction the caller has already smoothed itself, bypassing
-     * this element's internal {@code increaseAnim}/{@code reveal} chain entirely.
-     * Intended for bars (like oxygen) that don't want the combat-style
-     * "instant heal, slow damage reveal" behavior and would otherwise get
-     * double-smoothed.
-     */
     public void renderPreSmoothed(
             GuiGraphics graphics, BarStyle style, int x, int y, int w, int h,
             float fraction, boolean mirrored

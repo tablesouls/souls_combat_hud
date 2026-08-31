@@ -418,8 +418,7 @@ public class GaugeOverlay implements IGuiOverlay {
         Optional<AbstractClientPlayer> renderableEntity = subject.asRenderableEntity();
         boolean useModel = displayMode == CrestDisplayMode.MODEL
                 && !subject.isDeadOrDying()
-                && renderableEntity.isPresent()
-                && PlayerModelPreviewRenderer.isSafeToRender(renderableEntity.get());
+                && renderableEntity.isPresent();
 
         boolean rendered = useModel
                 && PlayerModelPreviewRenderer.render(graphics, renderableEntity.get(),

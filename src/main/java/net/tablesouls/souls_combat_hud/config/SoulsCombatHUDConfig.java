@@ -708,7 +708,7 @@ public final class SoulsCombatHUDConfig {
             x = builder.define("x", 24);
             y = builder.define("y", 76);
 
-            scale = builder.defineInRange("scale", 0.86, 0.25, 4.0);
+            scale = builder.defineInRange("scale", 0.8125, 0.25, 4.0);
 
             builder.pop();
         }

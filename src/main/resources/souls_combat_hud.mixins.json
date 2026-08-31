@@ -19,7 +19,8 @@
     "preview.PatchedLivingEntityRendererMixin",
     "preview.parcool.ParcoolAnimationPreviewMixin",
     "preview.playeranim.PlayerAnimatorPreviewMixin",
-    "preview.paraglider.ParagliderPosePreviewMixin"
+    "preview.paraglider.ParagliderPosePreviewMixin",
+    "preview.notenoughanimations.NotEnoughAnimationsPreviewMixin"
   ],
   "injectors": {
     "defaultRequire": 1
