@@ -2,7 +2,9 @@ package net.tablesouls.souls_combat_hud.client.util.animation;
 
 public class DecreaseRevealAnimator {
     private static final long HOLD_MS = 1000L;
-    private static final float DRAIN_PIXELS_PER_MS = 0.1f;
+
+    private static final float DRAIN_FRACTION_PER_SECOND = 0.75f;
+    private static final float DRAIN_FRACTION_PER_MS = DRAIN_FRACTION_PER_SECOND / 1000f;
 
     private float lastKnownValue = 1.0f;
     private float lastKnownMax = -1.0f;
@@ -87,11 +89,7 @@ public class DecreaseRevealAnimator {
                 long dt = Math.max(0L, now - lastDrainTickMillis);
                 lastDrainTickMillis = now;
 
-                float ratePerMs = widthPx > 0f
-                        ? DRAIN_PIXELS_PER_MS / widthPx
-                        : (1.0f / 1000f);
-
-                drainCurrent -= ratePerMs * dt;
+                drainCurrent -= DRAIN_FRACTION_PER_MS * dt;
                 if (drainCurrent <= sequenceBottom + 1.0E-4f) {
                     drainCurrent = sequenceBottom;
                     sequenceActive = false;
