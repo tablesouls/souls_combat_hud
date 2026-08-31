@@ -2,7 +2,6 @@ package net.tablesouls.souls_combat_hud.client.render.bars;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
-import org.joml.Vector3f;
 
 public final class BarDecorationRenderer {
     public static void render(
@@ -33,37 +32,22 @@ public final class BarDecorationRenderer {
                 decoration.progressV()
         );
 
-        int middleScissorMinX = leftCapX + tileSize;
-        int middleScissorMaxX = rightCapX;
+        int middleMinX = leftCapX + tileSize;
+        int middleMaxX = rightCapX;
 
-        if (middleScissorMaxX > middleScissorMinX) {
-            // enableScissor works in absolute screen pixels and ignores the pose stack, so
-            // local coordinates (which may live inside a scaled gauge overlay transform)
-            // must be converted to real screen coordinates before use here.
-            Vector3f screenMin = graphics.pose().last().pose()
-                    .transformPosition(new Vector3f(middleScissorMinX, decorationY, 0));
-            Vector3f screenMax = graphics.pose().last().pose()
-                    .transformPosition(new Vector3f(middleScissorMaxX, decorationY + tileSize, 0));
-
-            graphics.enableScissor(
-                    Math.round(screenMin.x()), Math.round(screenMin.y()),
-                    Math.round(screenMax.x()), Math.round(screenMax.y())
-            );
-            renderTiledMiddle(
-                    graphics,
-                    decoration.texture(),
-                    x,
-                    decorationY,
-                    width,
-                    tileSize,
-                    decoration.middleU(),
-                    decoration.middleV(),
-                    tileSize,
-                    textureWidth,
-                    textureHeight
-            );
-            graphics.disableScissor();
-        }
+        renderTiledMiddleClipped(
+                graphics,
+                decoration.texture(),
+                x,
+                decorationY,
+                middleMinX,
+                middleMaxX,
+                decoration.middleU(),
+                decoration.middleV(),
+                tileSize,
+                textureWidth,
+                textureHeight
+        );
 
         renderTile(
                 graphics,
@@ -114,31 +98,38 @@ public final class BarDecorationRenderer {
         );
     }
 
-    private static void renderTiledMiddle(
+    private static void renderTiledMiddleClipped(
             GuiGraphics graphics,
             ResourceLocation texture,
-            int x,
+            int anchorX,
             int y,
-            int width,
-            int height,
+            int minX,
+            int maxX,
             int u,
             int v,
             int tileSize,
             int textureWidth,
             int textureHeight
     ) {
-        int drawnWidth = 0;
+        if (maxX <= minX) return;
 
-        while (drawnWidth < width) {
-            int sliceWidth = Math.min(tileSize, width - drawnWidth);
+        int offsetFromAnchor = minX - anchorX;
+        int tileIndexStart = Math.floorDiv(offsetFromAnchor, tileSize);
+        int tileStartX = anchorX + tileIndexStart * tileSize;
+
+        int drawX = minX;
+        while (drawX < maxX) {
+            int tileLocalStart = drawX - tileStartX;
+            int remainingInTile = tileSize - tileLocalStart;
+            int sliceWidth = Math.min(remainingInTile, maxX - drawX);
 
             graphics.blit(
                     texture,
-                    x + drawnWidth,
+                    drawX,
                     y,
                     sliceWidth,
-                    height,
-                    u,
+                    tileSize,
+                    u + tileLocalStart,
                     v,
                     sliceWidth,
                     tileSize,
@@ -146,7 +137,8 @@ public final class BarDecorationRenderer {
                     textureHeight
             );
 
-            drawnWidth += sliceWidth;
+            drawX += sliceWidth;
+            tileStartX += tileSize;
         }
     }
 }

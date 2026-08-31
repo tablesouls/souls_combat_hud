@@ -244,7 +244,7 @@ public class ExperienceOverlay implements IGuiOverlay {
                 gainX,
                 gainY,
                 gainColor,
-                false
+                true
         );
 
         guiGraphics.pose().popPose();

@@ -44,7 +44,9 @@ public class BossbarOverlay implements IGuiOverlay {
 
         int localBarX = -barW * (anchor.dx() + 1) / 2;
         int localBaseY = -barH * (anchor.dy() + 1) / 2;
-        int rowStep = anchor.isBottom() ? -18 : 18;
+
+        int rowGap = 20;
+        int rowStep = anchor.isBottom() ? -rowGap : rowGap;
 
         Map<UUID, BossBarState.Entry> active = BossBarState.getActive();
 
