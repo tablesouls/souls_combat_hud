@@ -4,5 +4,6 @@ public enum StaminaSourceMode implements SourceMode {
     AUTO,
     EPIC_FIGHT,
     PARCOOL,
-    PARAGLIDER
+    PARAGLIDER,
+    MINE_AND_SLASH
 }

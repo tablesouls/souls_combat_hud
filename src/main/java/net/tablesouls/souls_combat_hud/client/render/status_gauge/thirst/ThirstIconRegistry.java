@@ -17,6 +17,13 @@ public final class ThirstIconRegistry {
                 0,
                 new int[]{0, 8, 16}
         ));
+        ICONS.put(ThirstSourceMode.LEGENDARY_SURVIVAL_OVERHAUL, new ThirstIcon(
+                ResourceLocation.fromNamespaceAndPath("legendarysurvivaloverhaul", "textures/gui/overlay.png"),
+                256, 256,
+                9,
+                0,
+                new int[]{0, 18, 9}
+        ));
     }
 
     public static ThirstIcon get(ThirstSourceMode mode) {
