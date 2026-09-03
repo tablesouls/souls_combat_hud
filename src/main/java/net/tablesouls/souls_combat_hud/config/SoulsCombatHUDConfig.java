@@ -14,16 +14,18 @@ public final class SoulsCombatHUDConfig {
     public static final ForgeConfigSpec CLIENT_SPEC;
     public static final ForgeConfigSpec SERVER_SPEC;
 
-    private static final Map<StaminaSourceMode, int[]> STAMINA_PRESET_DEFAULTS = new EnumMap<>(StaminaSourceMode.class);
+    private static final Map<StaminaSourceMode, double[]> STAMINA_PRESET_DEFAULTS = new EnumMap<>(StaminaSourceMode.class);
     static {
-        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.EPIC_FIGHT, new int[]{20, 45});
-        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.PARCOOL, new int[]{2000, 3000});
-        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.PARAGLIDER, new int[]{1000, 3000});
+        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.EPIC_FIGHT, new double[]{20, 45, 1.0});
+        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.PARCOOL, new double[]{2000, 3000, 1.0});
+        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.PARAGLIDER, new double[]{1000, 3000, 1.0});
+        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.MINE_AND_SLASH, new double[]{50, 1040, 0.4});
     }
 
-    private static final Map<ManaSourceMode, int[]> MANA_PRESET_DEFAULTS = new EnumMap<>(ManaSourceMode.class);
+    private static final Map<ManaSourceMode, double[]> MANA_PRESET_DEFAULTS = new EnumMap<>(ManaSourceMode.class);
     static {
-        MANA_PRESET_DEFAULTS.put(ManaSourceMode.IRONS_SPELLBOOKS, new int[]{100, 800});
+        MANA_PRESET_DEFAULTS.put(ManaSourceMode.IRONS_SPELLBOOKS, new double[]{100, 800, 1.0});
+        MANA_PRESET_DEFAULTS.put(ManaSourceMode.MINE_AND_SLASH, new double[]{50, 1040, 0.4});
     }
 
     public static final StatsData STATS_DATA;
@@ -62,43 +64,38 @@ public final class SoulsCombatHUDConfig {
     public static class StatThreshold {
         public final ForgeConfigSpec.IntValue baseline;
         public final ForgeConfigSpec.IntValue projectedMax;
+        public final ForgeConfigSpec.DoubleValue barWidthCurve;
 
-        StatThreshold(ForgeConfigSpec.Builder builder, String key, int defaultBaseline, int defaultProjectedMax) {
+        StatThreshold(ForgeConfigSpec.Builder builder, String key,
+                      int defaultBaseline, int defaultProjectedMax, double defaultCurveExponent
+        ) {
             builder.push(key);
 
             baseline = builder.defineInRange("baseline", defaultBaseline, 1, Integer.MAX_VALUE);
             projectedMax = builder.defineInRange("projected_max", defaultProjectedMax, 1, Integer.MAX_VALUE);
-
+            barWidthCurve = builder.defineInRange("bar_width_curve", defaultCurveExponent, 0.1, 3.0);
             builder.pop();
         }
     }
 
     public static class PresetStatThreshold<M extends Enum<M>> {
-        public final ForgeConfigSpec.IntValue baseline;
-        public final ForgeConfigSpec.IntValue projectedMax;
         public final Map<M, StatThreshold> presets;
 
         PresetStatThreshold(
                 ForgeConfigSpec.Builder builder, String key, Class<M> modeClass,
-                int defaultBaseline, int defaultProjectedMax,
-                Map<M, int[]> presetDefaults
+                Map<M, double[]> presetDefaults
         ) {
             builder.push(key);
-
-            baseline = builder
-                    .comment("Default baseline used when the active source has no preset below (e.g. AUTO).")
-                    .defineInRange("baseline", defaultBaseline, 1, Integer.MAX_VALUE);
-            projectedMax = builder
-                    .comment("Default projected_max used when the active source has no preset.")
-                    .defineInRange("projected_max", defaultProjectedMax, 1, Integer.MAX_VALUE);
-
             builder.push("presets");
 
             Map<M, StatThreshold> built = new EnumMap<>(modeClass);
             for (M mode : modeClass.getEnumConstants()) {
-                int[] defaults = presetDefaults.get(mode);
+                double[] defaults = presetDefaults.get(mode);
                 if (defaults == null) continue;
-                built.put(mode, new StatThreshold(builder, mode.name().toLowerCase(Locale.ROOT), defaults[0], defaults[1]));
+                built.put(mode, new StatThreshold(
+                        builder, mode.name().toLowerCase(Locale.ROOT),
+                        (int) defaults[0], (int) defaults[1], defaults[2])
+                );
             }
             presets = Collections.unmodifiableMap(built);
 
@@ -115,12 +112,14 @@ public final class SoulsCombatHUDConfig {
         StatsData(ForgeConfigSpec.Builder builder) {
             builder.comment(
                     "Baseline and projected-max values used to scale HUD bar widths.",
-                    "Clients can choose whether to trust these via their own status_bars config."
+                    "You will most likely be editing the server config version of stats data",
+                    "Clients can choose whether to force server values or use their client config.",
+                    "You need to use the reload command or reload the world to see the updated values."
             ).push("stats_data");
 
-            health = new StatThreshold(builder, "health", 20, 50);
-            stamina = new PresetStatThreshold<>(builder, "stamina", StaminaSourceMode.class, 15, 35, STAMINA_PRESET_DEFAULTS);
-            mana = new PresetStatThreshold<>(builder, "mana", ManaSourceMode.class, 100, 800, MANA_PRESET_DEFAULTS);
+            health = new StatThreshold(builder, "health", 20, 50, 1.0);
+            stamina = new PresetStatThreshold<>(builder, "stamina", StaminaSourceMode.class, STAMINA_PRESET_DEFAULTS);
+            mana = new PresetStatThreshold<>(builder, "mana", ManaSourceMode.class, MANA_PRESET_DEFAULTS);
 
             builder.pop();
         }
@@ -579,9 +578,9 @@ public final class SoulsCombatHUDConfig {
                     .comment("Should status bar have equal width. Set 0 to disable.")
                     .defineInRange("constant_bar_width", 0, 0, 512);
 
-            health = new StatThreshold(builder, "health", 20, 50);
-            stamina = new PresetStatThreshold<>(builder, "stamina", StaminaSourceMode.class, 15, 35, STAMINA_PRESET_DEFAULTS);
-            mana = new PresetStatThreshold<>(builder, "mana", ManaSourceMode.class, 100, 800, MANA_PRESET_DEFAULTS);
+            health = new StatThreshold(builder, "health", 20, 50, 1.0);
+            stamina = new PresetStatThreshold<>(builder, "stamina", StaminaSourceMode.class, STAMINA_PRESET_DEFAULTS);
+            mana = new PresetStatThreshold<>(builder, "mana", ManaSourceMode.class, MANA_PRESET_DEFAULTS);
 
             builder.pop();
         }

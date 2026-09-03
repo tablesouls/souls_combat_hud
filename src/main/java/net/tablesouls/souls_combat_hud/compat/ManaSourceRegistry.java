@@ -2,6 +2,8 @@ package net.tablesouls.souls_combat_hud.compat;
 
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsCompat;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsManaSource;
+import net.tablesouls.souls_combat_hud.compat.mineandslash.MineAndSlashCompat;
+import net.tablesouls.souls_combat_hud.compat.mineandslash.MineAndSlashManaSource;
 import net.tablesouls.souls_combat_hud.config.ManaSourceMode;
 
 public final class ManaSourceRegistry extends AbstractResourceSourceRegistry<ManaSourceMode> {
@@ -13,6 +15,10 @@ public final class ManaSourceRegistry extends AbstractResourceSourceRegistry<Man
 
         if (IronsSpellsCompat.LOADED) {
             register(new IronsSpellsManaSource());
+        }
+
+        if (MineAndSlashCompat.LOADED) {
+            register(new MineAndSlashManaSource());
         }
     }
 }
