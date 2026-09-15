@@ -17,10 +17,15 @@ public class TexturedToggleButton extends AbstractButton {
     private final int texV;
     private final OnPress onPress;
 
-    public TexturedToggleButton(int x, int y, int width, int height,
-                                Component message, ResourceLocation texture,
-                                int texWidth, int texHeight, int texU, int texV,
-                                OnPress onPress) {
+    public TexturedToggleButton(
+            int x, int y,
+            int width, int height,
+            Component message,
+            ResourceLocation texture,
+            int texWidth, int texHeight,
+            int texU, int texV,
+            OnPress onPress)
+    {
         super(x, y, width, height, message);
         this.texture = texture;
         this.texWidth = texWidth;

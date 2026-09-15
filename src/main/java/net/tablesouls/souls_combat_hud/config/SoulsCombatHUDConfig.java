@@ -607,6 +607,7 @@ public final class SoulsCombatHUDConfig {
 
     public static class PlayerGaugeOverlay {
         public final ForgeConfigSpec.BooleanValue enabled;
+        public final ForgeConfigSpec.BooleanValue statusBars;
         public final ForgeConfigSpec.EnumValue<CrestDisplayMode> crestDisplayMode;
         public final ForgeConfigSpec.BooleanValue crestTeamOutline;
         public final ForgeConfigSpec.BooleanValue crestAttributes;
@@ -625,14 +626,11 @@ public final class SoulsCombatHUDConfig {
                     .comment("Toggle player gauge overlay")
                     .define("enabled", true);
 
-            crestDisplayMode = builder
-                    .defineEnum("crest_display_mode", CrestDisplayMode.MODEL);
+            statusBars = builder.define("status_bars", true);
 
-            crestTeamOutline = builder
-                    .define("crest_team_outline", true);
-
-            crestAttributes = builder
-                    .define("crest_attributes", true);
+            crestDisplayMode = builder.defineEnum("crest_display_mode", CrestDisplayMode.MODEL);
+            crestTeamOutline = builder.define("crest_team_outline", true);
+            crestAttributes = builder.define("crest_attributes", true);
 
             anchor = builder.defineEnum(
                     "anchor",
@@ -650,6 +648,7 @@ public final class SoulsCombatHUDConfig {
 
     public static class PartyGaugeOverlay {
         public final ForgeConfigSpec.BooleanValue enabled;
+        public final ForgeConfigSpec.BooleanValue statusBars;
         public final ForgeConfigSpec.BooleanValue crestTeamOutline;
         public final ForgeConfigSpec.EnumValue<CrestDisplayMode> crestDisplayMode;
         public final ForgeConfigSpec.IntValue maxDisplayedPartyMembers;
@@ -673,11 +672,10 @@ public final class SoulsCombatHUDConfig {
                     .comment("Toggle party gauge overlay")
                     .define("enabled", true);
 
-            crestTeamOutline = builder
-                    .define("crest_team_outline", true);
+            statusBars = builder.define("status_bars", true);
 
-            crestDisplayMode = builder
-                    .defineEnum("crest_display_mode", CrestDisplayMode.MODEL);
+            crestDisplayMode = builder.defineEnum("crest_display_mode", CrestDisplayMode.MODEL);
+            crestTeamOutline = builder.define("crest_team_outline", true);
 
             maxDisplayedPartyMembers = builder
                     .comment("Maximum amount of party members to display")
@@ -892,7 +890,7 @@ public final class SoulsCombatHUDConfig {
             scale = builder.defineInRange("scale", 1.0, 0.25, 4.0);
             width = builder.define("width", 320);
             x = builder.define("x", 0);
-            y = builder.define("y", 72);
+            y = builder.define("y", 64);
 
             builder.pop();
         }

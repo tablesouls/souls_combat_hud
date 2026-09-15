@@ -149,7 +149,9 @@ public class PartyGaugeOverlay implements IGuiOverlay {
 
         int gaugesX = mirrored ? x - gaugesLayout.x() : x + gaugesLayout.x();
         if (gaugesLayout.enabled() && subject.isOnline()) {
-            int rowsBottom = slot.renderGaugeRows(graphics, subject, font, gaugesX, y + gaugesLayout.y(), mirrored);
+            int rowsBottom = slot.renderGaugeRows(
+                    graphics, subject, font, gaugesX, y + gaugesLayout.y(), mirrored,
+                    SoulsCombatHUDConfig.STATUS_GAUGE.partyGauge.statusBars.get());
             contentBottom = Math.max(contentBottom, rowsBottom);
         }
 

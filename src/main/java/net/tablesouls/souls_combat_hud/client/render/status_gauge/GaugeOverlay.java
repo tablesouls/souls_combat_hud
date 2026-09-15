@@ -181,7 +181,8 @@ public class GaugeOverlay implements IGuiOverlay {
         }
 
         if (subject.isOnline() && gaugesLayout.enabled()) {
-            this.renderGaugeRows(guiGraphics, subject, font, gaugesX, gaugesY, mirrored);
+            this.renderGaugeRows(guiGraphics, subject, font, gaugesX, gaugesY, mirrored,
+                    SoulsCombatHUDConfig.STATUS_GAUGE.playerGauge.statusBars.get());
         }
 
         if (playerNameLayout.enabled()) {
@@ -234,25 +235,35 @@ public class GaugeOverlay implements IGuiOverlay {
             GaugeSubject subject,
             Font font,
             int x, int y,
-            boolean mirrored
+            boolean mirrored,
+            boolean showStatusBars
     ) {
         int rowGap = gaugeStyles.getRowGap();
         int cursorY = y;
 
         for (GaugeRow row : gaugeStyles.getRowOrder()) {
             switch (row) {
-                case HEALTH -> cursorY = renderBarRow(
+                case HEALTH -> {
+                    if (!showStatusBars) continue;
+                    cursorY = renderBarRow(
                         graphics, subject, gaugeStyles.getLayout("health", GaugeLayout.DEFAULT),
                         x, y, cursorY, HEALTH_BAR_HEIGHT, rowGap, mirrored,
                         subject.hasHealthData(), this::renderHealthBar);
-                case STAMINA -> cursorY = renderBarRow(
+                }
+                case STAMINA -> {
+                    if (!showStatusBars) continue;
+                    cursorY = renderBarRow(
                         graphics, subject, gaugeStyles.getLayout("stamina", GaugeLayout.DEFAULT),
                         x, y, cursorY, STAMINA_BAR_HEIGHT, rowGap, mirrored,
                         subject.hasStamina(), this::renderStaminaBar);
-                case MANA -> cursorY = renderBarRow(
+                }
+                case MANA -> {
+                    if (!showStatusBars) continue;
+                    cursorY = renderBarRow(
                         graphics, subject, gaugeStyles.getLayout("mana", GaugeLayout.DEFAULT),
                         x, y, cursorY, MANA_BAR_HEIGHT, rowGap, mirrored,
                         subject.hasMana(), this::renderManaBar);
+                }
                 case STATUS_EFFECTS -> {
                     GaugeLayout statusEffectsLayout = gaugeStyles.getLayout("status_effects", GaugeLayout.DEFAULT);
                     if (!statusEffectsLayout.enabled()) continue;
@@ -265,7 +276,7 @@ public class GaugeOverlay implements IGuiOverlay {
                         effects = effects.subList(0, maxDisplayed);
                     }
 
-                    if (effects.isEmpty()) continue; // collapse: no icons, no row consumed
+                    if (effects.isEmpty()) continue;
 
                     boolean overridePosition = statusEffectsLayout.overridePosition();
                     int rowY = overridePosition ? y : cursorY;
