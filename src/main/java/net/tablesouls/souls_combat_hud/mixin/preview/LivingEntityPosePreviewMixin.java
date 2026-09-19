@@ -46,6 +46,13 @@ public abstract class LivingEntityPosePreviewMixin {
         }
     }
 
+    @Inject(method = "getFallFlyingTicks", at = @At("RETURN"), cancellable = true)
+    private void souls_combat_hud$freezeFallFlyingTicks(CallbackInfoReturnable<Integer> cir) {
+        if (PlayerModelPreviewRenderer.isPreviewTarget((Entity) (Object) this)) {
+            cir.setReturnValue(0);
+        }
+    }
+
     @Inject(method = "isAutoSpinAttack", at = @At("RETURN"), cancellable = true)
     private void souls_combat_hud$freezeSpinAttack(CallbackInfoReturnable<Boolean> cir) {
         if (PlayerModelPreviewRenderer.isPreviewTarget((Entity) (Object) this)) {

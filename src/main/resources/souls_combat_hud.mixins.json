@@ -21,7 +21,9 @@
     "preview.parcool.ParcoolV4AnimationPreviewMixin",
     "preview.playeranim.PlayerAnimatorPreviewMixin",
     "preview.paraglider.ParagliderPosePreviewMixin",
-    "preview.notenoughanimations.NotEnoughAnimationsPreviewMixin"
+    "preview.notenoughanimations.NotEnoughAnimationsPreviewMixin",
+    "preview.create.CreateSkyhookPosePreviewMixin",
+    "preview.create.CreateArmPosePreviewMixin"
   ],
   "injectors": {
     "defaultRequire": 1

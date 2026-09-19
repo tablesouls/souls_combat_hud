@@ -179,6 +179,7 @@ dependencies {
     compileOnly fg.deobf("curse.maven:mine-and-slash-reloaded-306575:${mine_and_slash_version}")
     compileOnly fg.deobf("curse.maven:library-of-exile-398780:${library_of_exile_version}")
     compileOnly fg.deobf("curse.maven:not-enough-animations-433760:${not_enough_animations_version}")
+    compileOnly fg.deobf("curse.maven:create-328085:${create_forge_version}")
     compileOnly fg.deobf("curse.maven:legendary-survival-overhaul-840254:${legendarysurvivaloverhaul_version}")
 
     if (compatModsRuntime) {

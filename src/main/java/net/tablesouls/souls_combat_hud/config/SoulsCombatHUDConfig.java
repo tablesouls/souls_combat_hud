@@ -852,6 +852,7 @@ public final class SoulsCombatHUDConfig {
     public static class CustomBossbar {
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.BooleanValue reductionValueText;
+        public final ForgeConfigSpec.BooleanValue ignoreBossNameFormatting;
         public final ForgeConfigSpec.LongValue disappear_delay;
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
         public final ForgeConfigSpec.ConfigValue<Integer> maxVisible;
@@ -871,6 +872,10 @@ public final class SoulsCombatHUDConfig {
             reductionValueText = builder
                     .comment("Should the bossbar display the damage value it has taken. This only works if mod is installed on the server.")
                     .define("reduction_value_text", true);
+
+            ignoreBossNameFormatting = builder
+                    .comment("Should the bossbar name text allow the text to be colored etc.")
+                    .define("ignore_boss_name_formatting", true);
 
             disappear_delay = builder
                     .comment("Delay in miliseconds before the bossbar disappears",
