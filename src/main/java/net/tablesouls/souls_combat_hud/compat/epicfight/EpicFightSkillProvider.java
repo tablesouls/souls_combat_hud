@@ -3,11 +3,13 @@ package net.tablesouls.souls_combat_hud.compat.epicfight;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.tablesouls.souls_combat_hud.client.render.SkillOverlayRenderer;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
+import net.tablesouls.souls_combat_hud.debug.DebugLogger;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.skill.SkillContainer;
@@ -35,6 +37,10 @@ public final class EpicFightSkillProvider {
             return;
         }
 
+        if (SoulsCombatHUDConfig.DEBUG_CLIENT.enabled.get()) {
+            DebugLogger.logSkillIds(playerpatch);
+        }
+
         Font font = minecraft.font;
 
         SkillContainer weaponInnate = playerpatch.getSkill(SkillSlots.WEAPON_INNATE);
@@ -47,10 +53,17 @@ public final class EpicFightSkillProvider {
             if (slot == SkillSlots.WEAPON_INNATE) {
                 continue;
             }
+
             SkillContainer container = playerpatch.getSkill(slot);
-            if (container != null && !container.isEmpty() && SkillOverlayRenderer.shouldDraw(container)) {
-                otherSkills.add(container);
+            if (container == null || container.isEmpty() || !SkillOverlayRenderer.shouldDraw(container)) {
+                continue;
             }
+
+            if (slot == SkillSlots.WEAPON_PASSIVE && !isSpecialPassiveSkillOverlay(container)) {
+                continue;
+            }
+
+            otherSkills.add(container);
         }
 
         if (!drawWeaponInnate && otherSkills.isEmpty()) {
@@ -74,8 +87,6 @@ public final class EpicFightSkillProvider {
         guiGraphics.pose().translate(anchorX, anchorY, 0);
         guiGraphics.pose().scale(scale, scale, 1.0f);
 
-        // Local to the translated/scaled origin: rows (and the gaps between them)
-        // scale together as one block, same as the gauge overlays.
         int cursorY = 0;
 
         if (drawWeaponInnate) {
@@ -89,5 +100,15 @@ public final class EpicFightSkillProvider {
         }
 
         guiGraphics.pose().popPose();
+    }
+
+    public static boolean isSpecialPassiveSkillOverlay(SkillContainer container) {
+        if (!SoulsCombatHUDConfig.SKILL_OVERLAY.enabled.get()
+                || !SoulsCombatHUDConfig.SKILL_OVERLAY.weaponPassiveSkills.get()) {
+            return false;
+        }
+        ResourceLocation skillId = container.getSkill().getRegistryName();
+        return skillId == null
+                || !SoulsCombatHUDConfig.SKILL_OVERLAY.weaponPassiveSkillsBlacklist.get().contains(skillId.toString());
     }
 }

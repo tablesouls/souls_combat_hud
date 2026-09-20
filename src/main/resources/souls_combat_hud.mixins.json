@@ -11,6 +11,7 @@
     "client.ReleaseUsingItemMixin",
     "client.GuiOffhandMixin",
     "client.MobEffectInstanceMixin",
+    "client.BattleModeGuiMixin",
     "preview.EntityPreviewMixin",
     "preview.LivingEntityPosePreviewMixin",
     "preview.LivingEntityRendererPreviewMixin",

@@ -39,6 +39,7 @@ public final class SoulsCombatHUDConfig {
     public static final ExperienceOverlay EXPERIENCE_OVERLAY;
     public static final StatusGauge STATUS_GAUGE;
     public static final Visibility VISIBILITY;
+    public static final DebugClient DEBUG_CLIENT;
 
     static {
         ForgeConfigSpec.Builder clientBuilder = new ForgeConfigSpec.Builder();
@@ -57,6 +58,7 @@ public final class SoulsCombatHUDConfig {
         EXPERIENCE_OVERLAY = new ExperienceOverlay(clientBuilder);
         STATUS_GAUGE = new StatusGauge(clientBuilder);
         VISIBILITY = new Visibility(clientBuilder);
+        DEBUG_CLIENT = new DebugClient(clientBuilder);
 
         CLIENT_SPEC = clientBuilder.build();
     }
@@ -234,12 +236,28 @@ public final class SoulsCombatHUDConfig {
         }
     }
 
+    public static class DebugClient {
+        public final ForgeConfigSpec.BooleanValue enabled;
+
+        DebugClient(ForgeConfigSpec.Builder builder) {
+            builder.push("debug_client");
+
+            enabled = builder
+                    .comment("Allow the mod to send output to log. Useful for obtaining skill overlay ids.")
+                    .define("enabled", false);
+
+            builder.pop();
+        }
+    }
+
     public static class SkillOverlay {
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
         public final ForgeConfigSpec.DoubleValue scale;
         public final ForgeConfigSpec.ConfigValue<Integer> x;
         public final ForgeConfigSpec.ConfigValue<Integer> y;
+        public final ForgeConfigSpec.BooleanValue weaponPassiveSkills;
+        public final ForgeConfigSpec.ConfigValue<List<? extends String>> weaponPassiveSkillsBlacklist;
 
         SkillOverlay(ForgeConfigSpec.Builder builder) {
             builder.comment("Skill Overlay").push("skill_overlay");
@@ -257,6 +275,20 @@ public final class SoulsCombatHUDConfig {
             y = builder.define("y", 120);
 
             scale = builder.defineInRange("scale", 1.0, 0.25, 4.0);
+
+            weaponPassiveSkills = builder
+                    .comment("Show weapon passive skills. Note that it may break epic fight addons that utilizes special skill overlays.")
+                    .define("weapon_passive_skills", false);
+
+            weaponPassiveSkillsBlacklist = builder
+                    .comment("Dont use custom skill overlay for certain passive skills.")
+                    .defineList(
+                            "weapon_passive_skills_blacklist",
+                            List.of(
+                                    "wom:solar_passive",
+                                    "wom:napoleon_passive"
+                            ), o -> o instanceof String
+                    );
 
             builder.pop();
         }
@@ -368,8 +400,8 @@ public final class SoulsCombatHUDConfig {
                 public final ForgeConfigSpec.BooleanValue enabled;
                 public final PreviewSlots previewSlots;
                 public final ForgeConfigSpec.BooleanValue includeCombatPreferred;
-                public final ForgeConfigSpec.ConfigValue<List<? extends String>> includeWeaponsList;
-                public final ForgeConfigSpec.ConfigValue<List<? extends String>> excludeWeaponsList;
+                public final ForgeConfigSpec.ConfigValue<List<? extends String>> weaponsWhitelist;
+                public final ForgeConfigSpec.ConfigValue<List<? extends String>> weaponsBlacklist;
                 public final ForgeConfigSpec.ConfigValue<Integer> x;
                 public final ForgeConfigSpec.ConfigValue<Integer> y;
 
@@ -388,12 +420,12 @@ public final class SoulsCombatHUDConfig {
                     includeCombatPreferred = builder
                             .comment("Include Combat Preferred Items (Epic Fight)")
                             .define("include_combat_prefered", true);
-                    includeWeaponsList = builder
+                    weaponsWhitelist = builder
                             .comment("Include items as a weapon")
-                            .defineList("include_weapons_list", List.of(), o -> o instanceof String);
-                    excludeWeaponsList = builder
+                            .defineList("weapons_whitelist", List.of(), o -> o instanceof String);
+                    weaponsBlacklist = builder
                             .comment("Exclude items as a weapon")
-                            .defineList("exclude_weapons_list", List.of(), o -> o instanceof String);
+                            .defineList("weapons_blacklist", List.of(), o -> o instanceof String);
                     x = builder.define("x", 28);
                     y = builder.define("y", 0);
                     builder.pop();
@@ -430,9 +462,9 @@ public final class SoulsCombatHUDConfig {
                 public final PreviewSlots previewSlots;
                 public final ForgeConfigSpec.BooleanValue cycleConsumableSwitch;
                 public final ForgeConfigSpec.BooleanValue useConsumableOnSelected;
-                public final ForgeConfigSpec.ConfigValue<List<? extends String>> includeConsumableList;
-                public final ForgeConfigSpec.ConfigValue<List<? extends String>> excludeConsumableList;
-                public final ForgeConfigSpec.ConfigValue<List<? extends String>> excludeAutoConsumeList;
+                public final ForgeConfigSpec.ConfigValue<List<? extends String>> consumableWhitelist;
+                public final ForgeConfigSpec.ConfigValue<List<? extends String>> consumableBlacklist;
+                public final ForgeConfigSpec.ConfigValue<List<? extends String>> autoconsumeBlacklist;
                 public final ForgeConfigSpec.ConfigValue<Integer> x;
                 public final ForgeConfigSpec.ConfigValue<Integer> y;
 
@@ -454,15 +486,15 @@ public final class SoulsCombatHUDConfig {
                             ElementOrientation.HORIZONTAL,
                             0,
                             -16);
-                    includeConsumableList = builder
+                    consumableWhitelist = builder
                             .comment("Include items as a consumable")
-                            .defineList("include_consumables_list", List.of(), o -> o instanceof String);
-                    excludeConsumableList = builder
+                            .defineList("consumables_whitelist", List.of(), o -> o instanceof String);
+                    consumableBlacklist = builder
                             .comment("Exclude items as a consumable")
-                            .defineList("exclude_consumables_list", List.of(), o -> o instanceof String);
-                    excludeAutoConsumeList = builder
+                            .defineList("consumables_blacklist", List.of(), o -> o instanceof String);
+                    autoconsumeBlacklist = builder
                             .comment("Exclude items that should autoconsume")
-                            .defineList("exclude_autoconsume_list", List.of(
+                            .defineList("autoconsume_blacklist", List.of(
                                     "remnantcurios:flask"
                             ), o -> o instanceof String);
                     x = builder.define("x", 0);

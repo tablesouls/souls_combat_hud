@@ -18,11 +18,11 @@ import java.util.List;
 
 public class ConsumableSlotManager {
     private static final RegexItemList INCLUDE_CONSUMABLES =
-            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.includeConsumableList);
+            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.consumableWhitelist);
     private static final RegexItemList EXCLUDE_CONSUMABLES =
-            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.excludeConsumableList);
+            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.consumableBlacklist);
     private static final RegexItemList EXCLUDE_AUTO_CONSUME =
-            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.excludeAutoConsumeList);
+            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.consumable.autoconsumeBlacklist);
 
     private static int selectedIndex = 0;
     private static Item lastSelectedItem = null;
