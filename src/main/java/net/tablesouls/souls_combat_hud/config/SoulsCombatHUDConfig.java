@@ -14,16 +14,18 @@ public final class SoulsCombatHUDConfig {
     public static final ForgeConfigSpec CLIENT_SPEC;
     public static final ForgeConfigSpec SERVER_SPEC;
 
-    private static final Map<StaminaSourceMode, int[]> STAMINA_PRESET_DEFAULTS = new EnumMap<>(StaminaSourceMode.class);
+    private static final Map<StaminaSourceMode, double[]> STAMINA_PRESET_DEFAULTS = new EnumMap<>(StaminaSourceMode.class);
     static {
-        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.EPIC_FIGHT, new int[]{20, 45});
-        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.PARCOOL, new int[]{2000, 3000});
-        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.PARAGLIDER, new int[]{1000, 3000});
+        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.EPIC_FIGHT, new double[]{20, 45, 1.0});
+        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.PARCOOL, new double[]{2000, 3000, 1.0});
+        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.PARAGLIDER, new double[]{1000, 3000, 1.0});
+        STAMINA_PRESET_DEFAULTS.put(StaminaSourceMode.MINE_AND_SLASH, new double[]{50, 1040, 0.4});
     }
 
-    private static final Map<ManaSourceMode, int[]> MANA_PRESET_DEFAULTS = new EnumMap<>(ManaSourceMode.class);
+    private static final Map<ManaSourceMode, double[]> MANA_PRESET_DEFAULTS = new EnumMap<>(ManaSourceMode.class);
     static {
-        MANA_PRESET_DEFAULTS.put(ManaSourceMode.IRONS_SPELLBOOKS, new int[]{100, 800});
+        MANA_PRESET_DEFAULTS.put(ManaSourceMode.IRONS_SPELLBOOKS, new double[]{100, 800, 1.0});
+        MANA_PRESET_DEFAULTS.put(ManaSourceMode.MINE_AND_SLASH, new double[]{50, 1040, 0.4});
     }
 
     public static final StatsData STATS_DATA;
@@ -37,6 +39,7 @@ public final class SoulsCombatHUDConfig {
     public static final ExperienceOverlay EXPERIENCE_OVERLAY;
     public static final StatusGauge STATUS_GAUGE;
     public static final Visibility VISIBILITY;
+    public static final DebugClient DEBUG_CLIENT;
 
     static {
         ForgeConfigSpec.Builder clientBuilder = new ForgeConfigSpec.Builder();
@@ -55,6 +58,7 @@ public final class SoulsCombatHUDConfig {
         EXPERIENCE_OVERLAY = new ExperienceOverlay(clientBuilder);
         STATUS_GAUGE = new StatusGauge(clientBuilder);
         VISIBILITY = new Visibility(clientBuilder);
+        DEBUG_CLIENT = new DebugClient(clientBuilder);
 
         CLIENT_SPEC = clientBuilder.build();
     }
@@ -62,43 +66,38 @@ public final class SoulsCombatHUDConfig {
     public static class StatThreshold {
         public final ForgeConfigSpec.IntValue baseline;
         public final ForgeConfigSpec.IntValue projectedMax;
+        public final ForgeConfigSpec.DoubleValue barWidthCurve;
 
-        StatThreshold(ForgeConfigSpec.Builder builder, String key, int defaultBaseline, int defaultProjectedMax) {
+        StatThreshold(ForgeConfigSpec.Builder builder, String key,
+                      int defaultBaseline, int defaultProjectedMax, double defaultCurveExponent
+        ) {
             builder.push(key);
 
             baseline = builder.defineInRange("baseline", defaultBaseline, 1, Integer.MAX_VALUE);
             projectedMax = builder.defineInRange("projected_max", defaultProjectedMax, 1, Integer.MAX_VALUE);
-
+            barWidthCurve = builder.defineInRange("bar_width_curve", defaultCurveExponent, 0.1, 3.0);
             builder.pop();
         }
     }
 
     public static class PresetStatThreshold<M extends Enum<M>> {
-        public final ForgeConfigSpec.IntValue baseline;
-        public final ForgeConfigSpec.IntValue projectedMax;
         public final Map<M, StatThreshold> presets;
 
         PresetStatThreshold(
                 ForgeConfigSpec.Builder builder, String key, Class<M> modeClass,
-                int defaultBaseline, int defaultProjectedMax,
-                Map<M, int[]> presetDefaults
+                Map<M, double[]> presetDefaults
         ) {
             builder.push(key);
-
-            baseline = builder
-                    .comment("Default baseline used when the active source has no preset below (e.g. AUTO).")
-                    .defineInRange("baseline", defaultBaseline, 1, Integer.MAX_VALUE);
-            projectedMax = builder
-                    .comment("Default projected_max used when the active source has no preset.")
-                    .defineInRange("projected_max", defaultProjectedMax, 1, Integer.MAX_VALUE);
-
             builder.push("presets");
 
             Map<M, StatThreshold> built = new EnumMap<>(modeClass);
             for (M mode : modeClass.getEnumConstants()) {
-                int[] defaults = presetDefaults.get(mode);
+                double[] defaults = presetDefaults.get(mode);
                 if (defaults == null) continue;
-                built.put(mode, new StatThreshold(builder, mode.name().toLowerCase(Locale.ROOT), defaults[0], defaults[1]));
+                built.put(mode, new StatThreshold(
+                        builder, mode.name().toLowerCase(Locale.ROOT),
+                        (int) defaults[0], (int) defaults[1], defaults[2])
+                );
             }
             presets = Collections.unmodifiableMap(built);
 
@@ -115,12 +114,14 @@ public final class SoulsCombatHUDConfig {
         StatsData(ForgeConfigSpec.Builder builder) {
             builder.comment(
                     "Baseline and projected-max values used to scale HUD bar widths.",
-                    "Clients can choose whether to trust these via their own status_bars config."
+                    "You will most likely be editing the server config version of stats data",
+                    "Clients can choose whether to force server values or use their client config.",
+                    "You need to use the reload command or reload the world to see the updated values."
             ).push("stats_data");
 
-            health = new StatThreshold(builder, "health", 20, 50);
-            stamina = new PresetStatThreshold<>(builder, "stamina", StaminaSourceMode.class, 15, 35, STAMINA_PRESET_DEFAULTS);
-            mana = new PresetStatThreshold<>(builder, "mana", ManaSourceMode.class, 100, 800, MANA_PRESET_DEFAULTS);
+            health = new StatThreshold(builder, "health", 20, 50, 1.0);
+            stamina = new PresetStatThreshold<>(builder, "stamina", StaminaSourceMode.class, STAMINA_PRESET_DEFAULTS);
+            mana = new PresetStatThreshold<>(builder, "mana", ManaSourceMode.class, MANA_PRESET_DEFAULTS);
 
             builder.pop();
         }
@@ -235,12 +236,28 @@ public final class SoulsCombatHUDConfig {
         }
     }
 
+    public static class DebugClient {
+        public final ForgeConfigSpec.BooleanValue enabled;
+
+        DebugClient(ForgeConfigSpec.Builder builder) {
+            builder.push("debug_client");
+
+            enabled = builder
+                    .comment("Allow the mod to send output to log. Useful for obtaining skill overlay ids.")
+                    .define("enabled", false);
+
+            builder.pop();
+        }
+    }
+
     public static class SkillOverlay {
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
         public final ForgeConfigSpec.DoubleValue scale;
         public final ForgeConfigSpec.ConfigValue<Integer> x;
         public final ForgeConfigSpec.ConfigValue<Integer> y;
+        public final ForgeConfigSpec.BooleanValue weaponPassiveSkills;
+        public final ForgeConfigSpec.ConfigValue<List<? extends String>> weaponPassiveSkillsBlacklist;
 
         SkillOverlay(ForgeConfigSpec.Builder builder) {
             builder.comment("Skill Overlay").push("skill_overlay");
@@ -258,6 +275,20 @@ public final class SoulsCombatHUDConfig {
             y = builder.define("y", 120);
 
             scale = builder.defineInRange("scale", 1.0, 0.25, 4.0);
+
+            weaponPassiveSkills = builder
+                    .comment("Show weapon passive skills. Note that it may break epic fight addons that utilizes special skill overlays.")
+                    .define("weapon_passive_skills", false);
+
+            weaponPassiveSkillsBlacklist = builder
+                    .comment("Dont use custom skill overlay for certain passive skills.")
+                    .defineList(
+                            "weapon_passive_skills_blacklist",
+                            List.of(
+                                    "wom:solar_passive",
+                                    "wom:napoleon_passive"
+                            ), o -> o instanceof String
+                    );
 
             builder.pop();
         }
@@ -369,8 +400,8 @@ public final class SoulsCombatHUDConfig {
                 public final ForgeConfigSpec.BooleanValue enabled;
                 public final PreviewSlots previewSlots;
                 public final ForgeConfigSpec.BooleanValue includeCombatPreferred;
-                public final ForgeConfigSpec.ConfigValue<List<? extends String>> includeWeaponsList;
-                public final ForgeConfigSpec.ConfigValue<List<? extends String>> excludeWeaponsList;
+                public final ForgeConfigSpec.ConfigValue<List<? extends String>> weaponsWhitelist;
+                public final ForgeConfigSpec.ConfigValue<List<? extends String>> weaponsBlacklist;
                 public final ForgeConfigSpec.ConfigValue<Integer> x;
                 public final ForgeConfigSpec.ConfigValue<Integer> y;
 
@@ -389,12 +420,12 @@ public final class SoulsCombatHUDConfig {
                     includeCombatPreferred = builder
                             .comment("Include Combat Preferred Items (Epic Fight)")
                             .define("include_combat_prefered", true);
-                    includeWeaponsList = builder
+                    weaponsWhitelist = builder
                             .comment("Include items as a weapon")
-                            .defineList("include_weapons_list", List.of(), o -> o instanceof String);
-                    excludeWeaponsList = builder
+                            .defineList("weapons_whitelist", List.of(), o -> o instanceof String);
+                    weaponsBlacklist = builder
                             .comment("Exclude items as a weapon")
-                            .defineList("exclude_weapons_list", List.of(), o -> o instanceof String);
+                            .defineList("weapons_blacklist", List.of(), o -> o instanceof String);
                     x = builder.define("x", 28);
                     y = builder.define("y", 0);
                     builder.pop();
@@ -431,9 +462,9 @@ public final class SoulsCombatHUDConfig {
                 public final PreviewSlots previewSlots;
                 public final ForgeConfigSpec.BooleanValue cycleConsumableSwitch;
                 public final ForgeConfigSpec.BooleanValue useConsumableOnSelected;
-                public final ForgeConfigSpec.ConfigValue<List<? extends String>> includeConsumableList;
-                public final ForgeConfigSpec.ConfigValue<List<? extends String>> excludeConsumableList;
-                public final ForgeConfigSpec.ConfigValue<List<? extends String>> excludeAutoConsumeList;
+                public final ForgeConfigSpec.ConfigValue<List<? extends String>> consumableWhitelist;
+                public final ForgeConfigSpec.ConfigValue<List<? extends String>> consumableBlacklist;
+                public final ForgeConfigSpec.ConfigValue<List<? extends String>> autoconsumeBlacklist;
                 public final ForgeConfigSpec.ConfigValue<Integer> x;
                 public final ForgeConfigSpec.ConfigValue<Integer> y;
 
@@ -455,15 +486,15 @@ public final class SoulsCombatHUDConfig {
                             ElementOrientation.HORIZONTAL,
                             0,
                             -16);
-                    includeConsumableList = builder
+                    consumableWhitelist = builder
                             .comment("Include items as a consumable")
-                            .defineList("include_consumables_list", List.of(), o -> o instanceof String);
-                    excludeConsumableList = builder
+                            .defineList("consumables_whitelist", List.of(), o -> o instanceof String);
+                    consumableBlacklist = builder
                             .comment("Exclude items as a consumable")
-                            .defineList("exclude_consumables_list", List.of(), o -> o instanceof String);
-                    excludeAutoConsumeList = builder
+                            .defineList("consumables_blacklist", List.of(), o -> o instanceof String);
+                    autoconsumeBlacklist = builder
                             .comment("Exclude items that should autoconsume")
-                            .defineList("exclude_autoconsume_list", List.of(
+                            .defineList("autoconsume_blacklist", List.of(
                                     "remnantcurios:flask"
                             ), o -> o instanceof String);
                     x = builder.define("x", 0);
@@ -579,9 +610,9 @@ public final class SoulsCombatHUDConfig {
                     .comment("Should status bar have equal width. Set 0 to disable.")
                     .defineInRange("constant_bar_width", 0, 0, 512);
 
-            health = new StatThreshold(builder, "health", 20, 50);
-            stamina = new PresetStatThreshold<>(builder, "stamina", StaminaSourceMode.class, 15, 35, STAMINA_PRESET_DEFAULTS);
-            mana = new PresetStatThreshold<>(builder, "mana", ManaSourceMode.class, 100, 800, MANA_PRESET_DEFAULTS);
+            health = new StatThreshold(builder, "health", 20, 50, 1.0);
+            stamina = new PresetStatThreshold<>(builder, "stamina", StaminaSourceMode.class, STAMINA_PRESET_DEFAULTS);
+            mana = new PresetStatThreshold<>(builder, "mana", ManaSourceMode.class, MANA_PRESET_DEFAULTS);
 
             builder.pop();
         }
@@ -608,6 +639,7 @@ public final class SoulsCombatHUDConfig {
 
     public static class PlayerGaugeOverlay {
         public final ForgeConfigSpec.BooleanValue enabled;
+        public final ForgeConfigSpec.BooleanValue statusBars;
         public final ForgeConfigSpec.EnumValue<CrestDisplayMode> crestDisplayMode;
         public final ForgeConfigSpec.BooleanValue crestTeamOutline;
         public final ForgeConfigSpec.BooleanValue crestAttributes;
@@ -626,14 +658,11 @@ public final class SoulsCombatHUDConfig {
                     .comment("Toggle player gauge overlay")
                     .define("enabled", true);
 
-            crestDisplayMode = builder
-                    .defineEnum("crest_display_mode", CrestDisplayMode.MODEL);
+            statusBars = builder.define("status_bars", true);
 
-            crestTeamOutline = builder
-                    .define("crest_team_outline", true);
-
-            crestAttributes = builder
-                    .define("crest_attributes", true);
+            crestDisplayMode = builder.defineEnum("crest_display_mode", CrestDisplayMode.MODEL);
+            crestTeamOutline = builder.define("crest_team_outline", true);
+            crestAttributes = builder.define("crest_attributes", true);
 
             anchor = builder.defineEnum(
                     "anchor",
@@ -651,6 +680,7 @@ public final class SoulsCombatHUDConfig {
 
     public static class PartyGaugeOverlay {
         public final ForgeConfigSpec.BooleanValue enabled;
+        public final ForgeConfigSpec.BooleanValue statusBars;
         public final ForgeConfigSpec.BooleanValue crestTeamOutline;
         public final ForgeConfigSpec.EnumValue<CrestDisplayMode> crestDisplayMode;
         public final ForgeConfigSpec.IntValue maxDisplayedPartyMembers;
@@ -674,11 +704,10 @@ public final class SoulsCombatHUDConfig {
                     .comment("Toggle party gauge overlay")
                     .define("enabled", true);
 
-            crestTeamOutline = builder
-                    .define("crest_team_outline", true);
+            statusBars = builder.define("status_bars", true);
 
-            crestDisplayMode = builder
-                    .defineEnum("crest_display_mode", CrestDisplayMode.MODEL);
+            crestDisplayMode = builder.defineEnum("crest_display_mode", CrestDisplayMode.MODEL);
+            crestTeamOutline = builder.define("crest_team_outline", true);
 
             maxDisplayedPartyMembers = builder
                     .comment("Maximum amount of party members to display")
@@ -855,6 +884,7 @@ public final class SoulsCombatHUDConfig {
     public static class CustomBossbar {
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.BooleanValue reductionValueText;
+        public final ForgeConfigSpec.BooleanValue ignoreBossNameFormatting;
         public final ForgeConfigSpec.LongValue disappear_delay;
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
         public final ForgeConfigSpec.ConfigValue<Integer> maxVisible;
@@ -875,6 +905,10 @@ public final class SoulsCombatHUDConfig {
                     .comment("Should the bossbar display the damage value it has taken. This only works if mod is installed on the server.")
                     .define("reduction_value_text", true);
 
+            ignoreBossNameFormatting = builder
+                    .comment("Should the bossbar name text allow the text to be colored etc.")
+                    .define("ignore_boss_name_formatting", true);
+
             disappear_delay = builder
                     .comment("Delay in miliseconds before the bossbar disappears",
                             "This is added on to custom bossbar disappear_delay property")
@@ -893,7 +927,7 @@ public final class SoulsCombatHUDConfig {
             scale = builder.defineInRange("scale", 1.0, 0.25, 4.0);
             width = builder.define("width", 320);
             x = builder.define("x", 0);
-            y = builder.define("y", 72);
+            y = builder.define("y", 64);
 
             builder.pop();
         }

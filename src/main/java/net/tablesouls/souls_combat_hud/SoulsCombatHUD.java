@@ -14,16 +14,16 @@ import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.network.BossNetwork;
 import net.tablesouls.souls_combat_hud.party.network.PartyNetwork;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Mod(SoulsCombatHUD.MODID)
 public class SoulsCombatHUD
 {
     public static final String MODID = "souls_combat_hud";
-    public static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
 
     public SoulsCombatHUD(FMLJavaModLoadingContext context)
     {
-        IEventBus modEventBus = context.getModEventBus();
         context.registerConfig(ModConfig.Type.CLIENT, SoulsCombatHUDConfig.CLIENT_SPEC);
         context.registerConfig(ModConfig.Type.SERVER, SoulsCombatHUDConfig.SERVER_SPEC);
         PartyNetwork.register();

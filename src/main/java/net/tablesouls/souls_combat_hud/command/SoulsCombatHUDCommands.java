@@ -39,7 +39,8 @@ public final class SoulsCombatHUDCommands {
         dispatcher.register(
                 Commands.literal("soulscombathud")
                         .requires(source -> source.hasPermission(2)) // op only
-                        .then(Commands.literal("reload").executes(ctx -> reload(ctx.getSource())))
+                        .then(Commands.literal("reload")
+                                .executes(ctx -> reload(ctx.getSource())))
                         .then(Commands.literal("stamina")
                                 .then(Commands.literal("mode")
                                         .then(Commands.argument("mode", StringArgumentType.word())

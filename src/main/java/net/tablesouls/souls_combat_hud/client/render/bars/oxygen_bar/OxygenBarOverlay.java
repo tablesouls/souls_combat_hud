@@ -6,6 +6,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.tags.FluidTags;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+import net.minecraftforge.common.ForgeMod;
 import net.tablesouls.souls_combat_hud.client.render.bars.BarElement;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
@@ -34,7 +35,7 @@ public class OxygenBarOverlay implements IGuiOverlay {
         int airSupply = player.getAirSupply();
         int maxAirSupply = player.getMaxAirSupply();
 
-        boolean submerged = player.isEyeInFluid(FluidTags.WATER);
+        boolean submerged = player.isEyeInFluidType(ForgeMod.WATER_TYPE.get());
 
         float fraction = maxAirSupply > 0
                 ? net.minecraft.util.Mth.clamp((float) airSupply / maxAirSupply, 0.0f, 1.0f)

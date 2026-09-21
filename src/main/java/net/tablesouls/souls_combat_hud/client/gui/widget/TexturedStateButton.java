@@ -17,11 +17,16 @@ public class TexturedStateButton extends AbstractButton {
     private final BooleanSupplier state;
     private final OnPress onPress;
 
-    public TexturedStateButton(int x, int y, int width, int height,
-                               Component message,
-                               ResourceLocation texture, int texSheetWidth, int texSheetHeight,
-                               int texU, int texV,
-                               BooleanSupplier state, OnPress onPress) {
+    public TexturedStateButton(
+            int x, int y,
+            int width, int height,
+            Component message,
+            ResourceLocation texture,
+            int texSheetWidth, int texSheetHeight,
+            int texU, int texV,
+            BooleanSupplier state,
+            OnPress onPress)
+    {
         super(x, y, width, height, message);
         this.frameWidth = width;
         this.frameHeight = height;

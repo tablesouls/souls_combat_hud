@@ -6,7 +6,7 @@ import net.minecraft.world.entity.player.Player;
 import net.tablesouls.souls_combat_hud.compat.ResourceSource;
 import net.tablesouls.souls_combat_hud.config.ThirstSourceMode;
 
-public class ThirstWasReclaimedSource implements ResourceSource<ThirstSourceMode> {
+public class ThirstWasReclaimedThirstSource implements ResourceSource<ThirstSourceMode> {
     private static final float MAX_THIRST = 20.0f;
 
     @Override

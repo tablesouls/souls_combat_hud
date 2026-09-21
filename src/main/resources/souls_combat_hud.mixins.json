@@ -11,6 +11,7 @@
     "client.ReleaseUsingItemMixin",
     "client.GuiOffhandMixin",
     "client.MobEffectInstanceMixin",
+    "client.BattleModeGuiMixin",
     "preview.EntityPreviewMixin",
     "preview.LivingEntityPosePreviewMixin",
     "preview.LivingEntityRendererPreviewMixin",
@@ -18,9 +19,12 @@
     "preview.PlayerRendererOffsetMixin",
     "preview.PatchedLivingEntityRendererMixin",
     "preview.parcool.ParcoolAnimationPreviewMixin",
+    "preview.parcool.ParcoolV4AnimationPreviewMixin",
     "preview.playeranim.PlayerAnimatorPreviewMixin",
     "preview.paraglider.ParagliderPosePreviewMixin",
-    "preview.notenoughanimations.NotEnoughAnimationsPreviewMixin"
+    "preview.notenoughanimations.NotEnoughAnimationsPreviewMixin",
+    "preview.create.CreateSkyhookPosePreviewMixin",
+    "preview.create.CreateArmPosePreviewMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -17,6 +17,10 @@ public final class StatusBarValues {
         return projectedMax(SoulsCombatHUDConfig.STATS_DATA.health, SoulsCombatHUDConfig.STATUS_GAUGE.statusBars.health);
     }
 
+    public static double healthWidthCurve() {
+        return widthCurve(SoulsCombatHUDConfig.STATS_DATA.health, SoulsCombatHUDConfig.STATUS_GAUGE.statusBars.health);
+    }
+
     public static int staminaBaseline(StaminaSourceMode mode) {
         return presetBaseline(
                 SoulsCombatHUDConfig.STATS_DATA.stamina, SoulsCombatHUDConfig.STATUS_GAUGE.statusBars.stamina,
@@ -26,6 +30,13 @@ public final class StatusBarValues {
 
     public static int staminaProjectedMax(StaminaSourceMode mode) {
         return presetProjectedMax(
+                SoulsCombatHUDConfig.STATS_DATA.stamina, SoulsCombatHUDConfig.STATUS_GAUGE.statusBars.stamina,
+                mode
+        );
+    }
+
+    public static double staminaWidthCurve(StaminaSourceMode mode) {
+        return presetWidthCurve(
                 SoulsCombatHUDConfig.STATS_DATA.stamina, SoulsCombatHUDConfig.STATUS_GAUGE.statusBars.stamina,
                 mode
         );
@@ -45,6 +56,13 @@ public final class StatusBarValues {
         );
     }
 
+    public static double manaWidthCurve(ManaSourceMode mode) {
+        return presetWidthCurve(
+                SoulsCombatHUDConfig.STATS_DATA.mana, SoulsCombatHUDConfig.STATUS_GAUGE.statusBars.mana,
+                mode
+        );
+    }
+
     private static int baseline(SoulsCombatHUDConfig.StatThreshold server, SoulsCombatHUDConfig.StatThreshold client) {
         return trustServer() ? server.baseline.get() : client.baseline.get();
     }
@@ -55,22 +73,44 @@ public final class StatusBarValues {
         return resolveProjectedMax(baseline, projectedMax);
     }
 
+    private static double widthCurve(SoulsCombatHUDConfig.StatThreshold server, SoulsCombatHUDConfig.StatThreshold client) {
+        return trustServer() ? server.barWidthCurve.get() : client.barWidthCurve.get();
+    }
+
     private static <M extends Enum<M>> int presetBaseline(
             SoulsCombatHUDConfig.PresetStatThreshold<M> server, SoulsCombatHUDConfig.PresetStatThreshold<M> client, M activeMode
     ) {
         SoulsCombatHUDConfig.PresetStatThreshold<M> data = trustServer() ? server : client;
-        SoulsCombatHUDConfig.StatThreshold preset = activeMode == null ? null : data.presets.get(activeMode);
-        return preset != null ? preset.baseline.get() : data.baseline.get();
+        return data.presets.get(activeMode).baseline.get();
     }
 
     private static <M extends Enum<M>> int presetProjectedMax(
             SoulsCombatHUDConfig.PresetStatThreshold<M> server, SoulsCombatHUDConfig.PresetStatThreshold<M> client, M activeMode
     ) {
         SoulsCombatHUDConfig.PresetStatThreshold<M> data = trustServer() ? server : client;
-        SoulsCombatHUDConfig.StatThreshold preset = activeMode == null ? null : data.presets.get(activeMode);
-        int baseline = preset != null ? preset.baseline.get() : data.baseline.get();
-        int projectedMax = preset != null ? preset.projectedMax.get() : data.projectedMax.get();
-        return resolveProjectedMax(baseline, projectedMax);
+        SoulsCombatHUDConfig.StatThreshold preset = data.presets.get(activeMode);
+        return resolveProjectedMax(preset.baseline.get(), preset.projectedMax.get());
+    }
+
+    private static <M extends Enum<M>> double presetWidthCurve(
+            SoulsCombatHUDConfig.PresetStatThreshold<M> server, SoulsCombatHUDConfig.PresetStatThreshold<M> client, M activeMode
+    ) {
+        SoulsCombatHUDConfig.PresetStatThreshold<M> data = trustServer() ? server : client;
+        return data.presets.get(activeMode).barWidthCurve.get();
+    }
+
+    public static boolean hasStaminaPreset(StaminaSourceMode mode) {
+        if (mode == null) return false;
+        SoulsCombatHUDConfig.PresetStatThreshold<StaminaSourceMode> data =
+                trustServer() ? SoulsCombatHUDConfig.STATS_DATA.stamina : SoulsCombatHUDConfig.STATUS_GAUGE.statusBars.stamina;
+        return data.presets.containsKey(mode);
+    }
+
+    public static boolean hasManaPreset(ManaSourceMode mode) {
+        if (mode == null) return false;
+        SoulsCombatHUDConfig.PresetStatThreshold<ManaSourceMode> data =
+                trustServer() ? SoulsCombatHUDConfig.STATS_DATA.mana : SoulsCombatHUDConfig.STATUS_GAUGE.statusBars.mana;
+        return data.presets.containsKey(mode);
     }
 
     private static int resolveProjectedMax(int baseline, int projectedMax) {

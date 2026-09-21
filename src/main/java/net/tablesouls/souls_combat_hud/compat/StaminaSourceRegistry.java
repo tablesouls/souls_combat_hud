@@ -2,6 +2,8 @@ package net.tablesouls.souls_combat_hud.compat;
 
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightCompat;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightStaminaSource;
+import net.tablesouls.souls_combat_hud.compat.mineandslash.MineAndSlashCompat;
+import net.tablesouls.souls_combat_hud.compat.mineandslash.MineAndSlashStaminaSource;
 import net.tablesouls.souls_combat_hud.compat.paraglider.ParagliderCompat;
 import net.tablesouls.souls_combat_hud.compat.paraglider.ParagliderStaminaSource;
 import net.tablesouls.souls_combat_hud.compat.parcool.ParcoolCompat;
@@ -25,6 +27,10 @@ public final class StaminaSourceRegistry extends AbstractResourceSourceRegistry<
 
         if (ParagliderCompat.LOADED) {
             register(new ParagliderStaminaSource());
+        }
+
+        if (MineAndSlashCompat.LOADED) {
+            register(new MineAndSlashStaminaSource());
         }
     }
 }

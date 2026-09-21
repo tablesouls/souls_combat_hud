@@ -1,5 +1,6 @@
 package net.tablesouls.souls_combat_hud.client.util;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.GuiGraphics;
@@ -41,5 +42,13 @@ public class TextHelper {
             case INSIDE_LEFT -> boxX;
             case INSIDE_RIGHT -> boxX + boxWidth - textWidth;
         };
+    }
+
+    public static Component clearFormat(Component component) {
+        String raw = component.getString();
+        String clean = ChatFormatting.stripFormatting(raw);
+        return Component.literal(clean != null
+                ? clean
+                : raw);
     }
 }

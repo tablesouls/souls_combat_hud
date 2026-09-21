@@ -1,4 +1,4 @@
-![Preview of the HUD](https://cdn.modrinth.com/data/aosv29zK/images/686a39750198c37d2bdbb99ac79b17ea5ffe03d4.png)
+![Preview of the HUD](https://i.imgur.com/gEs2wQy.png)
 
 <br>
 This client side mod adds a soulslike HUD found in FromSoftware games. 
@@ -19,7 +19,7 @@ Before using the mod I also recommend:
 * A mod that allows you to shift the chatbox, otherwise change the anchor.
 * To disable existing UI of mods, such as Iron's Spells spell bar.
 
-Check out my partner mod,[ Souls Message Banners](https://www.curseforge.com/minecraft/mc-mods/souls-message-banners).
+Check out my partner mod, [Souls Message Banners](https://www.curseforge.com/minecraft/mc-mods/souls-message-banners).
 
 Check out my partner mod, [Souls Message Banners](https://modrinth.com/mod/souls-message-banners).
 ***
@@ -59,8 +59,10 @@ This replaces certain elements found in the vanilla hotbar.
       * Epic Fight
       * Parcool
       * Paragliders
+      * Mine and Slash
    * Mana
       * Iron's Spells
+      * Mine and Slash
 * The bar widths dynamically change depending on how much the player's stats have changed from the baseline max values.
    * Server owners can set their baseline values and projected max/late game values in the server config
    * Clients can do the same or override the server values, but they can also make the bar widths constant.

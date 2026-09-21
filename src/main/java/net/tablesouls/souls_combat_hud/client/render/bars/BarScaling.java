@@ -7,34 +7,30 @@ public final class BarScaling {
             float currentMax,
             float baselineMax,
             float projectedMax,
+            double curveExponent,
             int minWidth,
             int maxWidth
     ) {
-        if (currentMax <= 0.0F) {
+        if (currentMax <= 0.0F || projectedMax <= 0.0F) {
             return 0;
         }
 
-        int baselineWidth = Math.round(
-                (baselineMax / projectedMax) * maxWidth
-        );
-
+        int baselineWidth = widthForValue(baselineMax, projectedMax, curveExponent, maxWidth);
         baselineWidth = Math.max(minWidth, baselineWidth);
 
         if (currentMax <= baselineMax) {
             return baselineWidth;
         }
 
-        float fraction = (currentMax - baselineMax)
-                / (projectedMax - baselineMax);
+        int resolved = widthForValue(currentMax, projectedMax, curveExponent, maxWidth);
+        resolved = Math.max(resolved, baselineWidth);
 
-        fraction = Mth.clamp(fraction, 0.0F, 1.0F);
+        return Mth.clamp(resolved, minWidth, maxWidth);
+    }
 
-        return Mth.floor(
-                Mth.lerp(
-                        fraction,
-                        baselineWidth,
-                        maxWidth
-                )
-        );
+    private static int widthForValue(float value, float projectedMax, double curveExponent, int maxWidth) {
+        float linearFraction = Mth.clamp(value / projectedMax, 0.0F, 1.0F);
+        float curvedFraction = (float) Math.pow(linearFraction, curveExponent);
+        return Mth.floor(curvedFraction * maxWidth);
     }
 }

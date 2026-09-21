@@ -21,6 +21,13 @@ import net.tablesouls.souls_combat_hud.registry.ModKeyBindings;
 
 @Mod.EventBusSubscriber(modid = SoulsCombatHUD.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientModEvents {
+    public static final BossBarStyleReloadListener BOSS_BAR_STYLE_LISTENER = new BossBarStyleReloadListener();
+    public static final OxygenBarStyleReloadListener OXYGEN_BAR_STYLE_LISTENER = new OxygenBarStyleReloadListener();
+    public static final GaugeStyleReloadListener PLAYER_GAUGE_STYLE_LISTENER =
+            new GaugeStyleReloadListener("player_gauge.json", GaugeStyleRegistry.PLAYER);
+    public static final GaugeStyleReloadListener PARTY_GAUGE_STYLE_LISTENER =
+            new GaugeStyleReloadListener("party_gauge.json", GaugeStyleRegistry.PARTY);
+
     @SubscribeEvent
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
         ModKeyBindings.register(event);
@@ -28,10 +35,10 @@ public class ClientModEvents {
 
     @SubscribeEvent
     public static void onRegisterReloadListeners(RegisterClientReloadListenersEvent event) {
-        event.registerReloadListener(new BossBarStyleReloadListener());
-        event.registerReloadListener(new OxygenBarStyleReloadListener());
-        event.registerReloadListener(new GaugeStyleReloadListener("player_gauge.json", GaugeStyleRegistry.PLAYER));
-        event.registerReloadListener(new GaugeStyleReloadListener("party_gauge.json", GaugeStyleRegistry.PARTY));
+        event.registerReloadListener(BOSS_BAR_STYLE_LISTENER);
+        event.registerReloadListener(OXYGEN_BAR_STYLE_LISTENER);
+        event.registerReloadListener(PLAYER_GAUGE_STYLE_LISTENER);
+        event.registerReloadListener(PARTY_GAUGE_STYLE_LISTENER);
     }
 
     @SubscribeEvent

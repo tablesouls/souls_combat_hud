@@ -20,7 +20,6 @@ import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 @Mod.EventBusSubscriber(modid = "souls_combat_hud", bus = Mod.EventBusSubscriber.Bus.FORGE, value = {Dist.CLIENT})
 public class ClientForgeRenderEvents {
     private static final ResourceLocation WEAPON_INNATE_ID = ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MODID, "weapon_innate");
-    private static final ResourceLocation SKILLS_ID = ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MODID, "skills");
     private static final ResourceLocation STAMINA_BAR_ID = ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MODID, "stamina_bar");
     private static final ResourceLocation OFFHAND_HUD_ID = ResourceLocation.fromNamespaceAndPath(MoreOffhandSlots.MODID, "offhand_hud");
     private static final ResourceLocation TWR_THIRST_OVERLAY_ID = ResourceLocation.fromNamespaceAndPath(ThirstWasReclaimedCompat.MODID, "thirst_level");
@@ -56,9 +55,7 @@ public class ClientForgeRenderEvents {
             return;
         }
 
-        if (SoulsCombatHUDConfig.SKILL_OVERLAY.enabled.get()
-                && (id.equals(WEAPON_INNATE_ID) || id.equals(SKILLS_ID))
-        ) {
+        if (SoulsCombatHUDConfig.SKILL_OVERLAY.enabled.get() && id.equals(WEAPON_INNATE_ID)) {
             event.setCanceled(true);
             return;
         }
@@ -121,10 +118,6 @@ public class ClientForgeRenderEvents {
         return getStatusBarSetting(id) != null;
     }
 
-    /**
-     * Maps a vanilla status-bar overlay id to its corresponding config setting,
-     * or returns null if the id isn't one of the status bar overlays.
-     */
     private static SoulsCombatHUDConfig.Visibility.MinecraftGuiSetting.MinecraftHotbarSetting.MinecraftHotbarStatusSetting.MinecraftHotbarStatusBarSetting getStatusBarSetting(ResourceLocation id) {
         var status = SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status;
 

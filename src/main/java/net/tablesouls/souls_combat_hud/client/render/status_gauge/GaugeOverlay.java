@@ -28,6 +28,8 @@ import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
 import net.tablesouls.souls_combat_hud.client.util.PlayerModelPreviewRenderer;
 import net.tablesouls.souls_combat_hud.compat.TeamProviderRegistry;
 import net.tablesouls.souls_combat_hud.config.ThirstSourceMode;
+import net.tablesouls.souls_combat_hud.config.StaminaSourceMode;
+import net.tablesouls.souls_combat_hud.config.ManaSourceMode;
 import net.tablesouls.souls_combat_hud.util.ColorHelper;
 import net.tablesouls.souls_combat_hud.client.util.TextHelper;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
@@ -150,8 +152,6 @@ public class GaugeOverlay implements IGuiOverlay {
         GaugeLayout crestLayout = this.gaugeStyles.getLayout("crest", GaugeLayout.DEFAULT);
         GaugeLayout gaugesLayout = this.gaugeStyles.getLayout("gauges", GaugeLayout.DEFAULT);
 
-        // All positions below are LOCAL to the anchor origin (0,0 == overlayX, overlayY)
-        // so that the pushPose/scale block around them scales the whole overlay in place.
         int playerNameX = mirrored ? -playerNameLayout.x() : playerNameLayout.x();
         int playerNameY = playerNameLayout.y();
 
@@ -181,7 +181,8 @@ public class GaugeOverlay implements IGuiOverlay {
         }
 
         if (subject.isOnline() && gaugesLayout.enabled()) {
-            this.renderGaugeRows(guiGraphics, subject, font, gaugesX, gaugesY, mirrored);
+            this.renderGaugeRows(guiGraphics, subject, font, gaugesX, gaugesY, mirrored,
+                    SoulsCombatHUDConfig.STATUS_GAUGE.playerGauge.statusBars.get());
         }
 
         if (playerNameLayout.enabled()) {
@@ -234,25 +235,35 @@ public class GaugeOverlay implements IGuiOverlay {
             GaugeSubject subject,
             Font font,
             int x, int y,
-            boolean mirrored
+            boolean mirrored,
+            boolean showStatusBars
     ) {
         int rowGap = gaugeStyles.getRowGap();
         int cursorY = y;
 
         for (GaugeRow row : gaugeStyles.getRowOrder()) {
             switch (row) {
-                case HEALTH -> cursorY = renderBarRow(
+                case HEALTH -> {
+                    if (!showStatusBars) continue;
+                    cursorY = renderBarRow(
                         graphics, subject, gaugeStyles.getLayout("health", GaugeLayout.DEFAULT),
                         x, y, cursorY, HEALTH_BAR_HEIGHT, rowGap, mirrored,
                         subject.hasHealthData(), this::renderHealthBar);
-                case STAMINA -> cursorY = renderBarRow(
+                }
+                case STAMINA -> {
+                    if (!showStatusBars) continue;
+                    cursorY = renderBarRow(
                         graphics, subject, gaugeStyles.getLayout("stamina", GaugeLayout.DEFAULT),
                         x, y, cursorY, STAMINA_BAR_HEIGHT, rowGap, mirrored,
                         subject.hasStamina(), this::renderStaminaBar);
-                case MANA -> cursorY = renderBarRow(
+                }
+                case MANA -> {
+                    if (!showStatusBars) continue;
+                    cursorY = renderBarRow(
                         graphics, subject, gaugeStyles.getLayout("mana", GaugeLayout.DEFAULT),
                         x, y, cursorY, MANA_BAR_HEIGHT, rowGap, mirrored,
                         subject.hasMana(), this::renderManaBar);
+                }
                 case STATUS_EFFECTS -> {
                     GaugeLayout statusEffectsLayout = gaugeStyles.getLayout("status_effects", GaugeLayout.DEFAULT);
                     if (!statusEffectsLayout.enabled()) continue;
@@ -265,7 +276,7 @@ public class GaugeOverlay implements IGuiOverlay {
                         effects = effects.subList(0, maxDisplayed);
                     }
 
-                    if (effects.isEmpty()) continue; // collapse: no icons, no row consumed
+                    if (effects.isEmpty()) continue;
 
                     boolean overridePosition = statusEffectsLayout.overridePosition();
                     int rowY = overridePosition ? y : cursorY;
@@ -299,6 +310,7 @@ public class GaugeOverlay implements IGuiOverlay {
                 maxHealth,
                 StatusBarValues.healthBaseline(),
                 StatusBarValues.healthProjectedMax(),
+                StatusBarValues.healthWidthCurve(),
                 HEALTH_BAR_MIN_WIDTH,
                 HEALTH_BAR_MAX_WIDTH
         );
@@ -321,13 +333,18 @@ public class GaugeOverlay implements IGuiOverlay {
             staminaFraction = maxStamina > 0
                     ? Mth.clamp(subject.getStamina() / maxStamina, 0.0f, 1.0f)
                     : 0.0f;
-            barWidth = BarScaling.resolveWidth(
-                    maxStamina,
-                    StatusBarValues.staminaBaseline(subject.getStaminaSourceMode()),
-                    StatusBarValues.staminaProjectedMax(subject.getStaminaSourceMode()),
-                    STAMINA_BAR_MIN_WIDTH,
-                    STAMINA_BAR_MAX_WIDTH
-            );
+
+            StaminaSourceMode staminaMode = subject.getStaminaSourceMode();
+            if (StatusBarValues.hasStaminaPreset(staminaMode)) {
+                barWidth = BarScaling.resolveWidth(
+                        maxStamina,
+                        StatusBarValues.staminaBaseline(staminaMode),
+                        StatusBarValues.staminaProjectedMax(staminaMode),
+                        StatusBarValues.staminaWidthCurve(staminaMode),
+                        STAMINA_BAR_MIN_WIDTH,
+                        STAMINA_BAR_MAX_WIDTH
+                );
+            }
         }
 
         barWidth = applyConstantWidth(barWidth);
@@ -348,13 +365,18 @@ public class GaugeOverlay implements IGuiOverlay {
             manaFraction = maxMana > 0
                     ? Mth.clamp(subject.getMana() / maxMana, 0.0f, 1.0f)
                     : 0.0f;
-            barWidth = BarScaling.resolveWidth(
-                    maxMana,
-                    StatusBarValues.manaBaseline(subject.getManaSourceMode()),
-                    StatusBarValues.manaProjectedMax(subject.getManaSourceMode()),
-                    MANA_BAR_MIN_WIDTH,
-                    MANA_BAR_MAX_WIDTH
-            );
+
+            ManaSourceMode manaMode = subject.getManaSourceMode();
+            if (StatusBarValues.hasManaPreset(manaMode)) {
+                barWidth = BarScaling.resolveWidth(
+                        maxMana,
+                        StatusBarValues.manaBaseline(manaMode),
+                        StatusBarValues.manaProjectedMax(manaMode),
+                        StatusBarValues.manaWidthCurve(manaMode),
+                        MANA_BAR_MIN_WIDTH,
+                        MANA_BAR_MAX_WIDTH
+                );
+            }
         }
 
         barWidth = applyConstantWidth(barWidth);
@@ -839,7 +861,7 @@ public class GaugeOverlay implements IGuiOverlay {
         if (effectInstance.getAmplifier() > 0) {
             Component amplifierLabel = Component.literal(TextHelper.toRomanNumeral(effectInstance.getAmplifier() + 1));
 
-            float ampLabelScale = 0.8f;
+            float ampLabelScale = 0.75f;
             int ampLabelX = x + size - font.width(amplifierLabel)/2;
             int ampLabelY = y - (font.lineHeight/2 - 2);
 

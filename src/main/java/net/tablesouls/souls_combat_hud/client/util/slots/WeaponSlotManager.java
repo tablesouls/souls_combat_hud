@@ -11,9 +11,9 @@ import java.util.List;
 
 public class WeaponSlotManager {
     private static final RegexItemList INCLUDE_WEAPONS =
-            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.includeWeaponsList);
+            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.weaponsWhitelist);
     private static final RegexItemList EXCLUDE_WEAPONS =
-            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.excludeWeaponsList);
+            new RegexItemList(SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.weaponsBlacklist);
 
     private static int lastWeaponSlot = -1;
 

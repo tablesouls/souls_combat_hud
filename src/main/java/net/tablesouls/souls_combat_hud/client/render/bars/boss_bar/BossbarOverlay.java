@@ -1,9 +1,11 @@
 package net.tablesouls.souls_combat_hud.client.render.bars.boss_bar;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.tablesouls.souls_combat_hud.client.render.bars.BarElement;
+import net.tablesouls.souls_combat_hud.client.util.TextHelper;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.client.util.BossBarState;
 import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
@@ -95,6 +97,9 @@ public class BossbarOverlay implements IGuiOverlay {
             int y = localBaseY + row * rowStep;
 
             bar.withDecoration(styleDef.toBarDecoration());
+            Component bossName = SoulsCombatHUDConfig.CUSTOM_BOSSBAR.ignoreBossNameFormatting.get()
+                    ? TextHelper.clearFormat(entry.name)
+                    : entry.name;
 
             bar.render(
                     graphics,
@@ -104,7 +109,7 @@ public class BossbarOverlay implements IGuiOverlay {
                     barW,
                     barH,
                     entry.progress,
-                    entry.name,
+                    bossName,
                     null,
                     false,
                     true,
