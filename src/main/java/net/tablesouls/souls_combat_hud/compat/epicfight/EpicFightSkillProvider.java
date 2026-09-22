@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
+import net.minecraftforge.common.ForgeConfigSpec;
 import net.tablesouls.souls_combat_hud.client.render.SkillOverlayRenderer;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
@@ -17,6 +18,7 @@ import yesman.epicfight.skill.SkillSlot;
 import yesman.epicfight.skill.SkillSlots;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public final class EpicFightSkillProvider {
     public static void renderSkillOverlay(
@@ -59,7 +61,7 @@ public final class EpicFightSkillProvider {
                 continue;
             }
 
-            if (slot == SkillSlots.WEAPON_PASSIVE && !isSpecialPassiveSkillOverlay(container)) {
+            if (!isSlotHandledByOverlay(container)) {
                 continue;
             }
 
@@ -102,13 +104,42 @@ public final class EpicFightSkillProvider {
         guiGraphics.pose().popPose();
     }
 
-    public static boolean isSpecialPassiveSkillOverlay(SkillContainer container) {
-        if (!SoulsCombatHUDConfig.SKILL_OVERLAY.enabled.get()
-                || !SoulsCombatHUDConfig.SKILL_OVERLAY.weaponPassiveSkills.get()) {
+    private static boolean isPassiveSlot(SkillSlot slot) {
+        return slot == SkillSlots.PASSIVE1 || slot == SkillSlots.PASSIVE2 || slot == SkillSlots.PASSIVE3;
+    }
+
+    private static boolean isCategoryHandledByOverlay(
+            SkillContainer container,
+            ForgeConfigSpec.BooleanValue categoryEnabled,
+            ForgeConfigSpec.ConfigValue<List<? extends String>> blacklist
+    ) {
+        if (!categoryEnabled.get()) {
             return false;
         }
         ResourceLocation skillId = container.getSkill().getRegistryName();
-        return skillId == null
-                || !SoulsCombatHUDConfig.SKILL_OVERLAY.weaponPassiveSkillsBlacklist.get().contains(skillId.toString());
+        return skillId == null || !blacklist.get().contains(skillId.toString());
+    }
+
+    public static boolean isSlotHandledByOverlay(SkillContainer container) {
+        if (!SoulsCombatHUDConfig.SKILL_OVERLAY.enabled.get()) {
+            return false;
+        }
+
+        SkillSlot slot = container.getSlot();
+        var settings = SoulsCombatHUDConfig.SKILL_OVERLAY.skillSetting;
+
+        if (slot == SkillSlots.WEAPON_PASSIVE) {
+            return isCategoryHandledByOverlay(container, settings.weaponPassiveSkill, settings.weaponPassiveSkillBlacklist);
+        }
+        if (isPassiveSlot(slot)) {
+            return isCategoryHandledByOverlay(container, settings.passiveSkills, settings.passiveSkillsBlacklist);
+        }
+        if (slot == SkillSlots.GUARD) {
+            return isCategoryHandledByOverlay(container, settings.guardSkill, settings.guardSkillBlacklist);
+        }
+        if (slot == SkillSlots.IDENTITY) {
+            return isCategoryHandledByOverlay(container, settings.identitySkill, settings.identitySkillBlacklist);
+        }
+        return false;
     }
 }

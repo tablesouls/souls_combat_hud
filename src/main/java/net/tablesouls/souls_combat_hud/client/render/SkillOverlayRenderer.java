@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
+import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.events.engine.RenderEngine;
@@ -66,12 +67,14 @@ public final class SkillOverlayRenderer {
         guiGraphics.blit(BG_TEX, x, y, ROW_U, ROW_V, ROW_WIDTH, ROW_HEIGHT, BG_TEX_W, BG_TEX_H);
         RenderSystem.disableBlend();
 
-        int iconX = mirrored
-                ? x + ROW_WIDTH - ICON_ZONE + (ICON_ZONE - TARGET_ICON_SIZE) /2 - 4
-                : x + (ICON_ZONE - TARGET_ICON_SIZE) /2 + 4;
+        float iconScale = SoulsCombatHUDConfig.SKILL_OVERLAY.icon.scale.get().floatValue();
+        int iconSize = Math.round(TARGET_ICON_SIZE * iconScale);
 
-        int iconY = y + (ROW_HEIGHT - TARGET_ICON_SIZE) / 2;
-        drawSkillIcon(guiGraphics, container, iconX, iconY, partialTick);
+        ElementAnchor iconAnchor = SoulsCombatHUDConfig.SKILL_OVERLAY.icon.anchor.get();
+        int iconX = x + iconAnchor.resolveX(
+                ROW_WIDTH, SoulsCombatHUDConfig.SKILL_OVERLAY.icon.x.get(), iconSize);
+        int iconY = y + iconAnchor.resolveY(
+                ROW_HEIGHT, SoulsCombatHUDConfig.SKILL_OVERLAY.icon.y.get(), iconSize);
 
         String name = resolveSkillName(skill);
         int textWidth = font.width(name);
@@ -81,12 +84,19 @@ public final class SkillOverlayRenderer {
         }
 
         int color = canUse ? TEXT_COLOR_READY : TEXT_COLOR_DIM;
-        int textX = mirrored
-                ? x + ROW_WIDTH - ICON_ZONE - TEXT_PADDING_RIGHT - textWidth
-                : x + ICON_ZONE + TEXT_PADDING_LEFT;
 
-        int textY = y + (ROW_HEIGHT - font.lineHeight) / 2 + 1;
+        ElementAnchor textAnchor = SoulsCombatHUDConfig.SKILL_OVERLAY.text.anchor.get();
+        int textX = x + textAnchor.resolveX(
+                ROW_WIDTH, SoulsCombatHUDConfig.SKILL_OVERLAY.text.x.get(), textWidth);
+        int textY = y + textAnchor.resolveY(
+                ROW_HEIGHT, SoulsCombatHUDConfig.SKILL_OVERLAY.text.y.get(), font.lineHeight);
 
+        if (mirrored) {
+            iconX = x + ROW_WIDTH - (iconX - x) - TARGET_ICON_SIZE;
+            textX = x + ROW_WIDTH - (textX - x) - textWidth;
+        }
+
+        drawSkillIcon(guiGraphics, container, iconX, iconY, partialTick);
         guiGraphics.drawString(font, name, textX, textY, color, true);
 
         return y + ROW_HEIGHT;
@@ -143,7 +153,8 @@ public final class SkillOverlayRenderer {
         BattleModeGui battleModeGui = renderEngine.battleModeUI;
 
         float nativeIconSize = (container.getSkill() instanceof WeaponInnateSkill) ? 32.0f : 24.0f;
-        float scale = 16.0f / nativeIconSize;
+        float iconScale = SoulsCombatHUDConfig.SKILL_OVERLAY.icon.scale.get().floatValue();
+        float scale = (16.0f / nativeIconSize) * iconScale;
 
         PoseStack poseStack = guiGraphics.pose();
         poseStack.pushPose();

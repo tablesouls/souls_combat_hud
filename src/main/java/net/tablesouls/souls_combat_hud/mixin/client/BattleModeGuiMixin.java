@@ -29,7 +29,7 @@ public class BattleModeGuiMixin {
             float y,
             float partialTick
     ) {
-        if (EpicFightSkillProvider.isSpecialPassiveSkillOverlay(container)) {
+        if (EpicFightSkillProvider.isSlotHandledByOverlay(container)) {
             return;
         }
         skill.drawOnGui(gui, container, guiGraphics, x, y, partialTick);

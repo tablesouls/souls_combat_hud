@@ -63,6 +63,28 @@ public final class SoulsCombatHUDConfig {
         CLIENT_SPEC = clientBuilder.build();
     }
 
+    public static class ElementPosition {
+        public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
+        public final ForgeConfigSpec.ConfigValue<Integer> x;
+        public final ForgeConfigSpec.ConfigValue<Integer> y;
+        public final ForgeConfigSpec.ConfigValue<Double> scale;
+
+        ElementPosition(
+                ForgeConfigSpec.Builder builder,
+                String path,
+                ElementAnchor defaultAnchor,
+                int defaultX, int defaultY,
+                double defaultScale
+        ) {
+            builder.push(path);
+            anchor = builder.defineEnum("anchor", defaultAnchor);
+            x = builder.define("x", defaultX);
+            y = builder.define("y", defaultY);
+            scale = builder.defineInRange("scale", defaultScale, 0.25, 4.0);
+            builder.pop();
+        }
+    }
+
     public static class StatThreshold {
         public final ForgeConfigSpec.IntValue baseline;
         public final ForgeConfigSpec.IntValue projectedMax;
@@ -256,8 +278,9 @@ public final class SoulsCombatHUDConfig {
         public final ForgeConfigSpec.DoubleValue scale;
         public final ForgeConfigSpec.ConfigValue<Integer> x;
         public final ForgeConfigSpec.ConfigValue<Integer> y;
-        public final ForgeConfigSpec.BooleanValue weaponPassiveSkills;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> weaponPassiveSkillsBlacklist;
+        public final SkillSetting skillSetting;
+        public final ElementPosition icon;
+        public final ElementPosition text;
 
         SkillOverlay(ForgeConfigSpec.Builder builder) {
             builder.comment("Skill Overlay").push("skill_overlay");
@@ -273,24 +296,79 @@ public final class SoulsCombatHUDConfig {
 
             x = builder.define("x", 12);
             y = builder.define("y", 120);
-
             scale = builder.defineInRange("scale", 1.0, 0.25, 4.0);
 
-            weaponPassiveSkills = builder
-                    .comment("Show weapon passive skills. Note that it may break epic fight addons that utilizes special skill overlays.")
-                    .define("weapon_passive_skills", false);
-
-            weaponPassiveSkillsBlacklist = builder
-                    .comment("Dont use custom skill overlay for certain passive skills.")
-                    .defineList(
-                            "weapon_passive_skills_blacklist",
-                            List.of(
-                                    "wom:solar_passive",
-                                    "wom:napoleon_passive"
-                            ), o -> o instanceof String
-                    );
+            skillSetting = new SkillSetting(builder);
+            icon = new ElementPosition(
+                    builder, "icon", ElementAnchor.CENTER_LEFT, 4, 0, 1.0);
+            text = new ElementPosition(
+                    builder, "text", ElementAnchor.CENTER_LEFT, 22, 1, 1.0);
 
             builder.pop();
+        }
+
+        public static class SkillSetting {
+            public final ForgeConfigSpec.BooleanValue weaponPassiveSkill;
+            public final ForgeConfigSpec.ConfigValue<List<? extends String>> weaponPassiveSkillBlacklist;
+            public final ForgeConfigSpec.BooleanValue passiveSkills;
+            public final ForgeConfigSpec.ConfigValue<List<? extends String>> passiveSkillsBlacklist;
+            public final ForgeConfigSpec.BooleanValue guardSkill;
+            public final ForgeConfigSpec.ConfigValue<List<? extends String>> guardSkillBlacklist;
+            public final ForgeConfigSpec.BooleanValue identitySkill;
+            public final ForgeConfigSpec.ConfigValue<List<? extends String>> identitySkillBlacklist;
+
+            SkillSetting(ForgeConfigSpec.Builder builder) {
+                builder.push("skill_setting");
+
+                weaponPassiveSkill = builder
+                        .comment("Show weapon passive skills. Note that it may break epic fight addons that utilizes special skill overlays.")
+                        .define("show_weapon_passive_skill", false);
+
+                weaponPassiveSkillBlacklist = builder
+                        .comment("Dont use custom skill overlay for certain weapon passive skills.")
+                        .defineList(
+                                "show_weapon_passive_skill_blacklist",
+                                List.of(
+                                        "wom:solar_passive",
+                                        "wom:napoleon_passive"
+                                ), o -> o instanceof String
+                        );
+
+                passiveSkills = builder
+                        .comment("Show passive skills.")
+                        .define("show_passive_skills", true);
+
+                passiveSkillsBlacklist = builder
+                        .defineList(
+                                "show_passive_skills_blacklist",
+                                List.of(
+                                ), o -> o instanceof String
+                        );
+
+                guardSkill = builder
+                        .comment("Show guard skill.")
+                        .define("show_guard_skill", true);
+
+                guardSkillBlacklist = builder
+                        .defineList(
+                                "show_guard_skill_blacklist",
+                                List.of(
+                                ), o -> o instanceof String
+                        );
+
+                identitySkill = builder
+                        .comment("Show identity skill.")
+                        .define("show_identity_skill", true);
+
+                identitySkillBlacklist = builder
+                        .defineList(
+                                "show_identity_skill_blacklist",
+                                List.of(
+                                ), o -> o instanceof String
+                        );
+
+                builder.pop();
+            }
         }
     }
 
