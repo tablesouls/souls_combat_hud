@@ -180,7 +180,8 @@ dependencies {
     compileOnly fg.deobf("curse.maven:library-of-exile-398780:${library_of_exile_version}")
     compileOnly fg.deobf("curse.maven:not-enough-animations-433760:${not_enough_animations_version}")
     compileOnly fg.deobf("curse.maven:create-328085:${create_forge_version}")
-    compileOnly fg.deobf("curse.maven:legendary-survival-overhaul-840254:${legendarysurvivaloverhaul_version}")
+    compileOnly fg.deobf("curse.maven:legendary-survival-overhaul-840254:${legendarysurvivaloverhaul_forge_version}")
+    compileOnly fg.deobf("curse.maven:auto-hud-623806:${autohud_forge_version}")
 
     if (compatModsRuntime) {
         runtimeOnly fg.deobf("curse.maven:configured-457570:5180900")

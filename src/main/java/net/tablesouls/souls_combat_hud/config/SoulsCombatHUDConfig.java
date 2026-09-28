@@ -1045,7 +1045,7 @@ public final class SoulsCombatHUDConfig {
         public final MinecraftGuiSetting minecraftGui;
         public final EpicFightGuiSetting epicfightGui;
         public final ThirstGuiSetting thirstGui;
-
+        public final AutoHudSetting autoHud;
 
         Visibility(ForgeConfigSpec.Builder builder) {
             builder.comment("Visibility").push("visibility");
@@ -1053,6 +1053,7 @@ public final class SoulsCombatHUDConfig {
             minecraftGui = new MinecraftGuiSetting(builder);
             epicfightGui = new EpicFightGuiSetting(builder);
             thirstGui = new ThirstGuiSetting(builder);
+            autoHud = new AutoHudSetting(builder);
 
             builder.pop();
         }
@@ -1080,6 +1081,19 @@ public final class SoulsCombatHUDConfig {
                 hideStaminaBar = builder
                         .define("hide_stamina_bar", true);
 
+                builder.pop();
+            }
+        }
+
+        public static class AutoHudSetting {
+            public final ForgeConfigSpec.BooleanValue hotbarRemainHidden;
+
+            AutoHudSetting(ForgeConfigSpec.Builder builder) {
+                builder.push("autohud");
+
+                hotbarRemainHidden = builder
+                        .comment("Should the hotbar remain hidden if you switched items with the equipment binds.")
+                        .define("hotbar_remain_hidden", true);
                 builder.pop();
             }
         }

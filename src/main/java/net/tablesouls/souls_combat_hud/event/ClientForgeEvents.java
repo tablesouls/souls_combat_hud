@@ -1,10 +1,8 @@
 package net.tablesouls.souls_combat_hud.event;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -17,6 +15,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.client.gui.PartySortScreen;
 import net.tablesouls.souls_combat_hud.client.util.LocalResourceFallback;
+import net.tablesouls.souls_combat_hud.client.util.slots.HotbarHelper;
+import net.tablesouls.souls_combat_hud.compat.autohud.AutoHudCompat;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightCompat;
 import net.tablesouls.souls_combat_hud.compat.ManaSourceRegistry;
 import net.tablesouls.souls_combat_hud.compat.StaminaSourceRegistry;
@@ -54,14 +54,9 @@ public class ClientForgeEvents {
         int slot = WeaponSlotManager.getNextSlot(player);
         if (slot < 0) return;
 
-        player.getInventory().selected = slot;
+        HotbarHelper.setSelectedSlot(player, slot);
 
         SoundHelper.playCycleSound(ModSounds.CYCLE_WEAPON);
-
-        ClientPacketListener connection = Minecraft.getInstance().getConnection();
-        if (connection != null) {
-            connection.send(new ServerboundSetCarriedItemPacket(slot));
-        }
     }
 
     private static void switchToConsumableChain(Player player, int slot) {
@@ -73,12 +68,7 @@ public class ClientForgeEvents {
         }
         autoEating = false;
 
-        player.getInventory().selected = slot;
-
-        ClientPacketListener connection = Minecraft.getInstance().getConnection();
-        if (connection != null) {
-            connection.send(new ServerboundSetCarriedItemPacket(slot));
-        }
+        HotbarHelper.setSelectedSlot(player, slot);
 
         if (ConsumableSlotManager.isAutoConsumeExcluded(player.getInventory().items.get(slot))) {
             ConsumableSlotManager.setSelectedToHeldItem(player);
@@ -112,12 +102,7 @@ public class ClientForgeEvents {
         }
 
         int fromSlot = player.getInventory().selected;
-        player.getInventory().selected = slot;
-
-        ClientPacketListener connection = Minecraft.getInstance().getConnection();
-        if (connection != null) {
-            connection.send(new ServerboundSetCarriedItemPacket(slot));
-        }
+        HotbarHelper.setSelectedSlot(player, slot);
 
         if (ConsumableSlotManager.isAutoConsumeExcluded(player.getInventory().items.get(slot))) {
             ConsumableSlotManager.setSelectedToHeldItem(player);
@@ -141,6 +126,7 @@ public class ClientForgeEvents {
         }
 
         LocalResourceFallback.tick();
+        AutoHudCompat.tick();
 
         if (ModKeyBindings.CYCLE_WEAPON.consumeClick()) {
             jumpOrCycleWeapon(player);
@@ -248,12 +234,7 @@ public class ClientForgeEvents {
 
         if (player.getInventory().selected != slot) {
             int fromSlot = player.getInventory().selected;
-            player.getInventory().selected = slot;
-
-            ClientPacketListener connection = Minecraft.getInstance().getConnection();
-            if (connection != null) {
-                connection.send(new ServerboundSetCarriedItemPacket(slot));
-            }
+            HotbarHelper.setSelectedSlot(player, slot);
 
             if (excluded) {
                 ConsumableSlotManager.setSelectedToHeldItem(player);
@@ -337,11 +318,7 @@ public class ClientForgeEvents {
         previousSlot = -1;
         jumpedToSlot = -1;
 
-        player.getInventory().selected = slotToRestore;
-        ClientPacketListener connection = Minecraft.getInstance().getConnection();
-        if (connection != null) {
-            connection.send(new ServerboundSetCarriedItemPacket(slotToRestore));
-        }
+        HotbarHelper.setSelectedSlot(player, slotToRestore);
     }
 
     private static void cancelAutoEat(Player player) {

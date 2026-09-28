@@ -8,23 +8,26 @@
     "ScoreboardTeamMixin"
   ],
   "client": [
-    "client.ReleaseUsingItemMixin",
+    "client.BattleModeGuiMixin",
     "client.GuiOffhandMixin",
     "client.MobEffectInstanceMixin",
-    "client.BattleModeGuiMixin",
+    "client.ReleaseUsingItemMixin",
+    "client.AutoHudHotbarRevealMixin",
+    "preview.ElytraModelMixin",
+    "preview.LocalPlayerPreviewMixin",
     "preview.EntityPreviewMixin",
+    "preview.HumanoidModelPreviewMixin",
     "preview.LivingEntityPosePreviewMixin",
     "preview.LivingEntityRendererPreviewMixin",
-    "preview.HumanoidModelPreviewMixin",
-    "preview.PlayerRendererOffsetMixin",
     "preview.PatchedLivingEntityRendererMixin",
+    "preview.PlayerRendererOffsetMixin",
+    "preview.create.CreateArmPosePreviewMixin",
+    "preview.create.CreateSkyhookPosePreviewMixin",
+    "preview.notenoughanimations.NotEnoughAnimationsPreviewMixin",
+    "preview.paraglider.ParagliderPosePreviewMixin",
     "preview.parcool.ParcoolAnimationPreviewMixin",
     "preview.parcool.ParcoolV4AnimationPreviewMixin",
-    "preview.playeranim.PlayerAnimatorPreviewMixin",
-    "preview.paraglider.ParagliderPosePreviewMixin",
-    "preview.notenoughanimations.NotEnoughAnimationsPreviewMixin",
-    "preview.create.CreateSkyhookPosePreviewMixin",
-    "preview.create.CreateArmPosePreviewMixin"
+    "preview.playeranim.PlayerAnimatorPreviewMixin"
   ],
   "injectors": {
     "defaultRequire": 1
