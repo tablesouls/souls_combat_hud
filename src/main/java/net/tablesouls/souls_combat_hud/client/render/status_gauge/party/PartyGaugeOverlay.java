@@ -3,7 +3,6 @@ package net.tablesouls.souls_combat_hud.client.render.status_gauge.party;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.multiplayer.ClientChunkCache;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
@@ -25,6 +24,9 @@ public class PartyGaugeOverlay implements IGuiOverlay {
     private final Map<UUID, GaugeOverlay> slotsByPlayer = new HashMap<>();
     private final Map<UUID, PartyMemberGaugeSubject> subjectsByPlayer = new HashMap<>();
 
+    private final List<UUID> teammateBuffer = new ArrayList<>();
+    private final Set<UUID> visibleTeammateBuffer = new HashSet<>();
+
     private static final int SLOT_HEIGHT = 40;
 
     @Override
@@ -43,9 +45,15 @@ public class PartyGaugeOverlay implements IGuiOverlay {
         AbstractClientPlayer localPlayer = mc.player;
         if (localPlayer == null) return;
 
-        List<UUID> teammates = TeamProviderRegistry.resolveDisplayedTeammateIds(localPlayer);
-        teammates = teammates.stream().filter(id -> !PartyMemberClientCache.isHidden(id)).toList();
-        if (teammates.isEmpty()) {
+        List<UUID> rawTeammates = TeamProviderRegistry.resolveDisplayedTeammateIds(localPlayer);
+
+        teammateBuffer.clear();
+        for (UUID id : rawTeammates) {
+            if (!PartyMemberClientCache.isHidden(id)) {
+                teammateBuffer.add(id);
+            }
+        }
+        if (teammateBuffer.isEmpty()) {
             slotsByPlayer.clear();
             subjectsByPlayer.clear();
             return;
@@ -53,24 +61,24 @@ public class PartyGaugeOverlay implements IGuiOverlay {
 
         if (!SoulsCombatHUDConfig.STATUS_GAUGE.partyGauge.showOfflineMembers.get()) {
             ClientPacketListener connection = mc.getConnection();
-            teammates = teammates.stream()
-                    .filter(id -> connection != null && connection.getPlayerInfo(id) != null)
-                    .toList();
-            if (teammates.isEmpty()) {
+            teammateBuffer.removeIf(id -> connection == null || connection.getPlayerInfo(id) == null);
+            if (teammateBuffer.isEmpty()) {
                 slotsByPlayer.clear();
                 subjectsByPlayer.clear();
                 return;
             }
         }
 
+        List<UUID> teammates = teammateBuffer;
         int maxDisplayed = SoulsCombatHUDConfig.STATUS_GAUGE.partyGauge.maxDisplayedPartyMembers.get();
         if (maxDisplayed > 0 && teammates.size() > maxDisplayed) {
             teammates = teammates.subList(0, maxDisplayed);
         }
 
-        final List<UUID> visibleTeammates = teammates;
-        slotsByPlayer.keySet().removeIf(id -> !visibleTeammates.contains(id));
-        subjectsByPlayer.keySet().removeIf(id -> !visibleTeammates.contains(id));
+        visibleTeammateBuffer.clear();
+        visibleTeammateBuffer.addAll(teammates);
+        slotsByPlayer.keySet().removeIf(id -> !visibleTeammateBuffer.contains(id));
+        subjectsByPlayer.keySet().removeIf(id -> !visibleTeammateBuffer.contains(id));
 
         ElementAnchor overlayAnchor = SoulsCombatHUDConfig.STATUS_GAUGE.partyGauge.anchor.get();
         boolean mirrored = overlayAnchor.horizontal() == ElementAnchor.Horizontal.RIGHT;

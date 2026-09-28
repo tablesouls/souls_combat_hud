@@ -38,12 +38,16 @@ import net.tablesouls.souls_combat_hud.accessor.IEffectDurationAccessor;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 
 public class GaugeOverlay implements IGuiOverlay {
     private final GaugeStyleRegistry gaugeStyles;
+
+    private final List<MobEffectInstance> effectsScratch = new ArrayList<>();
 
     public GaugeOverlay() {
         this(GaugeStyleRegistry.PLAYER);
@@ -246,31 +250,33 @@ public class GaugeOverlay implements IGuiOverlay {
                 case HEALTH -> {
                     if (!showStatusBars) continue;
                     cursorY = renderBarRow(
-                        graphics, subject, gaugeStyles.getLayout("health", GaugeLayout.DEFAULT),
-                        x, y, cursorY, HEALTH_BAR_HEIGHT, rowGap, mirrored,
-                        subject.hasHealthData(), this::renderHealthBar);
+                            graphics, subject, gaugeStyles.getLayout("health", GaugeLayout.DEFAULT),
+                            x, y, cursorY, HEALTH_BAR_HEIGHT, rowGap, mirrored,
+                            subject.hasHealthData(), this::renderHealthBar);
                 }
                 case STAMINA -> {
                     if (!showStatusBars) continue;
                     cursorY = renderBarRow(
-                        graphics, subject, gaugeStyles.getLayout("stamina", GaugeLayout.DEFAULT),
-                        x, y, cursorY, STAMINA_BAR_HEIGHT, rowGap, mirrored,
-                        subject.hasStamina(), this::renderStaminaBar);
+                            graphics, subject, gaugeStyles.getLayout("stamina", GaugeLayout.DEFAULT),
+                            x, y, cursorY, STAMINA_BAR_HEIGHT, rowGap, mirrored,
+                            subject.hasStamina(), this::renderStaminaBar);
                 }
                 case MANA -> {
                     if (!showStatusBars) continue;
                     cursorY = renderBarRow(
-                        graphics, subject, gaugeStyles.getLayout("mana", GaugeLayout.DEFAULT),
-                        x, y, cursorY, MANA_BAR_HEIGHT, rowGap, mirrored,
-                        subject.hasMana(), this::renderManaBar);
+                            graphics, subject, gaugeStyles.getLayout("mana", GaugeLayout.DEFAULT),
+                            x, y, cursorY, MANA_BAR_HEIGHT, rowGap, mirrored,
+                            subject.hasMana(), this::renderManaBar);
                 }
                 case STATUS_EFFECTS -> {
                     GaugeLayout statusEffectsLayout = gaugeStyles.getLayout("status_effects", GaugeLayout.DEFAULT);
                     if (!statusEffectsLayout.enabled()) continue;
 
-                    List<MobEffectInstance> effects = new ArrayList<>(subject.getStatusEffects());
-                    effects.sort(effectSortComparator(SoulsCombatHUDConfig.STATUS_GAUGE.statusEffects.sortOrder.get()));
+                    effectsScratch.clear();
+                    effectsScratch.addAll(subject.getStatusEffects());
+                    effectsScratch.sort(effectSortComparator(SoulsCombatHUDConfig.STATUS_GAUGE.statusEffects.sortOrder.get()));
 
+                    List<MobEffectInstance> effects = effectsScratch;
                     int maxDisplayed = SoulsCombatHUDConfig.STATUS_GAUGE.statusEffects.maxDisplayed.get();
                     if (maxDisplayed > 0 && effects.size() > maxDisplayed) {
                         effects = effects.subList(0, maxDisplayed);
@@ -889,19 +895,26 @@ public class GaugeOverlay implements IGuiOverlay {
         return 1f - Mth.clamp(instance.getDuration() / (float) maxDuration, 0f, 1f);
     }
 
-    private static Comparator<MobEffectInstance> effectSortComparator(StatusEffectSortOrder order) {
+    private static final Map<StatusEffectSortOrder, Comparator<MobEffectInstance>> EFFECT_COMPARATORS =
+            buildEffectComparators();
+
+    private static Map<StatusEffectSortOrder, Comparator<MobEffectInstance>> buildEffectComparators() {
         Comparator<MobEffectInstance> byElapsedAscending = Comparator.comparingDouble(GaugeOverlay::elapsedFraction);
 
-        return switch (order) {
-            case NEWEST -> byElapsedAscending;
-            case OLDEST -> byElapsedAscending.reversed();
-            case HARMFUL -> Comparator
-                    .comparing((MobEffectInstance i) -> i.getEffect().isBeneficial()) // false (harmful) sorts first
-                    .thenComparing(byElapsedAscending);
-            case BENEFICIAL -> Comparator
-                    .comparing((MobEffectInstance i) -> !i.getEffect().isBeneficial()) // false (beneficial) sorts first
-                    .thenComparing(byElapsedAscending);
-        };
+        Map<StatusEffectSortOrder, Comparator<MobEffectInstance>> map = new EnumMap<>(StatusEffectSortOrder.class);
+        map.put(StatusEffectSortOrder.NEWEST, byElapsedAscending);
+        map.put(StatusEffectSortOrder.OLDEST, byElapsedAscending.reversed());
+        map.put(StatusEffectSortOrder.HARMFUL, Comparator
+                .comparing((MobEffectInstance i) -> i.getEffect().isBeneficial()) // false (harmful) sorts first
+                .thenComparing(byElapsedAscending));
+        map.put(StatusEffectSortOrder.BENEFICIAL, Comparator
+                .comparing((MobEffectInstance i) -> !i.getEffect().isBeneficial()) // false (beneficial) sorts first
+                .thenComparing(byElapsedAscending));
+        return map;
+    }
+
+    private static Comparator<MobEffectInstance> effectSortComparator(StatusEffectSortOrder order) {
+        return EFFECT_COMPARATORS.get(order);
     }
 
     private void renderEffectTimer(

@@ -105,7 +105,7 @@
           "background_color": "#67000000",
           "reduction_color": "#E8C34A"
         },
-        "ornament_texture": "status_bar_ornament"
+        "ornament_texture": "souls_combat_hud:status_bar_ornament"
       },
       {
         "type": "stamina",
@@ -120,7 +120,7 @@
           "background_color": "#67000000",
           "reduction_color": "#E8C34A"
         },
-        "ornament_texture": "status_bar_ornament"
+        "ornament_texture": "souls_combat_hud:status_bar_ornament"
       },
       {
         "type": "mana",
@@ -135,7 +135,7 @@
           "background_color": "#67000000",
           "reduction_color": "#E8C34A"
         },
-        "ornament_texture": "status_bar_ornament"
+        "ornament_texture": "souls_combat_hud:status_bar_ornament"
       },
       {
         "type": "status_effects",

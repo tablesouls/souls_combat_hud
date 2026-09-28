@@ -12,5 +12,5 @@
     "color": "#FFFFFF",
     "drop_shadow": true
   },
-  "ornament_texture": "bossbar_ornament"
+  "ornament_texture": "souls_combat_hud:bossbar_ornament"
 }

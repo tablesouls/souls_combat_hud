@@ -1,0 +1,3 @@
+[submodule "ts_ui_lib"]
+	path = ts_ui_lib
+	url = https://github.com/tablesouls/ts_ui_lib.git
