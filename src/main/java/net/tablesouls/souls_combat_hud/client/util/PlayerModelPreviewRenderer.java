@@ -34,7 +34,7 @@ public final class PlayerModelPreviewRenderer {
     }
 
     public static boolean isPreviewTarget(Entity entity) {
-        return entity != null && entity == previewTarget;
+        return renderingPreview && entity != null && entity == previewTarget;
     }
 
     public static boolean isPreviewHeldItem(ItemStack stack) {
@@ -64,22 +64,26 @@ public final class PlayerModelPreviewRenderer {
 
         float bodyYaw = BASE_YAW + rotationDegrees;
 
-        renderingPreview = true;
-        previewTarget = player;
-        previewWalkAnimation = player.walkAnimation;
-
-        EpicFightAnimationFreezer.LockedFacingSnapshot lockedFacing =
-                EpicFightCompat.LOADED ? EpicFightAnimationFreezer.captureLockedFacing(player) : null;
-
-        EpicFightAnimationFreezer.FrozenBodyRotation bodyRotationSnapshot =
-                EpicFightCompat.LOADED ? EpicFightAnimationFreezer.freezeBodyRotation(player, bodyYaw) : null;
-
-        FrozenPose.Snapshot poseSnapshot = FrozenPose.freeze(player, bodyYaw, 0f, rotationDegrees);
-
-        EpicFightAnimationFreezer.FrozenAnimation animationSnapshot =
-                EpicFightCompat.LOADED ? EpicFightAnimationFreezer.freezeToIdle(player) : null;
+        EpicFightAnimationFreezer.LockedFacingSnapshot lockedFacing = null;
+        EpicFightAnimationFreezer.FrozenBodyRotation bodyRotationSnapshot = null;
+        FrozenPose.Snapshot poseSnapshot = null;
+        EpicFightAnimationFreezer.FrozenAnimation animationSnapshot = null;
+        boolean scissorEnabled = false;
 
         try {
+            renderingPreview = true;
+            previewTarget = player;
+            previewWalkAnimation = player.walkAnimation;
+
+            if (EpicFightCompat.LOADED) {
+                lockedFacing = EpicFightAnimationFreezer.captureLockedFacing(player);
+                bodyRotationSnapshot = EpicFightAnimationFreezer.freezeBodyRotation(player, bodyYaw);
+            }
+            poseSnapshot = FrozenPose.freeze(player, bodyYaw, 0f, rotationDegrees);
+            if (EpicFightCompat.LOADED) {
+                animationSnapshot = EpicFightAnimationFreezer.freezeToIdle(player);
+            }
+
             int pad = 32;
 
             Vector3f screenOrigin = graphics.pose().last().pose().transformPosition(new Vector3f(scissorX, scissorY, 0));
@@ -94,6 +98,7 @@ public final class PlayerModelPreviewRenderer {
                     screenY - scaledPad,
                     screenX + scaledSize + scaledPad,
                     screenY + scaledSize);
+            scissorEnabled = true;
 
             Quaternionf entityRotation = new Quaternionf().rotateZ((float) Math.PI);
 
@@ -128,12 +133,16 @@ public final class PlayerModelPreviewRenderer {
                 }
             }
 
-            FrozenPose.restore(player, poseSnapshot);
+            if (poseSnapshot != null) {
+                FrozenPose.restore(player, poseSnapshot);
+            }
 
             renderingPreview = false;
             previewTarget = null;
             previewWalkAnimation = null;
-            graphics.disableScissor();
+            if (scissorEnabled) {
+                graphics.disableScissor();
+            }
         }
     }
 }

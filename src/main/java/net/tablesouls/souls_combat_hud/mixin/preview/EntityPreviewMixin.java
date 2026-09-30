@@ -23,4 +23,11 @@ public abstract class EntityPreviewMixin {
             cir.setReturnValue(false);
         }
     }
+
+    @Inject(method = "isCrouching", at = @At("RETURN"), cancellable = true)
+    private void souls_combat_hud$freezeCrouching(CallbackInfoReturnable<Boolean> cir) {
+        if (PlayerModelPreviewRenderer.isPreviewTarget((Entity) (Object) this)) {
+            cir.setReturnValue(false);
+        }
+    }
 }

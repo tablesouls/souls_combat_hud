@@ -30,6 +30,9 @@ public final class FrozenPose {
             float xRotO,
             float yHeadRot,
             float yHeadRotO,
+            float elytraRotX,
+            float elytraRotY,
+            float elytraRotZ,
             VehicleSnapshot vehicleSnapshot
     ) {}
 
@@ -59,6 +62,9 @@ public final class FrozenPose {
                 player.xRotO,
                 player.yHeadRot,
                 player.yHeadRotO,
+                player.elytraRotX,
+                player.elytraRotY,
+                player.elytraRotZ,
                 vehicleSnapshot
         );
 
@@ -81,6 +87,10 @@ public final class FrozenPose {
         player.xRotO = targetXRot;
         player.yHeadRot = targetBodyYaw;
         player.yHeadRotO = targetBodyYaw;
+
+        player.elytraRotX = 0f;
+        player.elytraRotY = 0f;
+        player.elytraRotZ = 0f;
 
         if (vehicleSnapshot != null) {
             LivingEntity vehicle = vehicleSnapshot.vehicle();
@@ -115,6 +125,10 @@ public final class FrozenPose {
         player.xRotO = snapshot.xRotO();
         player.yHeadRot = snapshot.yHeadRot();
         player.yHeadRotO = snapshot.yHeadRotO();
+
+        player.elytraRotX = snapshot.elytraRotX();
+        player.elytraRotY = snapshot.elytraRotY();
+        player.elytraRotZ = snapshot.elytraRotZ();
 
         if (snapshot.vehicleSnapshot() != null) {
             VehicleSnapshot vs = snapshot.vehicleSnapshot();

@@ -3,6 +3,7 @@ package net.tablesouls.souls_combat_hud.client.render.bars;
 import com.google.gson.JsonObject;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
+import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 
 public final class BarStyleJsonParser {
     public static BarStyle parseBarStyle(JsonObject styleJson, BarStyle fallback) {
@@ -22,8 +23,18 @@ public final class BarStyleJsonParser {
         if (!styleJson.has("ornament_texture")) {
             return fallback;
         }
-        return ResourceLocation.fromNamespaceAndPath(namespace,
-                "textures/gui/sprites/souls_bars/" + GsonHelper.getAsString(styleJson, "ornament_texture") + ".png");
+
+        String value = GsonHelper.getAsString(styleJson, "ornament_texture");
+
+        ResourceLocation parsed = ResourceLocation.tryParse(value);
+        if (parsed == null) {
+            SoulsCombatHUD.LOGGER.warn("Invalid ornament texture '{}'", value);
+            return fallback;
+        }
+
+        return ResourceLocation.fromNamespaceAndPath(
+                parsed.getNamespace(),
+                "textures/gui/sprites/souls_bars/" + parsed.getPath() + ".png");
     }
 
     public static int parseColor(JsonObject json, String key, int fallback) {
