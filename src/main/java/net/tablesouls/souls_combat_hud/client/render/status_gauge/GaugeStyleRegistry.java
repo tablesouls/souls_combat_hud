@@ -1,7 +1,7 @@
 package net.tablesouls.souls_combat_hud.client.render.status_gauge;
 
-import net.tablesouls.souls_combat_hud.client.render.bars.BarDecoration;
-import net.tablesouls.souls_combat_hud.client.render.bars.BarStyle;
+import net.tablesouls.ts_ui_lib.client.render.BarDecoration;
+import net.tablesouls.ts_ui_lib.client.render.BarStyle;
 
 import java.util.HashMap;
 import java.util.List;

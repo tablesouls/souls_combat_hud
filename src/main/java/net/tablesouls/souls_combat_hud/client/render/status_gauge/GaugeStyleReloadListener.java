@@ -7,13 +7,12 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
-import net.tablesouls.souls_combat_hud.client.render.bars.BarDecoration;
+import net.tablesouls.ts_ui_lib.client.render.BarDecoration;
 import net.tablesouls.souls_combat_hud.client.render.bars.BarDecorations;
-import net.tablesouls.souls_combat_hud.client.render.bars.BarStyle;
-import net.tablesouls.souls_combat_hud.client.render.bars.BarStyleJsonParser;
-import net.tablesouls.souls_combat_hud.client.render.bars.StackedStyleJsonLoader;
+import net.tablesouls.ts_ui_lib.client.render.BarStyle;
+import net.tablesouls.ts_ui_lib.client.render.BarStyleJsonParser;
+import net.tablesouls.ts_ui_lib.client.render.StackedStyleJsonLoader;
 
-import javax.json.Json;
 import java.util.ArrayList;
 import java.util.List;
 

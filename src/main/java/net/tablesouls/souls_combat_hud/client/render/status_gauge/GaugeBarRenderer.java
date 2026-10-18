@@ -3,8 +3,8 @@ package net.tablesouls.souls_combat_hud.client.render.status_gauge;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.tablesouls.souls_combat_hud.client.render.bars.BarDecorations;
-import net.tablesouls.souls_combat_hud.client.render.bars.BarElement;
-import net.tablesouls.souls_combat_hud.client.render.bars.BarStyle;
+import net.tablesouls.ts_ui_lib.client.render.BarElement;
+import net.tablesouls.ts_ui_lib.client.render.BarStyle;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 
 public final class GaugeBarRenderer {
