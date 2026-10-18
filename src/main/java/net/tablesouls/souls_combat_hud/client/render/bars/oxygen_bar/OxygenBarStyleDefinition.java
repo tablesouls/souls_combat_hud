@@ -1,9 +1,9 @@
 package net.tablesouls.souls_combat_hud.client.render.bars.oxygen_bar;
 
 import net.minecraft.resources.ResourceLocation;
-import net.tablesouls.ts_ui_lib.client.render.BarDecoration;
+import net.tablesouls.ts_ui_lib.client.render.bars.BarDecoration;
 import net.tablesouls.souls_combat_hud.client.render.bars.BarDecorations;
-import net.tablesouls.ts_ui_lib.client.render.BarStyle;
+import net.tablesouls.ts_ui_lib.client.render.bars.BarStyle;
 
 public record OxygenBarStyleDefinition(
         int barColor,

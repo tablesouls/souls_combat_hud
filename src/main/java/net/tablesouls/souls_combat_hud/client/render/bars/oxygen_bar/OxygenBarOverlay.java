@@ -3,14 +3,13 @@ package net.tablesouls.souls_combat_hud.client.render.bars.oxygen_bar;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.tags.FluidTags;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.minecraftforge.common.ForgeMod;
-import net.tablesouls.souls_combat_hud.client.render.bars.BarElement;
+import net.tablesouls.ts_ui_lib.client.render.bars.BarElement;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
-import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
-import net.tablesouls.souls_combat_hud.client.util.animation.SymmetricFractionAnimator;
+import net.tablesouls.ts_ui_lib.client.util.ElementAnchor;
+import net.tablesouls.ts_ui_lib.client.util.animation.SymmetricFractionAnimator;
 
 public class OxygenBarOverlay implements IGuiOverlay {
 

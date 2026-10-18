@@ -4,11 +4,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
-import net.tablesouls.souls_combat_hud.client.render.bars.BarElement;
-import net.tablesouls.souls_combat_hud.client.util.TextHelper;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.client.util.BossBarState;
-import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
+import net.tablesouls.ts_ui_lib.client.render.bars.BarElement;
+import net.tablesouls.ts_ui_lib.client.util.ElementAnchor;
+import net.tablesouls.ts_ui_lib.client.util.TextHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
