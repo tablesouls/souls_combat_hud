@@ -8,11 +8,12 @@
     "ScoreboardTeamMixin"
   ],
   "client": [
+    "client.AutoHudHotbarRevealMixin",
     "client.BattleModeGuiMixin",
+    "client.GuiGraphicsLabelScaleMixin",
     "client.GuiOffhandMixin",
     "client.MobEffectInstanceMixin",
-    "client.ReleaseUsingItemMixin",
-    "client.AutoHudHotbarRevealMixin"
+    "client.ReleaseUsingItemMixin"
   ],
   "injectors": {
     "defaultRequire": 1

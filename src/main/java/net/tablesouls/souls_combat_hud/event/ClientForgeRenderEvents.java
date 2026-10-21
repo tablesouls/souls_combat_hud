@@ -12,6 +12,7 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.tablesouls.souls_combat_hud.client.util.BossBarState;
+import net.tablesouls.souls_combat_hud.compat.ars_nouveau.ArsNouveauCompat;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightCompat;
 import net.tablesouls.souls_combat_hud.compat.helditemtooltips.HeldItemTooltipsCompat;
 import net.tablesouls.souls_combat_hud.compat.thirst_was_reclaimed.ThirstWasReclaimedCompat;
@@ -23,6 +24,7 @@ public class ClientForgeRenderEvents {
     private static final ResourceLocation STAMINA_BAR_ID = ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MODID, "stamina_bar");
     private static final ResourceLocation OFFHAND_HUD_ID = ResourceLocation.fromNamespaceAndPath(MoreOffhandSlots.MODID, "offhand_hud");
     private static final ResourceLocation TWR_THIRST_OVERLAY_ID = ResourceLocation.fromNamespaceAndPath(ThirstWasReclaimedCompat.MODID, "thirst_level");
+    private static final ResourceLocation ARS_NOUVEAU_MANA_HUD_ID = ResourceLocation.fromNamespaceAndPath(ArsNouveauCompat.MODID, "mana_hud");
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onItemNameOffsetPre(RenderGuiOverlayEvent.Pre event) {
@@ -73,6 +75,11 @@ public class ClientForgeRenderEvents {
         }
 
         if (SoulsCombatHUDConfig.VISIBILITY.thirstGui.hideThirst.get() && id.equals(TWR_THIRST_OVERLAY_ID)) {
+            event.setCanceled(true);
+            return;
+        }
+
+        if (SoulsCombatHUDConfig.VISIBILITY.arsNouveauGui.hideManaBar.get() && id.equals(ARS_NOUVEAU_MANA_HUD_ID)) {
             event.setCanceled(true);
             return;
         }

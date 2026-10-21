@@ -159,12 +159,14 @@ public final class SkillOverlayRenderer {
 
         PoseStack poseStack = guiGraphics.pose();
         poseStack.pushPose();
+        SkillLabelScale.set(SoulsCombatHUDConfig.SKILL_OVERLAY.labelScale.get().floatValue());
         try {
             poseStack.translate(iconX, iconY, 0.0f);
             poseStack.scale(scale, scale, scale);
             poseStack.translate(0.0f, -battleModeGui.getSlidingProgression(), 0.0f);
             container.getSkill().drawOnGui(battleModeGui, container, guiGraphics, 0.0f, 0.0f, partialTick);
         } finally {
+            SkillLabelScale.reset();
             poseStack.popPose();
         }
     }

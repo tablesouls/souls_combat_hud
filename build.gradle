@@ -8,6 +8,8 @@ plugins {
 }
 
 jarJar.enable()
+evaluationDependsOn(':ts_ui_lib')
+
 version = mod_version
 group = mod_group_id
 
@@ -170,16 +172,17 @@ def compatDeps = [
         fg.deobf("curse.maven:paragliders-289240:${paraglider_forge_version}"),
         fg.deobf("dev.kosmx.player-anim:player-animation-lib-forge:${player_animation_lib_forge_version}"),
         fg.deobf("top.theillusivec4.curios:curios-forge:${curio_forge_version}"),
-        fg.deobf("curse.maven:mana-and-artifice-406360:${mana_and_artifice_forge_version}")
+        fg.deobf("curse.maven:mana-and-artifice-406360:${mana_and_artifice_forge_version}"),
+        fg.deobf("curse.maven:ars-nouveau-401955:${ars_nouveau_forge_version}")
 ]
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    implementation project(':ts_ui_lib')
+    implementation files(project(':ts_ui_lib').sourceSets.main.output)
 
-    jarJar(group: 'net.tablesouls', name: 'ts_ui_lib', version: "[${ts_ui_lib_version},2.0.0)") {
+    jarJar("net.tablesouls:ts_ui_lib:[$ts_ui_lib_version,)") {
         jarJar.pin(it, ts_ui_lib_version)
     }
 
