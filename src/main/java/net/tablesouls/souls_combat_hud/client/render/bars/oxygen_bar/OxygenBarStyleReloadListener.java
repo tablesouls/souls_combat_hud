@@ -6,8 +6,8 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
-import net.tablesouls.souls_combat_hud.client.render.bars.BarStyle;
-import net.tablesouls.souls_combat_hud.client.render.bars.BarStyleJsonParser;
+import net.tablesouls.ts_ui_lib.client.render.bars.BarStyle;
+import net.tablesouls.ts_ui_lib.client.render.bars.BarStyleJsonParser;
 import net.tablesouls.souls_combat_hud.client.render.bars.StackedStyleJsonLoader;
 
 public class OxygenBarStyleReloadListener extends SimplePreparableReloadListener<JsonObject> {

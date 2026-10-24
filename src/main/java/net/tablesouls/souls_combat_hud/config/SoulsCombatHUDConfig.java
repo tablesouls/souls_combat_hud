@@ -1,8 +1,8 @@
 package net.tablesouls.souls_combat_hud.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
-import net.tablesouls.souls_combat_hud.client.util.ElementOrientation;
+import net.tablesouls.ts_ui_lib.client.util.ElementAnchor;
+import net.tablesouls.ts_ui_lib.client.util.ElementOrientation;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -26,6 +26,8 @@ public final class SoulsCombatHUDConfig {
     static {
         MANA_PRESET_DEFAULTS.put(ManaSourceMode.IRONS_SPELLBOOKS, new double[]{100, 800, 1.0});
         MANA_PRESET_DEFAULTS.put(ManaSourceMode.MINE_AND_SLASH, new double[]{50, 1040, 0.4});
+        MANA_PRESET_DEFAULTS.put(ManaSourceMode.MANA_AND_ARTIFICE, new double[]{100, 1600, 0.6});
+        MANA_PRESET_DEFAULTS.put(ManaSourceMode.ARS_NOUVEAU, new double[]{100, 1500, 0.7});
     }
 
     public static final StatsData STATS_DATA;
@@ -275,6 +277,7 @@ public final class SoulsCombatHUDConfig {
     public static class SkillOverlay {
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.EnumValue<ElementAnchor> anchor;
+        public final ForgeConfigSpec.DoubleValue labelScale;
         public final ForgeConfigSpec.DoubleValue scale;
         public final ForgeConfigSpec.ConfigValue<Integer> x;
         public final ForgeConfigSpec.ConfigValue<Integer> y;
@@ -296,6 +299,8 @@ public final class SoulsCombatHUDConfig {
 
             x = builder.define("x", 12);
             y = builder.define("y", 120);
+            labelScale = builder
+                    .defineInRange("label_scale", 0.75, 0.25, 2.0);
             scale = builder.defineInRange("scale", 1.0, 0.25, 4.0);
 
             skillSetting = new SkillSetting(builder);
@@ -718,6 +723,7 @@ public final class SoulsCombatHUDConfig {
     public static class PlayerGaugeOverlay {
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.BooleanValue statusBars;
+        public final ForgeConfigSpec.BooleanValue crest;
         public final ForgeConfigSpec.EnumValue<CrestDisplayMode> crestDisplayMode;
         public final ForgeConfigSpec.BooleanValue crestTeamOutline;
         public final ForgeConfigSpec.BooleanValue crestAttributes;
@@ -738,6 +744,7 @@ public final class SoulsCombatHUDConfig {
 
             statusBars = builder.define("status_bars", true);
 
+            crest = builder.define("crest", true);
             crestDisplayMode = builder.defineEnum("crest_display_mode", CrestDisplayMode.MODEL);
             crestTeamOutline = builder.define("crest_team_outline", true);
             crestAttributes = builder.define("crest_attributes", true);
@@ -759,6 +766,7 @@ public final class SoulsCombatHUDConfig {
     public static class PartyGaugeOverlay {
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.BooleanValue statusBars;
+        public final ForgeConfigSpec.BooleanValue crest;
         public final ForgeConfigSpec.BooleanValue crestTeamOutline;
         public final ForgeConfigSpec.EnumValue<CrestDisplayMode> crestDisplayMode;
         public final ForgeConfigSpec.IntValue maxDisplayedPartyMembers;
@@ -784,6 +792,7 @@ public final class SoulsCombatHUDConfig {
 
             statusBars = builder.define("status_bars", true);
 
+            crest = builder.define("crest", true);
             crestDisplayMode = builder.defineEnum("crest_display_mode", CrestDisplayMode.MODEL);
             crestTeamOutline = builder.define("crest_team_outline", true);
 
@@ -1035,7 +1044,7 @@ public final class SoulsCombatHUDConfig {
             scale = builder.defineInRange("scale", 1.0, 0.25, 4.0);
             width = builder.define("width", 182);
             x = builder.define("x", 0);
-            y = builder.define("y", 60);
+            y = builder.define("y", 48);
 
             builder.pop();
         }
@@ -1046,6 +1055,7 @@ public final class SoulsCombatHUDConfig {
         public final EpicFightGuiSetting epicfightGui;
         public final ThirstGuiSetting thirstGui;
         public final AutoHudSetting autoHud;
+        public final ArsNouveauGui arsNouveauGui;
 
         Visibility(ForgeConfigSpec.Builder builder) {
             builder.comment("Visibility").push("visibility");
@@ -1054,6 +1064,7 @@ public final class SoulsCombatHUDConfig {
             epicfightGui = new EpicFightGuiSetting(builder);
             thirstGui = new ThirstGuiSetting(builder);
             autoHud = new AutoHudSetting(builder);
+            arsNouveauGui = new ArsNouveauGui(builder);
 
             builder.pop();
         }
@@ -1094,6 +1105,18 @@ public final class SoulsCombatHUDConfig {
                 hotbarRemainHidden = builder
                         .comment("Should the hotbar remain hidden if you switched items with the equipment binds.")
                         .define("hotbar_remain_hidden", true);
+                builder.pop();
+            }
+        }
+
+        public static class ArsNouveauGui {
+            public final ForgeConfigSpec.BooleanValue hideManaBar;
+
+            ArsNouveauGui(ForgeConfigSpec.Builder builder) {
+                builder.push("ars_nouveau");
+
+                hideManaBar = builder
+                        .define("hide_mana_bar", true);
                 builder.pop();
             }
         }

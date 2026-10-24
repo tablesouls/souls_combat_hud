@@ -4,10 +4,11 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
-import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
+import net.tablesouls.ts_ui_lib.client.util.ElementAnchor;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.events.engine.RenderEngine;
@@ -158,27 +159,38 @@ public final class SkillOverlayRenderer {
 
         PoseStack poseStack = guiGraphics.pose();
         poseStack.pushPose();
+        SkillLabelScale.set(SoulsCombatHUDConfig.SKILL_OVERLAY.labelScale.get().floatValue());
         try {
             poseStack.translate(iconX, iconY, 0.0f);
             poseStack.scale(scale, scale, scale);
             poseStack.translate(0.0f, -battleModeGui.getSlidingProgression(), 0.0f);
             container.getSkill().drawOnGui(battleModeGui, container, guiGraphics, 0.0f, 0.0f, partialTick);
         } finally {
+            SkillLabelScale.reset();
             poseStack.popPose();
         }
     }
 
     private static final Map<ResourceLocation, String> SKILL_NAME_CACHE = new HashMap<>();
+    private static final Map<ResourceLocation, Boolean> HAS_TRANSLATION_CACHE = new HashMap<>();
+
+    public static String translationKey(ResourceLocation id) {
+        return "skill." + id.getNamespace() + "." + id.getPath();
+    }
+
+    public static boolean hasTranslation(Skill skill) {
+        ResourceLocation id = skill.getRegistryName();
+        if (id == null) return false;
+        return HAS_TRANSLATION_CACHE.computeIfAbsent(id, key -> I18n.exists(translationKey(key)));
+    }
 
     private static String resolveSkillName(Skill skill) {
         ResourceLocation registryName = skill.getRegistryName();
         if (registryName == null) {
             return skill.toString();
         }
-        return SKILL_NAME_CACHE.computeIfAbsent(registryName, id -> {
-            String translationKey = String.format("skill.%s.%s", registryName.getNamespace(), registryName.getPath());
-            return Component.translatable(translationKey).getString();
-        });
+        return SKILL_NAME_CACHE.computeIfAbsent(registryName, id ->
+                Component.translatable(translationKey(id)).getString());
     }
 
     public static int rowWidth() {

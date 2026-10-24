@@ -15,23 +15,23 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
-import net.tablesouls.souls_combat_hud.client.render.bars.BarElement;
-import net.tablesouls.souls_combat_hud.client.render.bars.BarScaling;
-import net.tablesouls.souls_combat_hud.client.render.bars.BarStyle;
+import net.tablesouls.ts_ui_lib.client.render.bars.BarElement;
+import net.tablesouls.ts_ui_lib.client.render.bars.BarScaling;
+import net.tablesouls.ts_ui_lib.client.render.bars.BarStyle;
 import net.tablesouls.souls_combat_hud.client.render.status_gauge.player.PlayerGaugeSubject;
 import net.tablesouls.souls_combat_hud.client.render.status_gauge.thirst.ThirstIcon;
 import net.tablesouls.souls_combat_hud.client.render.status_gauge.thirst.ThirstIconRegistry;
-import net.tablesouls.souls_combat_hud.client.util.PlayerFacePreviewRenderer;
+import net.tablesouls.ts_ui_lib.client.util.PlayerFacePreviewRenderer;
 import net.tablesouls.souls_combat_hud.client.util.StatusBarValues;
 import net.tablesouls.souls_combat_hud.config.CrestDisplayMode;
-import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
-import net.tablesouls.souls_combat_hud.client.util.PlayerModelPreviewRenderer;
+import net.tablesouls.ts_ui_lib.client.util.ElementAnchor;
+import net.tablesouls.ts_ui_lib.client.preview.PlayerModelPreviewRenderer;
 import net.tablesouls.souls_combat_hud.compat.TeamProviderRegistry;
 import net.tablesouls.souls_combat_hud.config.ThirstSourceMode;
 import net.tablesouls.souls_combat_hud.config.StaminaSourceMode;
 import net.tablesouls.souls_combat_hud.config.ManaSourceMode;
-import net.tablesouls.souls_combat_hud.util.ColorHelper;
-import net.tablesouls.souls_combat_hud.client.util.TextHelper;
+import net.tablesouls.ts_ui_lib.util.ColorHelper;
+import net.tablesouls.ts_ui_lib.client.util.TextHelper;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.config.StatusEffectSortOrder;
 import net.tablesouls.souls_combat_hud.accessor.IEffectDurationAccessor;
@@ -181,7 +181,8 @@ public class GaugeOverlay implements IGuiOverlay {
             OptionalInt teamColor = SoulsCombatHUDConfig.STATUS_GAUGE.playerGauge.crestTeamOutline.get()
                     ? TeamProviderRegistry.resolveActiveTeamColor(player)
                     : OptionalInt.empty();
-            this.renderCrest(guiGraphics, subject, font, crestX, crestY, crestSize, displayMode, teamColor);
+            boolean enabled = SoulsCombatHUDConfig.STATUS_GAUGE.playerGauge.crest.get();
+            this.renderCrest(guiGraphics, subject, font, crestX, crestY, crestSize, enabled, displayMode, teamColor);
         }
 
         if (subject.isOnline() && gaugesLayout.enabled()) {
@@ -399,18 +400,7 @@ public class GaugeOverlay implements IGuiOverlay {
             int x,
             int y,
             int size,
-            CrestDisplayMode displayMode
-    ) {
-        this.renderCrest(graphics, subject, font, x, y, size, displayMode, OptionalInt.empty());
-    }
-
-    public void renderCrest(
-            GuiGraphics graphics,
-            GaugeSubject subject,
-            Font font,
-            int x,
-            int y,
-            int size,
+            boolean enabled,
             CrestDisplayMode displayMode,
             OptionalInt teamColor
     ) {
@@ -424,38 +414,42 @@ public class GaugeOverlay implements IGuiOverlay {
         int crestU = dead ? CREST_DEAD_U : CREST_U;
         int crestV = dead ? CREST_DEAD_V : CREST_V;
 
-        graphics.blit(
-                STATUS_GAUGE_TEX,
-                x, y,
-                size, size,
-                crestU, crestV,
-                CREST_TEX_SIZE, CREST_TEX_SIZE,
-                STATUS_GAUGE_TEX_SIZE, STATUS_GAUGE_TEX_SIZE
-        );
+        if (enabled) {
+            graphics.blit(
+                    STATUS_GAUGE_TEX,
+                    x, y,
+                    size, size,
+                    crestU, crestV,
+                    CREST_TEX_SIZE, CREST_TEX_SIZE,
+                    STATUS_GAUGE_TEX_SIZE, STATUS_GAUGE_TEX_SIZE
+            );
+        }
 
-        PreviewLayout previewLayout = this.gaugeStyles.getPreviewLayout("crest", PreviewLayout.DEFAULT);
-        int previewX = x + previewLayout.x();
-        int previewY = y + previewLayout.y();
-        int previewSize = previewLayout.size();
+        if (displayMode != CrestDisplayMode.NONE) {
+            PreviewLayout previewLayout = this.gaugeStyles.getPreviewLayout("crest", PreviewLayout.DEFAULT);
+            int previewX = x + previewLayout.x();
+            int previewY = y + previewLayout.y();
+            int previewSize = previewLayout.size();
 
-        PreviewModelLayout modelLayout = previewLayout.model();
-        int modelX = previewX + modelLayout.x();
-        int modelY = previewY + modelLayout.y();
-        int modelSize = modelLayout.size();
+            PreviewModelLayout modelLayout = previewLayout.model();
+            int modelX = previewX + modelLayout.x();
+            int modelY = previewY + modelLayout.y();
+            int modelSize = modelLayout.size();
 
-        Optional<AbstractClientPlayer> renderableEntity = subject.asRenderableEntity();
-        boolean useModel = displayMode == CrestDisplayMode.MODEL
-                && !subject.isDeadOrDying()
-                && renderableEntity.isPresent();
+            Optional<AbstractClientPlayer> renderableEntity = subject.asRenderableEntity();
+            boolean useModel = displayMode == CrestDisplayMode.MODEL
+                    && !subject.isDeadOrDying()
+                    && renderableEntity.isPresent();
 
-        boolean rendered = useModel
-                && PlayerModelPreviewRenderer.render(graphics, renderableEntity.get(),
-                previewX, previewY, previewSize,
-                modelX, modelY, modelSize,
-                modelLayout.rotation());
+            boolean rendered = useModel
+                    && PlayerModelPreviewRenderer.render(graphics, renderableEntity.get(),
+                    previewX, previewY, previewSize,
+                    modelX, modelY, modelSize,
+                    modelLayout.rotation());
 
-        if (!rendered) {
-            this.renderFace(graphics, subject, previewX, previewY, previewSize);
+            if (!rendered) {
+                this.renderFace(graphics, subject, previewX, previewY, previewSize);
+            }
         }
 
         if (SoulsCombatHUDConfig.STATUS_GAUGE.playerGauge.crestAttributes.get()) {

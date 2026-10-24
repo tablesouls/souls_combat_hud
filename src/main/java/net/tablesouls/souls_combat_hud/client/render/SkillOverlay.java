@@ -3,7 +3,7 @@ package net.tablesouls.souls_combat_hud.client.render;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
-import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightCompat;
+import net.tablesouls.ts_ui_lib.compat.epicfight.EpicFightCompat;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightSkillProvider;
 

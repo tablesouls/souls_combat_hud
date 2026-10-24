@@ -16,7 +16,7 @@ import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.party.client.PartyMemberClientCache;
 import net.tablesouls.souls_combat_hud.party.network.PartyNetwork;
 import net.tablesouls.souls_combat_hud.config.CrestDisplayMode;
-import net.tablesouls.souls_combat_hud.client.util.ElementAnchor;
+import net.tablesouls.ts_ui_lib.client.util.ElementAnchor;
 
 import java.util.*;
 
@@ -113,8 +113,8 @@ public class PartyGaugeOverlay implements IGuiOverlay {
     }
 
     private static CrestDisplayMode resolveCrestDisplayMode(GaugeSubject subject) {
-        if (SoulsCombatHUDConfig.STATUS_GAUGE.partyGauge.crestDisplayMode.get()
-                != CrestDisplayMode.MODEL) return CrestDisplayMode.FACE;
+        CrestDisplayMode crestDisplayModeConfig = SoulsCombatHUDConfig.STATUS_GAUGE.partyGauge.crestDisplayMode.get();
+        if (crestDisplayModeConfig != CrestDisplayMode.MODEL) return crestDisplayModeConfig;
 
         Minecraft mc = Minecraft.getInstance();
         AbstractClientPlayer localPlayer = mc.player;
@@ -146,7 +146,8 @@ public class PartyGaugeOverlay implements IGuiOverlay {
 
         if (crestLayout.enabled()) {
             CrestDisplayMode displayMode = resolveCrestDisplayMode(subject);
-            slot.renderCrest(graphics, subject, font, crestX, y + crestLayout.y(), crestSize, displayMode, teamColor);
+            boolean enabled = SoulsCombatHUDConfig.STATUS_GAUGE.partyGauge.crest.get();
+            slot.renderCrest(graphics, subject, font, crestX, y + crestLayout.y(), crestSize, enabled, displayMode, teamColor);
             contentBottom = Math.max(contentBottom, y + crestLayout.y() + crestSize);
         }
 

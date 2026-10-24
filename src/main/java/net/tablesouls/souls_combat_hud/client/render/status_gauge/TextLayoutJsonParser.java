@@ -1,7 +1,7 @@
 package net.tablesouls.souls_combat_hud.client.render.status_gauge;
 
 import com.google.gson.JsonObject;
-import net.tablesouls.souls_combat_hud.client.util.TextAnchor;
+import net.tablesouls.ts_ui_lib.client.util.TextAnchor;
 
 public final class TextLayoutJsonParser {
     private TextLayoutJsonParser() {}

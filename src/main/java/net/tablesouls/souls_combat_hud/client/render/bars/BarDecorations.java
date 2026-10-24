@@ -2,6 +2,7 @@ package net.tablesouls.souls_combat_hud.client.render.bars;
 
 import net.minecraft.resources.ResourceLocation;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
+import net.tablesouls.ts_ui_lib.client.render.bars.BarDecoration;
 
 public final class BarDecorations {
 

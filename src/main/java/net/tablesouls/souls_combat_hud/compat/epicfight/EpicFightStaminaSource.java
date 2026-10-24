@@ -4,11 +4,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.tablesouls.souls_combat_hud.compat.ResourceSource;
 import net.tablesouls.souls_combat_hud.config.StaminaSourceMode;
+import net.tablesouls.ts_ui_lib.compat.epicfight.EpicFightCompat;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
-import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
 public class EpicFightStaminaSource implements ResourceSource<StaminaSourceMode> {
 

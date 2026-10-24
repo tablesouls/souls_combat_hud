@@ -4,9 +4,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
-import net.tablesouls.souls_combat_hud.client.render.bars.BarDecoration;
 import net.tablesouls.souls_combat_hud.client.render.bars.BarDecorations;
-import net.tablesouls.souls_combat_hud.client.render.bars.BarStyle;
+import net.tablesouls.ts_ui_lib.client.render.bars.BarDecoration;
+import net.tablesouls.ts_ui_lib.client.render.bars.BarStyle;
 
 import java.util.List;
 

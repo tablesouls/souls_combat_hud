@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
+import net.tablesouls.ts_ui_lib.client.render.JsonMerge;
 
 import java.io.IOException;
 import java.io.InputStreamReader;

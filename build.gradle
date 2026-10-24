@@ -7,6 +7,9 @@ plugins {
     id 'org.parchmentmc.librarian.forgegradle' version '1.+'
 }
 
+jarJar.enable()
+evaluationDependsOn(':ts_ui_lib')
+
 version = mod_version
 group = mod_group_id
 
@@ -79,6 +82,9 @@ minecraft {
                 "${mod_id}" {
                     source sourceSets.main
                 }
+                ts_ui_lib {
+                    source project(':ts_ui_lib').sourceSets.main
+                }
             }
         }
 
@@ -118,6 +124,9 @@ mixin {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
+    maven {
+        url = "file://${projectDir}/mcmodsrepo"
+    }
     maven {
         url = "https://api.modrinth.com/maven"
     }
@@ -162,12 +171,20 @@ def compatDeps = [
         fg.deobf("curse.maven:thirst-was-reclaimed-884742:${thirst_was_reclaimed_forge_version}"),
         fg.deobf("curse.maven:paragliders-289240:${paraglider_forge_version}"),
         fg.deobf("dev.kosmx.player-anim:player-animation-lib-forge:${player_animation_lib_forge_version}"),
-        fg.deobf("top.theillusivec4.curios:curios-forge:${curio_forge_version}")
+        fg.deobf("top.theillusivec4.curios:curios-forge:${curio_forge_version}"),
+        fg.deobf("curse.maven:mana-and-artifice-406360:${mana_and_artifice_forge_version}"),
+        fg.deobf("curse.maven:ars-nouveau-401955:${ars_nouveau_forge_version}")
 ]
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    implementation files(project(':ts_ui_lib').sourceSets.main.output)
+
+    jarJar("net.tablesouls:ts_ui_lib:[$ts_ui_lib_version,)") {
+        jarJar.pin(it, ts_ui_lib_version)
+    }
 
     compatDeps.each { dep ->
         compileOnly dep
@@ -178,8 +195,6 @@ dependencies {
 
     compileOnly fg.deobf("curse.maven:mine-and-slash-reloaded-306575:${mine_and_slash_version}")
     compileOnly fg.deobf("curse.maven:library-of-exile-398780:${library_of_exile_version}")
-    compileOnly fg.deobf("curse.maven:not-enough-animations-433760:${not_enough_animations_version}")
-    compileOnly fg.deobf("curse.maven:create-328085:${create_forge_version}")
     compileOnly fg.deobf("curse.maven:legendary-survival-overhaul-840254:${legendarysurvivaloverhaul_forge_version}")
     compileOnly fg.deobf("curse.maven:auto-hud-623806:${autohud_forge_version}")
 
@@ -209,8 +224,9 @@ tasks.named('processResources', ProcessResources).configure {
     }
 }
 
-// Example for how to get properties into the manifest for reading at runtime.
 tasks.named('jar', Jar).configure {
+    archiveClassifier = 'slim'
+
     manifest {
         attributes([
                 'Specification-Title'     : mod_id,
@@ -225,6 +241,15 @@ tasks.named('jar', Jar).configure {
 
     // This is the preferred method to reobfuscate your jar file
     finalizedBy 'reobfJar'
+}
+
+tasks.named('jarJar') {
+    archiveClassifier = ''
+    finalizedBy 'reobfJarJar'
+}
+
+reobf {
+    jarJar { }
 }
 
 // However if you are in a multi-project build, dev time needs unobfed jar files, so you can delay the obfuscation until publishing by doing:
