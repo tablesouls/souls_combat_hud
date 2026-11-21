@@ -1,6 +1,5 @@
 package net.tablesouls.souls_combat_hud.event;
 
-import akkynaa.moreoffhandslots.MoreOffhandSlots;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.GameType;
@@ -15,6 +14,7 @@ import net.tablesouls.souls_combat_hud.client.util.BossBarState;
 import net.tablesouls.souls_combat_hud.compat.ars_nouveau.ArsNouveauCompat;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightCompat;
 import net.tablesouls.souls_combat_hud.compat.helditemtooltips.HeldItemTooltipsCompat;
+import net.tablesouls.souls_combat_hud.compat.moreoffhandslots.MoreOffhandSlotsCompat;
 import net.tablesouls.souls_combat_hud.compat.thirst_was_reclaimed.ThirstWasReclaimedCompat;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 
@@ -22,7 +22,7 @@ import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 public class ClientForgeRenderEvents {
     private static final ResourceLocation WEAPON_INNATE_ID = ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MODID, "weapon_innate");
     private static final ResourceLocation STAMINA_BAR_ID = ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MODID, "stamina_bar");
-    private static final ResourceLocation OFFHAND_HUD_ID = ResourceLocation.fromNamespaceAndPath(MoreOffhandSlots.MODID, "offhand_hud");
+    private static final ResourceLocation OFFHAND_HUD_ID = ResourceLocation.fromNamespaceAndPath(MoreOffhandSlotsCompat.MODID, "offhand_hud");
     private static final ResourceLocation TWR_THIRST_OVERLAY_ID = ResourceLocation.fromNamespaceAndPath(ThirstWasReclaimedCompat.MODID, "thirst_level");
     private static final ResourceLocation ARS_NOUVEAU_MANA_HUD_ID = ResourceLocation.fromNamespaceAndPath(ArsNouveauCompat.MODID, "mana_hud");
 
