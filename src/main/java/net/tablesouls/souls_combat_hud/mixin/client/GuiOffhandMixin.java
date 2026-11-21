@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(Gui.class)
 public class GuiOffhandMixin {
     @Redirect(
-            method = "renderHotbar",
+            method = "renderItemHotbar",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/player/Player;getOffhandItem()Lnet/minecraft/world/item/ItemStack;"

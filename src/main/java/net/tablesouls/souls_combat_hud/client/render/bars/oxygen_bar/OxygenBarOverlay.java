@@ -3,27 +3,23 @@ package net.tablesouls.souls_combat_hud.client.render.bars.oxygen_bar;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
-import net.minecraftforge.common.ForgeMod;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.gui.LayeredDraw;
+import net.neoforged.neoforge.common.NeoForgeMod;
 import net.tablesouls.ts_ui_lib.client.render.bars.BarElement;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.ts_ui_lib.client.util.ElementAnchor;
 import net.tablesouls.ts_ui_lib.client.util.animation.SymmetricFractionAnimator;
 
-public class OxygenBarOverlay implements IGuiOverlay {
+public class OxygenBarOverlay implements LayeredDraw.Layer {
 
     private final BarElement bar = BarElement.withFade(0L, 500L);
     private final SymmetricFractionAnimator fractionAnim = new SymmetricFractionAnimator(250L);
 
     @Override
-    public void render(
-            ForgeGui gui,
-            net.minecraft.client.gui.GuiGraphics graphics,
-            float partialTick,
-            int screenWidth,
-            int screenHeight
-    ) {
+    public void render(net.minecraft.client.gui.GuiGraphics graphics, DeltaTracker deltaTracker) {
+        int screenWidth = graphics.guiWidth();
+        int screenHeight = graphics.guiHeight();
         if (!SoulsCombatHUDConfig.OXYGEN_BAR.enabled.get()) return;
 
         Minecraft mc = Minecraft.getInstance();
@@ -34,7 +30,7 @@ public class OxygenBarOverlay implements IGuiOverlay {
         int airSupply = player.getAirSupply();
         int maxAirSupply = player.getMaxAirSupply();
 
-        boolean submerged = player.isEyeInFluidType(ForgeMod.WATER_TYPE.get());
+        boolean submerged = player.isEyeInFluidType(NeoForgeMod.WATER_TYPE.value());
 
         float fraction = maxAirSupply > 0
                 ? net.minecraft.util.Mth.clamp((float) airSupply / maxAirSupply, 0.0f, 1.0f)

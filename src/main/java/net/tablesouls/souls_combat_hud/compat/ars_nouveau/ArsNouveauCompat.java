@@ -1,6 +1,6 @@
 package net.tablesouls.souls_combat_hud.compat.ars_nouveau;
 
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 public class ArsNouveauCompat {
     public static final String MODID = "ars_nouveau";

@@ -12,8 +12,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.gui.LayeredDraw;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.ts_ui_lib.client.render.bars.BarElement;
 import net.tablesouls.ts_ui_lib.client.render.bars.BarScaling;
@@ -44,7 +44,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 
-public class GaugeOverlay implements IGuiOverlay {
+public class GaugeOverlay implements LayeredDraw.Layer {
     private final GaugeStyleRegistry gaugeStyles;
 
     private final List<MobEffectInstance> effectsScratch = new ArrayList<>();
@@ -62,10 +62,13 @@ public class GaugeOverlay implements IGuiOverlay {
                     "textures/gui/status_gauge.png");
     private static final int STATUS_GAUGE_TEX_SIZE = 64;
 
-    private static final ResourceLocation MINECRAFT_ICONS_TEX =
-            ResourceLocation.fromNamespaceAndPath("minecraft",
-                    "textures/gui/icons.png");
-    private static final int MINECRAFT_ICONS_TEX_SIZE = 256;
+    private static final ResourceLocation ARMOR_SPRITE = ResourceLocation.withDefaultNamespace("hud/armor_full");
+    private static final ResourceLocation FOOD_EMPTY_SPRITE = ResourceLocation.withDefaultNamespace("hud/food_empty");
+    private static final ResourceLocation FOOD_HALF_SPRITE = ResourceLocation.withDefaultNamespace("hud/food_half");
+    private static final ResourceLocation FOOD_FULL_SPRITE = ResourceLocation.withDefaultNamespace("hud/food_full");
+    private static final ResourceLocation FOOD_EMPTY_HUNGER_SPRITE = ResourceLocation.withDefaultNamespace("hud/food_empty_hunger");
+    private static final ResourceLocation FOOD_HALF_HUNGER_SPRITE = ResourceLocation.withDefaultNamespace("hud/food_half_hunger");
+    private static final ResourceLocation FOOD_FULL_HUNGER_SPRITE = ResourceLocation.withDefaultNamespace("hud/food_full_hunger");
 
     private static final int HEALTH_BAR_MIN_WIDTH = 0;
     private static final int HEALTH_BAR_MAX_WIDTH = 196;
@@ -87,16 +90,10 @@ public class GaugeOverlay implements IGuiOverlay {
     private static final int CREST_DEAD_V = 32;
 
     private static final int ARMOR_ICON_SIZE = 9;
-    private static final int ARMOR_ICON_U = 43;
-    private static final int ARMOR_ICON_V = 9;
 
     private static final int HUNGER_ICON_BG_SIZE = 9;
-    private static final int HUNGER_ICON_BG_U = 16;
-    private static final int HUNGER_ICON_BG_V = 27;
 
     private static final int HUNGER_ICON_SIZE = 9;
-    private static final int HUNGER_ICON_U = 52;
-    private static final int HUNGER_ICON_V = 27;
 
     private static final int PRIVATE_ICON_WIDTH = 12;
     private static final int PRIVATE_ICON_HEIGHT = 8;
@@ -122,12 +119,9 @@ public class GaugeOverlay implements IGuiOverlay {
     private static final int EFFECT_FLICKER_DURATION = 200;
 
     @Override
-    public void render(ForgeGui gui,
-                       GuiGraphics guiGraphics,
-                       float partialTick,
-                       int screenWidth,
-                       int screenHeight
-    ) {
+    public void render(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+        int screenWidth = guiGraphics.guiWidth();
+        int screenHeight = guiGraphics.guiHeight();
         Minecraft mc = Minecraft.getInstance();
         Font font = mc.font;
 
@@ -591,39 +585,21 @@ public class GaugeOverlay implements IGuiOverlay {
         int iconX = cornerX - HUNGER_ICON_BG_SIZE / 2;
         int iconY = cornerY - HUNGER_ICON_BG_SIZE / 2;
 
-        graphics.blit(
-                MINECRAFT_ICONS_TEX,
+        graphics.blitSprite(
+                hasHungerEffect ? FOOD_EMPTY_HUNGER_SPRITE : FOOD_EMPTY_SPRITE,
                 iconX, iconY,
-                HUNGER_ICON_BG_U, HUNGER_ICON_BG_V,
-                HUNGER_ICON_BG_SIZE, HUNGER_ICON_BG_SIZE,
-                MINECRAFT_ICONS_TEX_SIZE, MINECRAFT_ICONS_TEX_SIZE
+                HUNGER_ICON_BG_SIZE, HUNGER_ICON_BG_SIZE
         );
 
-        int hungerU;
-
-        if (foodPercent <= 0.0f) {
-            hungerU = 16;
-        } else if (foodPercent <= 0.25f) {
-            hungerU = 79;
-        } else if (foodPercent <= 0.50f) {
-            hungerU = 70;
-        } else if (foodPercent <= 0.75f) {
-            hungerU = 61;
-        } else {
-            hungerU = HUNGER_ICON_U;
+        ResourceLocation foodSprite = null;
+        if (foodPercent > 0.5f) {
+            foodSprite = hasHungerEffect ? FOOD_FULL_HUNGER_SPRITE : FOOD_FULL_SPRITE;
+        } else if (foodPercent > 0.0f) {
+            foodSprite = hasHungerEffect ? FOOD_HALF_HUNGER_SPRITE : FOOD_HALF_SPRITE;
         }
-
-        if (hasHungerEffect) {
-            hungerU += 36;
+        if (foodSprite != null) {
+            graphics.blitSprite(foodSprite, iconX, iconY, HUNGER_ICON_SIZE, HUNGER_ICON_SIZE);
         }
-
-        graphics.blit(
-                MINECRAFT_ICONS_TEX,
-                iconX, iconY,
-                hungerU, HUNGER_ICON_V,
-                HUNGER_ICON_SIZE, HUNGER_ICON_SIZE,
-                MINECRAFT_ICONS_TEX_SIZE, MINECRAFT_ICONS_TEX_SIZE
-        );
 
         String foodLevelLabel = String.valueOf(foodLevel);
         int foodLevelTextX = TextHelper.resolveTextBaseX(textLayout.anchor(), iconX, HUNGER_ICON_BG_SIZE, font.width(foodLevelLabel)) + textLayout.x();
@@ -658,13 +634,7 @@ public class GaugeOverlay implements IGuiOverlay {
         int iconX = cornerX - ARMOR_ICON_SIZE / 2;
         int iconY = cornerY - ARMOR_ICON_SIZE / 2;
 
-        graphics.blit(
-                MINECRAFT_ICONS_TEX,
-                iconX, iconY,
-                ARMOR_ICON_U, ARMOR_ICON_V,
-                ARMOR_ICON_SIZE, ARMOR_ICON_SIZE,
-                MINECRAFT_ICONS_TEX_SIZE, MINECRAFT_ICONS_TEX_SIZE
-        );
+        graphics.blitSprite(ARMOR_SPRITE, iconX, iconY, ARMOR_ICON_SIZE, ARMOR_ICON_SIZE);
 
         String armorLevelLabel = String.valueOf(armorLevel);
         int armorLevelTextX = TextHelper.resolveTextBaseX(textLayout.anchor(), iconX, ARMOR_ICON_SIZE, font.width(armorLevelLabel)) + textLayout.x();
@@ -818,7 +788,7 @@ public class GaugeOverlay implements IGuiOverlay {
             alpha = fade + wobble;
         }
 
-        EffectCategoryStyle effectStyle = getEffectCategoryStyle(effectInstance.getEffect().getCategory());
+        EffectCategoryStyle effectStyle = getEffectCategoryStyle(effectInstance.getEffect().value().getCategory());
         int statusColor = effectStyle.color();
         int categoryIconU = effectStyle.u();
         int categoryIconV = effectStyle.v();
@@ -899,10 +869,10 @@ public class GaugeOverlay implements IGuiOverlay {
         map.put(StatusEffectSortOrder.NEWEST, byElapsedAscending);
         map.put(StatusEffectSortOrder.OLDEST, byElapsedAscending.reversed());
         map.put(StatusEffectSortOrder.HARMFUL, Comparator
-                .comparing((MobEffectInstance i) -> i.getEffect().isBeneficial()) // false (harmful) sorts first
+                .comparing((MobEffectInstance i) -> i.getEffect().value().isBeneficial()) // false (harmful) sorts first
                 .thenComparing(byElapsedAscending));
         map.put(StatusEffectSortOrder.BENEFICIAL, Comparator
-                .comparing((MobEffectInstance i) -> !i.getEffect().isBeneficial()) // false (beneficial) sorts first
+                .comparing((MobEffectInstance i) -> !i.getEffect().value().isBeneficial()) // false (beneficial) sorts first
                 .thenComparing(byElapsedAscending));
         return map;
     }

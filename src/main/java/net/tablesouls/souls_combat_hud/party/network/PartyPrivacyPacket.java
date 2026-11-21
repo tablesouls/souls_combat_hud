@@ -1,15 +1,23 @@
 package net.tablesouls.souls_combat_hud.party.network;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.resources.ResourceLocation;
+import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
 import net.tablesouls.souls_combat_hud.party.server.PartyPrivacyRegistry;
 import net.tablesouls.souls_combat_hud.party.server.PartyTrackerRegistry;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
-public class PartyPrivacyPacket {
+public class PartyPrivacyPacket implements CustomPacketPayload {
+    public static final Type<PartyPrivacyPacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(SoulsCombatHUD.MODID, "party_privacy"));
+    public static final StreamCodec<FriendlyByteBuf, PartyPrivacyPacket> STREAM_CODEC =
+            StreamCodec.ofMember(PartyPrivacyPacket::encode, PartyPrivacyPacket::decode);
+
     public final boolean hidden;
 
     public PartyPrivacyPacket(boolean hidden) {
@@ -24,10 +32,9 @@ public class PartyPrivacyPacket {
         return new PartyPrivacyPacket(buf.readBoolean());
     }
 
-    public static void handle(PartyPrivacyPacket packet, Supplier<NetworkEvent.Context> ctxSupplier) {
-        NetworkEvent.Context ctx = ctxSupplier.get();
+    public static void handle(PartyPrivacyPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(()-> {
-            ServerPlayer sender = ctx.getSender();
+            ServerPlayer sender = (ServerPlayer) ctx.player();
 
             if (sender != null) {
                 PartyPrivacyRegistry.setHidden(sender.getUUID(), packet.hidden);
@@ -41,6 +48,10 @@ public class PartyPrivacyPacket {
                 }
             }
         });
-        ctx.setPacketHandled(true);
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

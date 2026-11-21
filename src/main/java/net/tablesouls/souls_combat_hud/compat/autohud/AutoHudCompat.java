@@ -1,6 +1,6 @@
 package net.tablesouls.souls_combat_hud.compat.autohud;
 
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 public class AutoHudCompat {
     public static final String MODID = "autohud";

@@ -6,12 +6,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.client.gui.PartySortScreen;
 import net.tablesouls.souls_combat_hud.client.util.LocalResourceFallback;
@@ -34,7 +34,7 @@ import net.tablesouls.souls_combat_hud.client.util.slots.WeaponSlotManager;
 import net.tablesouls.souls_combat_hud.compat.moreoffhandslots.MoreOffhandSlotsCompat;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsProvider;
 
-@Mod.EventBusSubscriber(modid = SoulsCombatHUD.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = {Dist.CLIENT})
+@EventBusSubscriber(modid = SoulsCombatHUD.MODID, value = {Dist.CLIENT})
 public class ClientForgeEvents {
     private static boolean autoEating;
     private static boolean autoCastingScroll;
@@ -115,11 +115,7 @@ public class ClientForgeEvents {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
+    public static void onClientTick(ClientTickEvent.Post event) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) {
             return;

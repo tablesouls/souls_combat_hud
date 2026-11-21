@@ -1,6 +1,6 @@
 package net.tablesouls.souls_combat_hud.compat.parcool;
 
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 public class ParcoolCompat {
     public static final String MODID = "parcool";

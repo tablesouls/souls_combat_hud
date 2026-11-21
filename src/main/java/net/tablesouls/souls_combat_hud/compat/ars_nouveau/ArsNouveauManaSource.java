@@ -8,7 +8,7 @@ import net.tablesouls.souls_combat_hud.config.ManaSourceMode;
 
 public class ArsNouveauManaSource implements ResourceSource<ManaSourceMode> {
     private static IManaCap cap(Player player) {
-        return CapabilityRegistry.getMana(player).resolve().orElse(null);
+        return CapabilityRegistry.getMana(player);
     }
 
     @Override

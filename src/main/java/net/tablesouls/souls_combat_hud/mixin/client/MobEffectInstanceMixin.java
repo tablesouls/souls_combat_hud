@@ -30,7 +30,7 @@ public abstract class MobEffectInstanceMixin implements IEffectDurationAccessor 
         this.souls_combat_hud$maxDuration = maxDuration;
     }
 
-    @Inject(method = "<init>(Lnet/minecraft/world/effect/MobEffect;IIZZZLnet/minecraft/world/effect/MobEffectInstance;Ljava/util/Optional;)V", at = @At("RETURN"))
+    @Inject(method = "<init>(Lnet/minecraft/core/Holder;IIZZZLnet/minecraft/world/effect/MobEffectInstance;)V", at = @At("RETURN"))
     private void onInit(CallbackInfo ci) {
         this.souls_combat_hud$maxDuration = this.duration;
     }

@@ -150,8 +150,7 @@ public final class SkillOverlayRenderer {
             int iconY,
             float partialTick
     ) {
-        RenderEngine renderEngine = ClientEngine.getInstance().renderEngine;
-        BattleModeGui battleModeGui = renderEngine.battleModeUI;
+        BattleModeGui battleModeGui = RenderEngine.getInstance().battleModeHUD;
 
         float nativeIconSize = (container.getSkill() instanceof WeaponInnateSkill) ? 32.0f : 24.0f;
         float iconScale = SoulsCombatHUDConfig.SKILL_OVERLAY.icon.scale.get().floatValue();
@@ -163,7 +162,6 @@ public final class SkillOverlayRenderer {
         try {
             poseStack.translate(iconX, iconY, 0.0f);
             poseStack.scale(scale, scale, scale);
-            poseStack.translate(0.0f, -battleModeGui.getSlidingProgression(), 0.0f);
             container.getSkill().drawOnGui(battleModeGui, container, guiGraphics, 0.0f, 0.0f, partialTick);
         } finally {
             SkillLabelScale.reset();

@@ -34,6 +34,6 @@ public class IronsSpellsManaSource implements ResourceSource<ManaSourceMode> {
 
     @Override
     public float getMax(Player player) {
-        return (float) player.getAttributeValue(AttributeRegistry.MAX_MANA.get());
+        return (float) player.getAttributeValue(AttributeRegistry.MAX_MANA);
     }
 }

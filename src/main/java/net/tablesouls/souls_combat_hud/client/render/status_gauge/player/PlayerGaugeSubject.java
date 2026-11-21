@@ -34,7 +34,7 @@ public class PlayerGaugeSubject implements GaugeSubject {
 
     @Override
     public ResourceLocation getSkinTexture() {
-        return player.getSkinTextureLocation();
+        return player.getSkin().texture();
     }
 
     @Override

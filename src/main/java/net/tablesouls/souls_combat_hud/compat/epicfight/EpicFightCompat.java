@@ -2,9 +2,8 @@ package net.tablesouls.souls_combat_hud.compat.epicfight;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
-import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.config.ClientConfig;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
@@ -20,7 +19,7 @@ public class EpicFightCompat {
         if (!LOADED) return false;
         if (!stack.isEmpty()) {
             if (SoulsCombatHUDConfig.EQUIPMENT_HUD.slots.weapon.includeCombatPreferred.get()
-                    && ClientConfig.combatPreferredItems.contains(stack.getItem())) {
+                    && ClientConfig.combatCategorizedItems.contains(stack.getItem())) {
                 return true;
             }
         }
@@ -30,7 +29,7 @@ public class EpicFightCompat {
 
     public static boolean canSwitchHoldingItem(Player player) {
         if (!LOADED) return true;
-        LocalPlayerPatch playerpatch = (LocalPlayerPatch) ClientEngine.getInstance().getPlayerPatch();
+        LocalPlayerPatch playerpatch = EpicFightCapabilities.getCachedLocalPlayerPatch();
         if (playerpatch == null) {
             return true;
         }

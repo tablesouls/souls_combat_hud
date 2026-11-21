@@ -10,10 +10,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.config.IConfigSpec;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.config.ManaSourceMode;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
@@ -28,7 +30,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-@Mod.EventBusSubscriber(modid = SoulsCombatHUD.MODID)
+@EventBusSubscriber(modid = SoulsCombatHUD.MODID)
 public final class SoulsCombatHUDCommands {
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
@@ -70,9 +72,17 @@ public final class SoulsCombatHUDCommands {
             return 0;
         }
 
+        ModConfig modConfig = SoulsCombatHUD.getServerConfig();
+        IConfigSpec.ILoadedConfig loaded = modConfig != null ? modConfig.getLoadedConfig() : null;
+        if (loaded == null) {
+            source.sendFailure(Component.literal("Server config is not loaded yet."));
+            return 0;
+        }
+
         try (CommentedFileConfig fileConfig = CommentedFileConfig.builder(configFile).sync().build()) {
             fileConfig.load();
-            SoulsCombatHUDConfig.SERVER_SPEC.acceptConfig(fileConfig);
+            loaded.config().putAll(fileConfig);
+            SoulsCombatHUDConfig.SERVER_SPEC.acceptConfig(loaded);
         } catch (Exception e) {
             SoulsCombatHUD.LOGGER.error("Failed to reload {} server config", SoulsCombatHUD.MODID, e);
             source.sendFailure(Component.literal("Failed to reload config - check the server log."));
@@ -119,7 +129,7 @@ public final class SoulsCombatHUDCommands {
     }
 
     private static <M extends Enum<M>> int applyForcedSource(
-            CommandSourceStack source, ForgeConfigSpec.EnumValue<M> configValue, M mode, String label) {
+            CommandSourceStack source, ModConfigSpec.EnumValue<M> configValue, M mode, String label) {
         configValue.set(mode);
         SoulsCombatHUDConfig.SERVER_SPEC.save();
 

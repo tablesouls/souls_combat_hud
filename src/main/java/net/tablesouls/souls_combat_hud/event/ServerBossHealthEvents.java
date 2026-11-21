@@ -3,21 +3,21 @@ package net.tablesouls.souls_combat_hud.event;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingHealEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingHealEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.tablesouls.souls_combat_hud.network.BossNetwork;
 import net.tablesouls.souls_combat_hud.util.BossEventLookup;
 
-@Mod.EventBusSubscriber(modid = "souls_combat_hud", bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = "souls_combat_hud")
 public class ServerBossHealthEvents {
 
     @SubscribeEvent
-    public static void onDamage(LivingDamageEvent event) {
-        sync(event.getEntity(), event.getEntity().getHealth() - event.getAmount());
+    public static void onDamage(LivingDamageEvent.Pre event) {
+        sync(event.getEntity(), event.getEntity().getHealth() - event.getNewDamage());
     }
 
     @SubscribeEvent

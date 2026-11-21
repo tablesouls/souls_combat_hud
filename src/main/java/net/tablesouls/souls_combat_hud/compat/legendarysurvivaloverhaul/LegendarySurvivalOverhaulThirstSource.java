@@ -3,10 +3,10 @@ package net.tablesouls.souls_combat_hud.compat.legendarysurvivaloverhaul;
 import net.minecraft.world.entity.player.Player;
 import net.tablesouls.souls_combat_hud.compat.ResourceSource;
 import net.tablesouls.souls_combat_hud.config.ThirstSourceMode;
-import sfiomn.legendarysurvivaloverhaul.api.thirst.IThirstCapability;
+import sfiomn.legendarysurvivaloverhaul.api.thirst.IThirstAttachment;
 import sfiomn.legendarysurvivaloverhaul.api.thirst.ThirstUtil;
-import sfiomn.legendarysurvivaloverhaul.common.capabilities.thirst.ThirstCapability;
-import sfiomn.legendarysurvivaloverhaul.common.capabilities.thirst.ThirstProvider;
+import sfiomn.legendarysurvivaloverhaul.common.attachments.thirst.ThirstAttachment;
+import sfiomn.legendarysurvivaloverhaul.util.AttachmentUtil;
 
 public class LegendarySurvivalOverhaulThirstSource implements ResourceSource<ThirstSourceMode> {
 
@@ -24,16 +24,16 @@ public class LegendarySurvivalOverhaulThirstSource implements ResourceSource<Thi
 
     @Override
     public float getCurrent(Player player) {
-        IThirstCapability thirst = resolveThirst(player);
+        IThirstAttachment thirst = resolveThirst(player);
         return thirst != null ? thirst.getHydrationLevel() : 0.0f;
     }
 
     @Override
     public float getMax(Player player) {
-        return ThirstCapability.MAX_HYDRATION;
+        return ThirstAttachment.MAX_HYDRATION;
     }
 
-    private static IThirstCapability resolveThirst(Player player) {
-        return player.getCapability(ThirstProvider.THIRST_CAPABILITY).orElse(null);
+    private static IThirstAttachment resolveThirst(Player player) {
+        return AttachmentUtil.getThirstAttachment(player);
     }
 }

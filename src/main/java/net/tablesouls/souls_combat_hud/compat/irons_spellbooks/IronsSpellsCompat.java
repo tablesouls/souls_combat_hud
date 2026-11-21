@@ -3,7 +3,7 @@ package net.tablesouls.souls_combat_hud.compat.irons_spellbooks;
 import io.redspace.ironsspellbooks.api.item.IScroll;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 public class IronsSpellsCompat {
     public static final String MODID = "irons_spellbooks";

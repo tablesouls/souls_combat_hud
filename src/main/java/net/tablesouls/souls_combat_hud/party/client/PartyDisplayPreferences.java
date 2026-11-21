@@ -2,7 +2,7 @@ package net.tablesouls.souls_combat_hud.party.client;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.neoforged.fml.loading.FMLPaths;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 
 import java.io.IOException;

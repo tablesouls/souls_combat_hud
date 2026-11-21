@@ -1,13 +1,20 @@
 package net.tablesouls.souls_combat_hud.party.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.resources.ResourceLocation;
+import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.compat.StaminaSourceRegistry;
 import net.tablesouls.souls_combat_hud.config.StaminaSourceMode;
 
-import java.util.function.Supplier;
+public class StaminaSourcePacket implements CustomPacketPayload {
+    public static final Type<StaminaSourcePacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(SoulsCombatHUD.MODID, "stamina_source"));
+    public static final StreamCodec<FriendlyByteBuf, StaminaSourcePacket> STREAM_CODEC =
+            StreamCodec.ofMember(StaminaSourcePacket::encode, StaminaSourcePacket::decode);
 
-public class StaminaSourcePacket {
     private final StaminaSourceMode mode;
 
     public StaminaSourcePacket(StaminaSourceMode mode) {
@@ -22,10 +29,13 @@ public class StaminaSourcePacket {
         return new StaminaSourcePacket(ResourceModeCodec.decode(buf, StaminaSourceMode.class));
     }
 
-    public static void handle(StaminaSourcePacket packet, Supplier<NetworkEvent.Context> ctxSupplier) {
-        NetworkEvent.Context ctx = ctxSupplier.get();
+    public static void handle(StaminaSourcePacket packet, IPayloadContext ctx) {
         // This packet is only ever sent server -> client.
         ctx.enqueueWork(() -> StaminaSourceRegistry.INSTANCE.setActiveMode(packet.mode));
-        ctx.setPacketHandled(true);
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

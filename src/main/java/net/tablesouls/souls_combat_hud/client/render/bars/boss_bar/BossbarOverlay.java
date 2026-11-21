@@ -2,8 +2,8 @@ package net.tablesouls.souls_combat_hud.client.render.bars.boss_bar;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.gui.LayeredDraw;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.client.util.BossBarState;
 import net.tablesouls.ts_ui_lib.client.render.bars.BarElement;
@@ -16,11 +16,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class BossbarOverlay implements IGuiOverlay {
+public class BossbarOverlay implements LayeredDraw.Layer {
     private final Map<UUID, BarElement> bars = new HashMap<>();
 
     @Override
-    public void render(ForgeGui gui, GuiGraphics graphics, float partialTick, int screenWidth, int screenHeight) {
+    public void render(GuiGraphics graphics, DeltaTracker deltaTracker) {
+        int screenWidth = graphics.guiWidth();
+        int screenHeight = graphics.guiHeight();
         if (!SoulsCombatHUDConfig.CUSTOM_BOSSBAR.enabled.get()) {
             return;
         }

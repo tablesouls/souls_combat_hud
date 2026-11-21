@@ -1,13 +1,21 @@
 package net.tablesouls.souls_combat_hud.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.resources.ResourceLocation;
+import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.client.util.BossBarState;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
-public class BossHealthPacket {
+public class BossHealthPacket implements CustomPacketPayload {
+    public static final Type<BossHealthPacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(SoulsCombatHUD.MODID, "boss_health"));
+    public static final StreamCodec<FriendlyByteBuf, BossHealthPacket> STREAM_CODEC =
+            StreamCodec.ofMember(BossHealthPacket::encode, BossHealthPacket::decode);
+
     private final UUID id;
     private final float current;
     private final float max;
@@ -26,8 +34,12 @@ public class BossHealthPacket {
         return new BossHealthPacket(buf.readUUID(), buf.readFloat(), buf.readFloat());
     }
 
-    public static void handle(BossHealthPacket p, Supplier<NetworkEvent.Context> ctx)  {
-        ctx.get().enqueueWork(() ->BossBarState.updateHealth(p.id, p.current, p.max));
-        ctx.get().setPacketHandled(true);
+    public static void handle(BossHealthPacket p, IPayloadContext ctx) {
+        ctx.enqueueWork(() ->BossBarState.updateHealth(p.id, p.current, p.max));
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

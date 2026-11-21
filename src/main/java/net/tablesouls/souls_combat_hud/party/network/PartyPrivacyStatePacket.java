@@ -1,13 +1,21 @@
 package net.tablesouls.souls_combat_hud.party.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.resources.ResourceLocation;
+import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.party.client.PartyMemberClientCache;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
-public class PartyPrivacyStatePacket {
+public class PartyPrivacyStatePacket implements CustomPacketPayload {
+    public static final Type<PartyPrivacyStatePacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(SoulsCombatHUD.MODID, "party_privacy_state"));
+    public static final StreamCodec<FriendlyByteBuf, PartyPrivacyStatePacket> STREAM_CODEC =
+            StreamCodec.ofMember(PartyPrivacyStatePacket::encode, PartyPrivacyStatePacket::decode);
+
     private final UUID subject;
     private final boolean hidden;
 
@@ -25,9 +33,12 @@ public class PartyPrivacyStatePacket {
         return new PartyPrivacyStatePacket(buf.readUUID(), buf.readBoolean());
     }
 
-    public static void handle(PartyPrivacyStatePacket packet, Supplier<NetworkEvent.Context> ctxSupplier) {
-        NetworkEvent.Context ctx = ctxSupplier.get();
+    public static void handle(PartyPrivacyStatePacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> PartyMemberClientCache.setHidden(packet.subject, packet.hidden));
-        ctx.setPacketHandled(true);
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

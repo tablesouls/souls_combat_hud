@@ -1,13 +1,20 @@
 package net.tablesouls.souls_combat_hud.party.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.resources.ResourceLocation;
+import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.compat.ManaSourceRegistry;
 import net.tablesouls.souls_combat_hud.config.ManaSourceMode;
 
-import java.util.function.Supplier;
+public class ManaSourcePacket implements CustomPacketPayload {
+    public static final Type<ManaSourcePacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(SoulsCombatHUD.MODID, "mana_source"));
+    public static final StreamCodec<FriendlyByteBuf, ManaSourcePacket> STREAM_CODEC =
+            StreamCodec.ofMember(ManaSourcePacket::encode, ManaSourcePacket::decode);
 
-public class ManaSourcePacket {
     private final ManaSourceMode mode;
 
     public ManaSourcePacket(ManaSourceMode mode) {
@@ -22,10 +29,13 @@ public class ManaSourcePacket {
         return new ManaSourcePacket(ResourceModeCodec.decode(buf, ManaSourceMode.class));
     }
 
-    public static void handle(ManaSourcePacket packet, Supplier<NetworkEvent.Context> ctxSupplier) {
-        NetworkEvent.Context ctx = ctxSupplier.get();
+    public static void handle(ManaSourcePacket packet, IPayloadContext ctx) {
         // This packet is only ever sent server -> client.
         ctx.enqueueWork(() -> ManaSourceRegistry.INSTANCE.setActiveMode(packet.mode));
-        ctx.setPacketHandled(true);
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

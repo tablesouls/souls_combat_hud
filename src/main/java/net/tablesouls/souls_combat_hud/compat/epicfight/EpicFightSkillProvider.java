@@ -2,27 +2,29 @@ package net.tablesouls.souls_combat_hud.compat.epicfight;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import net.tablesouls.souls_combat_hud.client.render.SkillOverlayRenderer;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.debug.DebugLogger;
 import net.tablesouls.ts_ui_lib.client.util.ElementAnchor;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
+import yesman.epicfight.skill.SkillCategories;
 import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.skill.SkillSlot;
 import yesman.epicfight.skill.SkillSlots;
+import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public final class EpicFightSkillProvider {
     public static void renderSkillOverlay(
-            ForgeGui gui,
+            Gui gui,
             GuiGraphics guiGraphics,
             float partialTick,
             int screenWidth,
@@ -34,7 +36,7 @@ public final class EpicFightSkillProvider {
             return;
         }
 
-        LocalPlayerPatch playerpatch = (LocalPlayerPatch) ClientEngine.getInstance().getPlayerPatch();
+        LocalPlayerPatch playerpatch = EpicFightCapabilities.getCachedLocalPlayerPatch();
         if (playerpatch == null) {
             return;
         }
@@ -105,13 +107,13 @@ public final class EpicFightSkillProvider {
     }
 
     private static boolean isPassiveSlot(SkillSlot slot) {
-        return slot == SkillSlots.PASSIVE1 || slot == SkillSlots.PASSIVE2 || slot == SkillSlots.PASSIVE3;
+        return slot.category() == SkillCategories.PASSIVE;
     }
 
     private static boolean isCategoryHandledByOverlay(
             SkillContainer container,
-            ForgeConfigSpec.BooleanValue categoryEnabled,
-            ForgeConfigSpec.ConfigValue<List<? extends String>> blacklist
+            ModConfigSpec.BooleanValue categoryEnabled,
+            ModConfigSpec.ConfigValue<List<? extends String>> blacklist
     ) {
         if (!categoryEnabled.get()) {
             return false;

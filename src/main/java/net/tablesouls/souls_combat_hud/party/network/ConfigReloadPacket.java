@@ -1,16 +1,24 @@
 package net.tablesouls.souls_combat_hud.party.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.resources.ResourceLocation;
+import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.config.ManaSourceMode;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.config.StaminaSourceMode;
 
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.function.Supplier;
 
-public class ConfigReloadPacket {
+public class ConfigReloadPacket implements CustomPacketPayload {
+    public static final Type<ConfigReloadPacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(SoulsCombatHUD.MODID, "config_reload"));
+    public static final StreamCodec<FriendlyByteBuf, ConfigReloadPacket> STREAM_CODEC =
+            StreamCodec.ofMember(ConfigReloadPacket::encode, ConfigReloadPacket::decode);
+
     private final int healthBaseline;
     private final int healthProjectedMax;
     private final double healthWidthCurve;
@@ -99,8 +107,7 @@ public class ConfigReloadPacket {
         );
     }
 
-    public static void handle(ConfigReloadPacket packet, Supplier<NetworkEvent.Context> ctxSupplier) {
-        NetworkEvent.Context ctx = ctxSupplier.get();
+    public static void handle(ConfigReloadPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             SoulsCombatHUDConfig.StatsData stats = SoulsCombatHUDConfig.STATS_DATA;
 
@@ -111,7 +118,6 @@ public class ConfigReloadPacket {
             applyPresets(stats.stamina.presets, packet.staminaPresets);
             applyPresets(stats.mana.presets, packet.manaPresets);
         });
-        ctx.setPacketHandled(true);
     }
 
     private static <M extends Enum<M>> void applyPresets(
@@ -124,5 +130,10 @@ public class ConfigReloadPacket {
             preset.projectedMax.set(snapshot.projectedMax());
             preset.barWidthCurve.set(snapshot.barWidthCurve());
         }
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

@@ -1,7 +1,7 @@
 package net.tablesouls.souls_combat_hud.compat.thirst_was_reclaimed;
 
 import cn.mlus.thirst.foundation.common.capability.IThirst;
-import cn.mlus.thirst.foundation.common.capability.ModCapabilities;
+import cn.mlus.thirst.foundation.common.capability.ModAttachment;
 import net.minecraft.world.entity.player.Player;
 import net.tablesouls.souls_combat_hud.compat.ResourceSource;
 import net.tablesouls.souls_combat_hud.config.ThirstSourceMode;
@@ -31,6 +31,6 @@ public class ThirstWasReclaimedThirstSource implements ResourceSource<ThirstSour
     }
 
     private static IThirst resolveThirst(Player player) {
-        return player.getCapability(ModCapabilities.PLAYER_THIRST).orElse(null);
+        return player.getData(ModAttachment.PLAYER_THIRST);
     }
 }

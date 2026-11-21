@@ -7,15 +7,15 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.gui.LayeredDraw;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.ts_ui_lib.client.util.ElementAnchor;
 import net.tablesouls.ts_ui_lib.client.util.TextHelper;
 import net.tablesouls.ts_ui_lib.client.util.animation.ExperienceGainAnimator;
 
-public class ExperienceOverlay implements IGuiOverlay {
+public class ExperienceOverlay implements LayeredDraw.Layer {
     private static final ResourceLocation BG_TEX =
             ResourceLocation.fromNamespaceAndPath(
                     SoulsCombatHUD.MODID,
@@ -47,13 +47,9 @@ public class ExperienceOverlay implements IGuiOverlay {
     private final ExperienceGainAnimator gainAnimator = new ExperienceGainAnimator();
 
     @Override
-    public void render(
-            ForgeGui gui,
-            GuiGraphics guiGraphics,
-            float partialTick,
-            int screenWidth,
-            int screenHeight
-    ) {
+    public void render(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+        int screenWidth = guiGraphics.guiWidth();
+        int screenHeight = guiGraphics.guiHeight();
         if (!SoulsCombatHUDConfig.EXPERIENCE_OVERLAY.enabled.get()) return;
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) return;

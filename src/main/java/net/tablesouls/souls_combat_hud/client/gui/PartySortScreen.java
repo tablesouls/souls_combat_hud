@@ -262,8 +262,8 @@ public class PartySortScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(graphics);
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        super.renderBackground(graphics, mouseX, mouseY, partialTick);
 
         graphics.blit(
                 TEXTURE,
@@ -291,8 +291,6 @@ public class PartySortScreen extends Screen {
                     this.width / 2, this.topPos + LIST_TOP_PADDING + 10, 0x707070
             );
         }
-
-        super.render(graphics, mouseX, mouseY, partialTick);
     }
 
     private void renderRows(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
@@ -304,12 +302,12 @@ public class PartySortScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        if (this.scrollPanel.mouseScrolled(delta)) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (this.scrollPanel.mouseScrolled(scrollY)) {
             layoutRows();
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, delta);
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
@@ -481,7 +479,7 @@ public class PartySortScreen extends Screen {
         void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
             ClientPacketListener connection = Minecraft.getInstance().getConnection();
             PlayerInfo info = connection != null ? connection.getPlayerInfo(id) : null;
-            ResourceLocation skinTexture = info != null ? info.getSkinLocation() : null;
+            ResourceLocation skinTexture = info != null ? info.getSkin().texture() : null;
 
             graphics.blit(
                     TEXTURE,

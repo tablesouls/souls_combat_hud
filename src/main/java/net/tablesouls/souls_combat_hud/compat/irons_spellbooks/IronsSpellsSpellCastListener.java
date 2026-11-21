@@ -2,13 +2,13 @@ package net.tablesouls.souls_combat_hud.compat.irons_spellbooks;
 
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.neoforge.common.NeoForge;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.party.network.PartyServerEvents;
 
 public final class IronsSpellsSpellCastListener {
     public static void register() {
-        MinecraftForge.EVENT_BUS.addListener(IronsSpellsSpellCastListener::onSpellCast);
+        NeoForge.EVENT_BUS.addListener(IronsSpellsSpellCastListener::onSpellCast);
     }
 
     private static void onSpellCast(SpellOnCastEvent event) {

@@ -1,6 +1,6 @@
 package net.tablesouls.souls_combat_hud.compat.helditemtooltips;
 
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 public class HeldItemTooltipsCompat {
     public static final String MODID = "helditemtooltips";

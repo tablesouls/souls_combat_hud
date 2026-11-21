@@ -43,24 +43,23 @@ public final class FadeBlitHelper {
         RenderSystem.defaultBlendFunc();
 
         Matrix4f matrix = graphics.pose().last().pose();
-        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
 
         float minU = u0 / textureWidth;
         float maxU = u1 / textureWidth;
         float minV = v0 / textureHeight;
         float maxV = v1 / textureHeight;
 
-        buffer.vertex(matrix, x, y, 0)
-                .uv(minU, minV).color(255, 255, 255, alphaTopLeft).endVertex();
-        buffer.vertex(matrix, x, y + height, 0)
-                .uv(minU, maxV).color(255, 255, 255, alphaBottomLeft).endVertex();
-        buffer.vertex(matrix, x + width, y + height, 0)
-                .uv(maxU, maxV).color(255, 255, 255, alphaBottomRight).endVertex();
-        buffer.vertex(matrix, x + width, y, 0)
-                .uv(maxU, minV).color(255, 255, 255, alphaTopRight).endVertex();
+        buffer.addVertex(matrix, x, y, 0)
+                .setUv(minU, minV).setColor(255, 255, 255, alphaTopLeft);
+        buffer.addVertex(matrix, x, y + height, 0)
+                .setUv(minU, maxV).setColor(255, 255, 255, alphaBottomLeft);
+        buffer.addVertex(matrix, x + width, y + height, 0)
+                .setUv(maxU, maxV).setColor(255, 255, 255, alphaBottomRight);
+        buffer.addVertex(matrix, x + width, y, 0)
+                .setUv(maxU, minV).setColor(255, 255, 255, alphaTopRight);
 
-        BufferUploader.drawWithShader(buffer.end());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
         RenderSystem.disableBlend();
     }
 }

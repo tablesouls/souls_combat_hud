@@ -1,11 +1,14 @@
 package net.tablesouls.souls_combat_hud;
 
-import com.mojang.logging.LogUtils;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.IExtensionPoint;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightCompat;
+import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightDodgeListener;
 import net.tablesouls.souls_combat_hud.compat.ftbteams.FTBTeamsCompat;
 import net.tablesouls.souls_combat_hud.compat.ftbteams.FTBTeamsPartyListener;
 import net.tablesouls.souls_combat_hud.compat.irons_spellbooks.IronsSpellsCompat;
@@ -21,13 +24,15 @@ public class SoulsCombatHUD
 {
     public static final String MODID = "souls_combat_hud";
     public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
+    private static final String NETWORK_VERSION = "5";
+    private static volatile ModConfig serverConfig;
 
-    public SoulsCombatHUD(FMLJavaModLoadingContext context)
+    public SoulsCombatHUD(IEventBus modBus, ModContainer container)
     {
-        context.registerConfig(ModConfig.Type.CLIENT, SoulsCombatHUDConfig.CLIENT_SPEC);
-        context.registerConfig(ModConfig.Type.SERVER, SoulsCombatHUDConfig.SERVER_SPEC);
-        PartyNetwork.register();
-        BossNetwork.register();
+        container.registerConfig(ModConfig.Type.CLIENT, SoulsCombatHUDConfig.CLIENT_SPEC);
+        container.registerConfig(ModConfig.Type.SERVER, SoulsCombatHUDConfig.SERVER_SPEC);
+        modBus.addListener(SoulsCombatHUD::registerPayloads);
+        modBus.addListener(SoulsCombatHUD::onConfigLoading);
 
         if (FTBTeamsCompat.LOADED) {
             FTBTeamsPartyListener.register();
@@ -37,9 +42,27 @@ public class SoulsCombatHUD
             IronsSpellsSpellCastListener.register();
         }
 
-        context.registerExtensionPoint(
-                IExtensionPoint.DisplayTest.class,
-                () -> new IExtensionPoint.DisplayTest(() -> "ANY", (remoteVersion, isServer) -> true)
-        );
+        if (EpicFightCompat.LOADED) {
+            EpicFightDodgeListener.register();
+        }
+    }
+
+    private static void registerPayloads(RegisterPayloadHandlersEvent event)
+    {
+        PayloadRegistrar registrar = event.registrar(NETWORK_VERSION).optional();
+        PartyNetwork.register(registrar);
+        BossNetwork.register(registrar);
+    }
+
+    public static ModConfig getServerConfig()
+    {
+        return serverConfig;
+    }
+
+    private static void onConfigLoading(ModConfigEvent.Loading event)
+    {
+        if (event.getConfig().getSpec() == SoulsCombatHUDConfig.SERVER_SPEC) {
+            serverConfig = event.getConfig();
+        }
     }
 }

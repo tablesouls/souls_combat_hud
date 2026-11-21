@@ -1,6 +1,6 @@
 package net.tablesouls.souls_combat_hud.compat.thirst_was_reclaimed;
 
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 public class ThirstWasReclaimedCompat {
     public static final String MODID = "thirst";

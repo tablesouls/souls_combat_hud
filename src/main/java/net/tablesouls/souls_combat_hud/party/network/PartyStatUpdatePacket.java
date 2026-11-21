@@ -1,8 +1,11 @@
 package net.tablesouls.souls_combat_hud.party.network;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkEvent;
 import net.tablesouls.souls_combat_hud.party.PartyEffectSnapshot;
 import net.tablesouls.souls_combat_hud.party.PartyStatType;
 import net.tablesouls.souls_combat_hud.party.client.PartyMemberClientCache;
@@ -10,9 +13,13 @@ import net.tablesouls.souls_combat_hud.party.client.PartyMemberClientCache;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Supplier;
 
-public class PartyStatUpdatePacket {
+public class PartyStatUpdatePacket implements CustomPacketPayload {
+    public static final Type<PartyStatUpdatePacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(SoulsCombatHUD.MODID, "party_stat_update"));
+    public static final StreamCodec<FriendlyByteBuf, PartyStatUpdatePacket> STREAM_CODEC =
+            StreamCodec.ofMember(PartyStatUpdatePacket::encode, PartyStatUpdatePacket::decode);
+
     private static final byte KIND_FLOAT = 0;
     private static final byte KIND_STRING = 1;
     private static final byte KIND_EFFECT_LIST = 2;
@@ -79,8 +86,7 @@ public class PartyStatUpdatePacket {
         return new PartyStatUpdatePacket(subject, type, value);
     }
 
-    public static void handle(PartyStatUpdatePacket packet, Supplier<NetworkEvent.Context> ctxSupplier) {
-        NetworkEvent.Context ctx = ctxSupplier.get();
+    public static void handle(PartyStatUpdatePacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (packet.value == null) {
                 PartyMemberClientCache.remove(packet.subject, packet.type);
@@ -88,6 +94,10 @@ public class PartyStatUpdatePacket {
                 PartyMemberClientCache.update(packet.subject, packet.type, packet.value);
             }
         });
-        ctx.setPacketHandled(true);
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

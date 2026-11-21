@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 
 public class RegexItemList {
     private final Supplier<List<? extends String>> configSupplier;
@@ -25,7 +25,7 @@ public class RegexItemList {
         if (compiled.isEmpty()) {
             return false;
         }
-        String id = ForgeRegistries.ITEMS.getKey(stack.getItem()).toString();
+        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         for (Pattern pattern : compiled) {
             if (pattern.matcher(id).matches()) {
                 return true;

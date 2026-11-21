@@ -10,8 +10,8 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.gui.LayeredDraw;
 import net.tablesouls.ts_ui_lib.client.util.TextAnchor;
 import net.tablesouls.ts_ui_lib.client.util.TextHelper;
 import net.tablesouls.ts_ui_lib.client.util.animation.FadeAnimator;
@@ -26,7 +26,7 @@ import net.tablesouls.souls_combat_hud.client.util.slots.ConsumableSlotManager;
 import net.tablesouls.souls_combat_hud.client.util.slots.WeaponSlotManager;
 import org.joml.Vector3f;
 
-public class EquipmentHudOverlay implements IGuiOverlay {
+public class EquipmentHudOverlay implements LayeredDraw.Layer {
 
     private static final ResourceLocation SLOT_ATLAS = ResourceLocation.fromNamespaceAndPath("souls_combat_hud", "textures/gui/equipment_slots.png");
     private static final int ATLAS_W = 128;
@@ -62,7 +62,9 @@ public class EquipmentHudOverlay implements IGuiOverlay {
     private final NameFadeState spellNameFade = new NameFadeState();
 
     @Override
-    public void render(ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight) {
+    public void render(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+        int screenWidth = guiGraphics.guiWidth();
+        int screenHeight = guiGraphics.guiHeight();
         if (!SoulsCombatHUDConfig.EQUIPMENT_HUD.enabled.get()) {
             return;
         }

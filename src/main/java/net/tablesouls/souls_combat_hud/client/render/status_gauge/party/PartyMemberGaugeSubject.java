@@ -9,7 +9,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.tablesouls.souls_combat_hud.accessor.IEffectDurationAccessor;
 import net.tablesouls.souls_combat_hud.client.render.status_gauge.GaugeSubject;
 import net.tablesouls.souls_combat_hud.config.ManaSourceMode;
@@ -55,7 +56,7 @@ public class PartyMemberGaugeSubject implements GaugeSubject {
     @Override
     public ResourceLocation getSkinTexture() {
         PlayerInfo info = playerInfo();
-        return info != null ? info.getSkinLocation() : null;
+        return info != null ? info.getSkin().texture() : null;
     }
 
     @Override
@@ -180,7 +181,7 @@ public class PartyMemberGaugeSubject implements GaugeSubject {
 
         List<MobEffectInstance> instances = new ArrayList<>(snapshots.size());
         for (PartyEffectSnapshot snapshot : snapshots) {
-            MobEffect effect = ForgeRegistries.MOB_EFFECTS.getValue(snapshot.effectId());
+            Holder<MobEffect> effect = BuiltInRegistries.MOB_EFFECT.getHolder(snapshot.effectId()).orElse(null);
             if (effect == null) continue;
 
             boolean infinite = snapshot.duration() < 0;

@@ -5,8 +5,8 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.gui.LayeredDraw;
 import net.tablesouls.souls_combat_hud.client.render.status_gauge.GaugeLayout;
 import net.tablesouls.souls_combat_hud.client.render.status_gauge.GaugeStyleRegistry;
 import net.tablesouls.souls_combat_hud.client.render.status_gauge.GaugeSubject;
@@ -20,7 +20,7 @@ import net.tablesouls.ts_ui_lib.client.util.ElementAnchor;
 
 import java.util.*;
 
-public class PartyGaugeOverlay implements IGuiOverlay {
+public class PartyGaugeOverlay implements LayeredDraw.Layer {
     private final Map<UUID, GaugeOverlay> slotsByPlayer = new HashMap<>();
     private final Map<UUID, PartyMemberGaugeSubject> subjectsByPlayer = new HashMap<>();
 
@@ -30,7 +30,9 @@ public class PartyGaugeOverlay implements IGuiOverlay {
     private static final int SLOT_HEIGHT = 40;
 
     @Override
-    public void render(ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight) {
+    public void render(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+        int screenWidth = guiGraphics.guiWidth();
+        int screenHeight = guiGraphics.guiHeight();
         Minecraft mc = Minecraft.getInstance();
         Font font = mc.font;
 

@@ -1,13 +1,20 @@
 package net.tablesouls.souls_combat_hud.party.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.resources.ResourceLocation;
+import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 import net.tablesouls.souls_combat_hud.party.client.PartyMemberClientCache;
 
-import java.util.function.Supplier;
+public class PartyFeatureHandshakePacket implements CustomPacketPayload {
+    public static final Type<PartyFeatureHandshakePacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(SoulsCombatHUD.MODID, "party_feature_handshake"));
+    public static final StreamCodec<FriendlyByteBuf, PartyFeatureHandshakePacket> STREAM_CODEC =
+            StreamCodec.ofMember(PartyFeatureHandshakePacket::encode, PartyFeatureHandshakePacket::decode);
 
-public class PartyFeatureHandshakePacket {
     private final boolean enabled;
 
     public PartyFeatureHandshakePacket(boolean enabled) {
@@ -22,8 +29,7 @@ public class PartyFeatureHandshakePacket {
         return new PartyFeatureHandshakePacket(buf.readBoolean());
     }
 
-    public static void handle(PartyFeatureHandshakePacket packet, Supplier<NetworkEvent.Context> ctxSupplier) {
-        NetworkEvent.Context ctx = ctxSupplier.get();
+    public static void handle(PartyFeatureHandshakePacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (packet.enabled) {
                 PartyNetwork.markServerSupportsParty();
@@ -33,6 +39,10 @@ public class PartyFeatureHandshakePacket {
                 PartyMemberClientCache.clearAll();
             }
         });
-        ctx.setPacketHandled(true);
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

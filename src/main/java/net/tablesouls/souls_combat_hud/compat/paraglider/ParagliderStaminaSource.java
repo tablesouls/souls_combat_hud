@@ -18,11 +18,11 @@ public class ParagliderStaminaSource implements ResourceSource<StaminaSourceMode
 
     @Override
     public float getCurrent(Player player) {
-        return Stamina.get(player).stamina();
+        return (float) Stamina.get(player).stamina();
     }
 
     @Override
     public float getMax(Player player) {
-        return Stamina.get(player).maxStamina();
+        return (float) Stamina.get(player).maxStamina();
     }
 }

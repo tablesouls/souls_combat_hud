@@ -1,21 +1,21 @@
 package net.tablesouls.souls_combat_hud.party.network;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
-import net.minecraftforge.event.entity.living.LivingHealEvent;
-import net.minecraftforge.event.entity.living.MobEffectEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
+import net.neoforged.neoforge.event.entity.living.LivingHealEvent;
+import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import net.tablesouls.souls_combat_hud.SoulsCombatHUD;
 import net.tablesouls.souls_combat_hud.compat.AbstractResourceSourceRegistry;
 import net.tablesouls.souls_combat_hud.compat.ManaSourceRegistry;
@@ -45,7 +45,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Mod.EventBusSubscriber(modid = SoulsCombatHUD.MODID)
+@EventBusSubscriber(modid = SoulsCombatHUD.MODID)
 public class PartyServerEvents {
     private static final Map<UUID, Set<UUID>> LAST_TEAMMATES = new HashMap<>();
     private static final Map<UUID, TeamSourceMode> LAST_TEAM_MODE = new HashMap<>();
@@ -76,10 +76,6 @@ public class PartyServerEvents {
         recomputeTrackersFor(player);
         resolveAndSyncResourceSources(player);
 
-        if (EpicFightCompat.LOADED) {
-            EpicFightDodgeListener.register(player);
-        }
-
         PartyNetwork.sendFeatureHandshake(player, partyTrackingEnabled());
     }
 
@@ -88,8 +84,7 @@ public class PartyServerEvents {
     }
 
     @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
+    public static void onServerTick(ServerTickEvent.Post event) {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null || server.getTickCount() % 100 != 0) return; // every 5 seconds
 
@@ -238,9 +233,9 @@ public class PartyServerEvents {
     }
 
     @SubscribeEvent
-    public static void onDamage(LivingDamageEvent event) {
+    public static void onDamage(LivingDamageEvent.Pre event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        pushHealth(player, Math.max(player.getHealth() - event.getAmount(), 0.0f));
+        pushHealth(player, Math.max(player.getHealth() - event.getNewDamage(), 0.0f));
     }
 
     @SubscribeEvent
@@ -281,7 +276,7 @@ public class PartyServerEvents {
     @SubscribeEvent
     public static void onEquipmentChange(LivingEquipmentChangeEvent event) {
         if (!SoulsCombatHUDConfig.SERVER_PERFORMANCE.updateOnEquipmentChange.get()) return;
-        if (event.getSlot().getType() != EquipmentSlot.Type.ARMOR) return; // ignore hand/offhand swaps
+        if (event.getSlot().getType() != EquipmentSlot.Type.HUMANOID_ARMOR) return; // ignore hand/offhand swaps
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         pushResourceMax(player);
     }
@@ -386,7 +381,7 @@ public class PartyServerEvents {
         List<PartyEffectSnapshot> snapshots = player.getActiveEffects().stream()
                 .filter(MobEffectInstance::showIcon)
                 .map(instance -> {
-                    ResourceLocation effectId = ForgeRegistries.MOB_EFFECTS.getKey(instance.getEffect());
+                    ResourceLocation effectId = BuiltInRegistries.MOB_EFFECT.getKey(instance.getEffect().value());
                     if (effectId == null) return null;
                     currentIds.add(effectId);
                     int duration = instance.getDuration();
@@ -409,9 +404,8 @@ public class PartyServerEvents {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.side != LogicalSide.SERVER || event.phase != TickEvent.Phase.END) return;
-        if (!(event.player instanceof ServerPlayer player)) return;
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
 
         UUID id = player.getUUID();
 

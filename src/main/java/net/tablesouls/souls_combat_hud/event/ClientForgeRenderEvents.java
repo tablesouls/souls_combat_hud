@@ -1,47 +1,47 @@
 package net.tablesouls.souls_combat_hud.event;
 
-import akkynaa.moreoffhandslots.MoreOffhandSlots;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.GameType;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.CustomizeGuiOverlayEvent;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.CustomizeGuiOverlayEvent;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.tablesouls.souls_combat_hud.client.util.BossBarState;
 import net.tablesouls.souls_combat_hud.compat.ars_nouveau.ArsNouveauCompat;
 import net.tablesouls.souls_combat_hud.compat.epicfight.EpicFightCompat;
 import net.tablesouls.souls_combat_hud.compat.helditemtooltips.HeldItemTooltipsCompat;
+import net.tablesouls.souls_combat_hud.compat.moreoffhandslots.MoreOffhandSlotsCompat;
 import net.tablesouls.souls_combat_hud.compat.thirst_was_reclaimed.ThirstWasReclaimedCompat;
 import net.tablesouls.souls_combat_hud.config.SoulsCombatHUDConfig;
 
-@Mod.EventBusSubscriber(modid = "souls_combat_hud", bus = Mod.EventBusSubscriber.Bus.FORGE, value = {Dist.CLIENT})
+@EventBusSubscriber(modid = "souls_combat_hud", value = {Dist.CLIENT})
 public class ClientForgeRenderEvents {
     private static final ResourceLocation WEAPON_INNATE_ID = ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MODID, "weapon_innate");
     private static final ResourceLocation STAMINA_BAR_ID = ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MODID, "stamina_bar");
-    private static final ResourceLocation OFFHAND_HUD_ID = ResourceLocation.fromNamespaceAndPath(MoreOffhandSlots.MODID, "offhand_hud");
+    private static final ResourceLocation OFFHAND_HUD_ID = ResourceLocation.fromNamespaceAndPath(MoreOffhandSlotsCompat.MODID, "offhand_hud");
     private static final ResourceLocation TWR_THIRST_OVERLAY_ID = ResourceLocation.fromNamespaceAndPath(ThirstWasReclaimedCompat.MODID, "thirst_level");
     private static final ResourceLocation ARS_NOUVEAU_MANA_HUD_ID = ResourceLocation.fromNamespaceAndPath(ArsNouveauCompat.MODID, "mana_hud");
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public static void onItemNameOffsetPre(RenderGuiOverlayEvent.Pre event) {
+    public static void onItemNameOffsetPre(RenderGuiLayerEvent.Pre event) {
         if (!HeldItemTooltipsCompat.LOADED) return;
         applyOverlayOffset(event);
     }
 
     @SubscribeEvent
-    public static void onRenderGuiOverlayPre(RenderGuiOverlayEvent.Pre event) {
-        ResourceLocation id = event.getOverlay().id();
+    public static void onRenderGuiOverlayPre(RenderGuiLayerEvent.Pre event) {
+        ResourceLocation id = event.getName();
 
-        if (id.equals(VanillaGuiOverlay.BOSS_EVENT_PROGRESS.id())) {
+        if (id.equals(VanillaGuiLayers.BOSS_OVERLAY)) {
             BossBarState.beginFrame();
         }
 
         if (SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hidePotionIcons.get()
-                && id.equals(VanillaGuiOverlay.POTION_ICONS.id())
+                && id.equals(VanillaGuiLayers.EFFECTS)
         ) {
             event.setCanceled(true);
             return;
@@ -93,10 +93,10 @@ public class ClientForgeRenderEvents {
         return SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.hidden.get();
     }
 
-    private static void applyOverlayOffset(RenderGuiOverlayEvent.Pre event) {
-        ResourceLocation id = event.getOverlay().id();
+    private static void applyOverlayOffset(RenderGuiLayerEvent.Pre event) {
+        ResourceLocation id = event.getName();
 
-        if (id.equals(VanillaGuiOverlay.ITEM_NAME.id())) {
+        if (id.equals(VanillaGuiLayers.SELECTED_ITEM_NAME)) {
             int y = getHudYOffset() - SoulsCombatHUDConfig.VISIBILITY.minecraftGui.itemName.y.get();
 
             event.getGuiGraphics().pose().pushPose();
@@ -107,7 +107,7 @@ public class ClientForgeRenderEvents {
             );
         }
 
-        if (id.equals(VanillaGuiOverlay.RECORD_OVERLAY.id())) {
+        if (id.equals(VanillaGuiLayers.OVERLAY_MESSAGE)) {
             event.getGuiGraphics().pose().pushPose();
             event.getGuiGraphics().pose().translate(
                     SoulsCombatHUDConfig.VISIBILITY.minecraftGui.recordOverlay.x.get(),
@@ -128,37 +128,37 @@ public class ClientForgeRenderEvents {
     private static SoulsCombatHUDConfig.Visibility.MinecraftGuiSetting.MinecraftHotbarSetting.MinecraftHotbarStatusSetting.MinecraftHotbarStatusBarSetting getStatusBarSetting(ResourceLocation id) {
         var status = SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status;
 
-        if (id.equals(VanillaGuiOverlay.PLAYER_HEALTH.id())) {
+        if (id.equals(VanillaGuiLayers.PLAYER_HEALTH)) {
             return status.healthLevel;
-        } else if (id.equals(VanillaGuiOverlay.ARMOR_LEVEL.id())) {
+        } else if (id.equals(VanillaGuiLayers.ARMOR_LEVEL)) {
             return status.armorLevel;
-        } else if (id.equals(VanillaGuiOverlay.FOOD_LEVEL.id())) {
+        } else if (id.equals(VanillaGuiLayers.FOOD_LEVEL)) {
             return status.foodLevel;
-        } else if (id.equals(VanillaGuiOverlay.AIR_LEVEL.id())) {
+        } else if (id.equals(VanillaGuiLayers.AIR_LEVEL)) {
             return status.airLevel;
-        } else if (id.equals(VanillaGuiOverlay.EXPERIENCE_BAR.id())) {
+        } else if (id.equals(VanillaGuiLayers.EXPERIENCE_BAR)) {
             return status.xpBar;
         }
         return null;
     }
 
-    private static void applyStatusOverlayOffset(ResourceLocation id, RenderGuiOverlayEvent.Pre event) {
+    private static void applyStatusOverlayOffset(ResourceLocation id, RenderGuiLayerEvent.Pre event) {
         int x = SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.x.get();
         int y = SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.y.get();
 
-        if (id.equals(VanillaGuiOverlay.PLAYER_HEALTH.id())) {
+        if (id.equals(VanillaGuiLayers.PLAYER_HEALTH)) {
             x += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.healthLevel.x.get();
             y += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.healthLevel.y.get();
-        } else if (id.equals(VanillaGuiOverlay.ARMOR_LEVEL.id())) {
+        } else if (id.equals(VanillaGuiLayers.ARMOR_LEVEL)) {
             x += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.armorLevel.x.get();
             y += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.armorLevel.y.get();
-        } else if (id.equals(VanillaGuiOverlay.FOOD_LEVEL.id())) {
+        } else if (id.equals(VanillaGuiLayers.FOOD_LEVEL)) {
             x += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.foodLevel.x.get();
             y += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.foodLevel.y.get();
-        } else if (id.equals(VanillaGuiOverlay.AIR_LEVEL.id())) {
+        } else if (id.equals(VanillaGuiLayers.AIR_LEVEL)) {
             x += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.airLevel.x.get();
             y += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.airLevel.y.get();
-        } else if (id.equals(VanillaGuiOverlay.EXPERIENCE_BAR.id())) {
+        } else if (id.equals(VanillaGuiLayers.EXPERIENCE_BAR)) {
             x += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.xpBar.x.get();
             y += SoulsCombatHUDConfig.VISIBILITY.minecraftGui.hotbar.status.xpBar.y.get();
         }
@@ -168,13 +168,13 @@ public class ClientForgeRenderEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
-    public static void onGuiOffsetPop(RenderGuiOverlayEvent.Pre event) {
+    public static void onGuiOffsetPop(RenderGuiLayerEvent.Pre event) {
         if (!HeldItemTooltipsCompat.LOADED) return;
         if (!event.isCanceled()) return;
 
-        ResourceLocation id = event.getOverlay().id();
-        if (id.equals(VanillaGuiOverlay.ITEM_NAME.id())
-                || id.equals(VanillaGuiOverlay.RECORD_OVERLAY.id())
+        ResourceLocation id = event.getName();
+        if (id.equals(VanillaGuiLayers.SELECTED_ITEM_NAME)
+                || id.equals(VanillaGuiLayers.OVERLAY_MESSAGE)
                 || isStatusBarOverlay(id)
         ) {
             event.getGuiGraphics().pose().popPose();
@@ -190,12 +190,11 @@ public class ClientForgeRenderEvents {
     }
 
     @SubscribeEvent
-    public static void onRenderGuiOverlayEventPost (RenderGuiOverlayEvent.Post event) {
-        if (event.isCanceled()) return;
-        ResourceLocation id = event.getOverlay().id();
+    public static void onRenderGuiOverlayEventPost (RenderGuiLayerEvent.Post event) {
+        ResourceLocation id = event.getName();
 
-        if (id.equals(VanillaGuiOverlay.ITEM_NAME.id())
-                || id.equals(VanillaGuiOverlay.RECORD_OVERLAY.id())
+        if (id.equals(VanillaGuiLayers.SELECTED_ITEM_NAME)
+                || id.equals(VanillaGuiLayers.OVERLAY_MESSAGE)
                 || isStatusBarOverlay(id)
         ) {
             event.getGuiGraphics().pose().popPose();
